@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/HelloVoxel.dir/link.d CMakeFiles/HelloVoxel.dir/src/app.cpp.o CMakeFiles/HelloVoxel.dir/src/main.cpp.o -o HelloVoxel  -Wl,-rpath,/usr/local/lib /usr/local/lib/libSDL3.so.0.4.0

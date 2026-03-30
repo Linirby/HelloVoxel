@@ -37,6 +37,7 @@ public:
 private:
 	SDL_Window *window = nullptr;
 	SDL_GPUDevice *device = nullptr;
+	SDL_GPUTexture *depth_texture = nullptr;
 	SDL_GPUBuffer *vertex_buffer = nullptr;
 	SDL_GPUBuffer *index_buffer = nullptr;
 	SDL_GPUShader *vertex_shader = nullptr;
@@ -47,11 +48,12 @@ private:
 
 	void init_window();
 	void init_device();
+	void init_textures();
 	void init_buffers();
 	void init_shaders();
 	void init_graphics_pipeline();
 
-	void handle_events(SDL_Event event);
+	void handle_events();
 	void update(float dt);
 	void render();
 	
