@@ -6,7 +6,7 @@
 
 namespace lili {
 
-struct NormalVoxel {
+struct Voxel {
 	Vec3 position;
 	Vec3 size;
 	Vertex vertices[8] = {

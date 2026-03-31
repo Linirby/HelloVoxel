@@ -88,6 +88,7 @@ void App::run() {
 
 void App::init_shapes() {
 	voxel = { { -0.5f, -0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f } };
+	vox_rotation = 0.0f;
 }
 
 void App::init_window() {
@@ -290,11 +291,18 @@ void App::handle_events() {
 }
 
 void App::update(float dt) {
-	(void)dt;
+	vox_rotation += 90.0f * dt;
+	if (vox_rotation >= 360.0f || vox_rotation < 0) {
+		vox_rotation = 0;
+	}
 }
 
 void App::render() {
 	lili::Mat4 model = lili::Mat4::identity();
+	lili::Mat4 rotation = lili::Mat4::rotation_y(
+		(float)vox_rotation*3.14f/180.0f
+	);
+	model = rotation;
 	lili::Mat4 view = lili::Mat4::look_at(
 		{ 1.5f, 1.0f, 1.5f },  // eye
 		{ 0.0f, 0.0f, 0.0f },  // center

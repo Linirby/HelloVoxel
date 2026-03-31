@@ -32,7 +32,8 @@ public:
 	void run();
 
 private:
-	lili::NormalVoxel voxel;
+	lili::Voxel voxel;
+	float vox_rotation;
 
 	SDL_Window *window = nullptr;
 	SDL_GPUDevice *device = nullptr;
