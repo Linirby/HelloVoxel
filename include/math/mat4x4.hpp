@@ -6,11 +6,11 @@
 
 namespace lili {
 
-struct mat4 {
+struct Mat4 {
 	float m[16] = { 0.0f };
 
-	mat4 operator*(const mat4 &other) const {
-		mat4 result;
+	Mat4 operator*(const Mat4 &other) const {
+		Mat4 result;
 		
 		for (int col = 0; col < 4; ++col) {
 			for (int row = 0; row < 4; ++row) {
@@ -25,8 +25,8 @@ struct mat4 {
 		return result;
 	}
 
-	static mat4 identity() {
-		mat4 result;
+	static Mat4 identity() {
+		Mat4 result;
 
 		result.m[0] = 1.0f;
 		result.m[5] = 1.0f;
@@ -35,11 +35,11 @@ struct mat4 {
 		return result;
 	}
 
-	static mat4 look_at(const vec3 &eye, const vec3 &center, const vec3 up) {
-		vec3 f = (center - eye).normalized();
-		vec3 s = f.cross(up).normalized();
-		vec3 u = s.cross(f);
-		mat4 result;
+	static Mat4 look_at(const Vec3 &eye, const Vec3 &center, const Vec3 up) {
+		Vec3 f = (center - eye).normalized();
+		Vec3 s = f.cross(up).normalized();
+		Vec3 u = s.cross(f);
+		Mat4 result;
 		// X axis
 		result.m[0] = s.x;
 		result.m[1] = u.x;
@@ -60,10 +60,10 @@ struct mat4 {
 		return result;
 	}
 
-	static mat4 perspective(
+	static Mat4 perspective(
 		float fovy_rad, float aspect, float near, float far
 	) {
-		mat4 result;
+		Mat4 result;
 
 		float tan_half_fovy = std::tan(fovy_rad * 0.5f);
 		result.m[0] = 1.0f / (aspect * tan_half_fovy);

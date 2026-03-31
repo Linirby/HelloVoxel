@@ -1,7 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+
 #include "app.hpp"
+#include "geometry.hpp"
 #include "math/mat4x4.hpp"
 
 namespace Utils {
@@ -64,6 +66,7 @@ void transfer_buffer_to_gpu(
 //
 
 void App::run() {
+	init_shapes();
 	init_window();
 	std::cout << "Window successfully initialized!" << '\n';
 	init_device();
@@ -84,12 +87,16 @@ void App::run() {
 //	Private API
 //
 
+void App::init_shapes() {
+	voxel = { { -0.5f, -0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f } };
+}
+
 void App::init_window() {
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
 		throw std::runtime_error("Failed to initialize SDL!");
 	}
 	window = SDL_CreateWindow(
-		"HelloTriangle - SDL_GPU", WIN_WIDTH, WIN_HEIGHT, 0
+		"HelloVoxel", WIN_WIDTH, WIN_HEIGHT, 0
 	);
 	if (!window) {
 		throw std::runtime_error("Failed to create SDL_Window!");
@@ -126,18 +133,18 @@ void App::init_textures() {
 }
 
 void App::init_buffers() {
-	Vertex voxel_vertices[8] = {
-		{ -0.5f,  0.5f, 0.5f,  1.0f, 0.0f, 0.0f, 1.0f },
-		{  0.5f,  0.5f, 0.5f,  0.0f, 1.0f, 0.0f, 1.0f },
-		{  0.5f, -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, 1.0f },
-		{ -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, 0.0f, 1.0f },
-
-		{ -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f, 1.0f },
-		{  0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f, 1.0f },
-		{  0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 1.0f, 1.0f }, 
-		{ -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f, 1.0f }
-	};
-	uint32_t vertices_buffer_size = sizeof(voxel_vertices);
+	// lili::Vertex voxel_vertices[8] = {
+	// 	{ -0.5f,  0.5f, 0.5f,  1.0f, 0.0f, 0.0f, 1.0f },
+	// 	{  0.5f,  0.5f, 0.5f,  0.0f, 1.0f, 0.0f, 1.0f },
+	// 	{  0.5f, -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, 1.0f },
+	// 	{ -0.5f, -0.5f, 0.5f,  1.0f, 1.0f, 0.0f, 1.0f },
+	//
+	// 	{ -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f, 1.0f },
+	// 	{  0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f, 1.0f },
+	// 	{  0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 1.0f, 1.0f }, 
+	// 	{ -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f, 1.0f }
+	// };
+	uint32_t vertices_buffer_size = sizeof(voxel.vertices);
 	SDL_GPUBufferCreateInfo vertices_buffer_create_info{
 		.usage = SDL_GPU_BUFFERUSAGE_VERTEX,
 		.size = vertices_buffer_size,
@@ -145,17 +152,17 @@ void App::init_buffers() {
 	};
 	vertex_buffer = SDL_CreateGPUBuffer(device, &vertices_buffer_create_info);
 	Utils::transfer_buffer_to_gpu(
-		device, voxel_vertices, vertex_buffer, vertices_buffer_size
+		device, voxel.vertices, vertex_buffer, vertices_buffer_size
 	);
-	uint16_t voxel_indices[36] = {
-		0, 1, 2,  2, 3, 0,
-		1, 5, 6,  6, 2, 1,
-		5, 4, 7,  7, 6, 5,
-		4, 0, 3,  3, 7, 4,
-		4, 5, 1,  1, 0, 4,
-		3, 2, 6,  6, 7, 3
-	};
-	uint32_t indices_buffer_size = sizeof(voxel_indices);
+	// uint16_t voxel_indices[36] = {
+	// 	0, 1, 2,  2, 3, 0,
+	// 	1, 5, 6,  6, 2, 1,
+	// 	5, 4, 7,  7, 6, 5,
+	// 	4, 0, 3,  3, 7, 4,
+	// 	4, 5, 1,  1, 0, 4,
+	// 	3, 2, 6,  6, 7, 3
+	// };
+	uint32_t indices_buffer_size = sizeof(voxel.indices);
 	SDL_GPUBufferCreateInfo indices_buffer_create_info{
 		.usage = SDL_GPU_BUFFERUSAGE_INDEX,
 		.size = indices_buffer_size,
@@ -163,7 +170,7 @@ void App::init_buffers() {
 	};
 	index_buffer = SDL_CreateGPUBuffer(device, &indices_buffer_create_info);
 	Utils::transfer_buffer_to_gpu(
-		device, voxel_indices, index_buffer, indices_buffer_size
+		device, voxel.indices, index_buffer, indices_buffer_size
 	);
 }
 
@@ -306,19 +313,19 @@ void App::update(float dt) {
 }
 
 void App::render() {
-	lili::mat4 model = lili::mat4::identity();
-	lili::mat4 view = lili::mat4::look_at(
+	lili::Mat4 model = lili::Mat4::identity();
+	lili::Mat4 view = lili::Mat4::look_at(
 		{ 3.0f, 1.0f, 3.0f },  // eye
 		{ 0.0f, 0.0f, 0.0f },  // center
 		{ 0.0f, 1.0f, 0.0f }   // up
 	);
-	lili::mat4 proj = lili::mat4::perspective(
+	lili::Mat4 proj = lili::Mat4::perspective(
 		0.523599f,                             // FOV Y (in rad)
 		(float)WIN_WIDTH / (float)WIN_HEIGHT,  // aspect ratio
 		0.1f,                                  // near distance unit
 		100.0f                                 // far distance unit
 	);
-	lili::mat4 mvp = proj * view * model;
+	lili::Mat4 mvp = proj * view * model;
 	SDL_GPUCommandBuffer *cmd_buffer = SDL_AcquireGPUCommandBuffer(device);
 	if (!cmd_buffer) {
 		throw std::runtime_error("Failed to acquire command buffer!");
@@ -339,7 +346,7 @@ void App::render() {
 		SDL_SubmitGPUCommandBuffer(cmd_buffer);
 		return;
 	}
-	SDL_PushGPUVertexUniformData(cmd_buffer, 0, &mvp, sizeof(lili::mat4));
+	SDL_PushGPUVertexUniformData(cmd_buffer, 0, &mvp, sizeof(lili::Mat4));
 	SDL_GPUColorTargetInfo color_target_info{
 		.texture = swapchain_texture,
 		.clear_color = SDL_FColor{ 0.1f, 0.1f, 0.1f, 1.0f },

@@ -5,17 +5,14 @@
 # include <vector>
 # include <SDL3/SDL.h>
 
+# include "geometry.hpp"
+
 const int WIN_WIDTH = 1280;
 const int WIN_HEIGHT = 720;
 
 struct CodeInfo {
 	size_t size;
 	std::vector<char> buffer;
-};
-
-struct Vertex {
-	float x, y, z;  // (location 0)
-	float r, g, b, a;  // (location 1)
 };
 
 namespace Utils {
@@ -35,6 +32,8 @@ public:
 	void run();
 
 private:
+	lili::NormalVoxel voxel;
+
 	SDL_Window *window = nullptr;
 	SDL_GPUDevice *device = nullptr;
 	SDL_GPUTexture *depth_texture = nullptr;
@@ -46,6 +45,7 @@ private:
 
 	bool is_running = false;
 
+	void init_shapes();
 	void init_window();
 	void init_device();
 	void init_textures();
