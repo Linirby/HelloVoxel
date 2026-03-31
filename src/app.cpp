@@ -3,7 +3,6 @@
 #include <cstring>
 
 #include "app.hpp"
-#include "geometry.hpp"
 #include "math/mat4x4.hpp"
 
 namespace Utils {
@@ -133,17 +132,6 @@ void App::init_textures() {
 }
 
 void App::init_buffers() {
-	// lili::Vertex voxel_vertices[8] = {
-	// 	{ -0.5f,  0.5f, 0.5f,  1.0f, 0.0f, 0.0f, 1.0f },
-	// 	{  0.5f,  0.5f, 0.5f,  0.0f, 1.0f, 0.0f, 1.0f },
-	// 	{  0.5f, -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, 1.0f },
-	// 	{ -0.5f, -0.5f, 0.5f,  1.0f, 1.0f, 0.0f, 1.0f },
-	//
-	// 	{ -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f, 1.0f },
-	// 	{  0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 1.0f, 1.0f },
-	// 	{  0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 1.0f, 1.0f }, 
-	// 	{ -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f, 1.0f }
-	// };
 	uint32_t vertices_buffer_size = sizeof(voxel.vertices);
 	SDL_GPUBufferCreateInfo vertices_buffer_create_info{
 		.usage = SDL_GPU_BUFFERUSAGE_VERTEX,
@@ -154,14 +142,7 @@ void App::init_buffers() {
 	Utils::transfer_buffer_to_gpu(
 		device, voxel.vertices, vertex_buffer, vertices_buffer_size
 	);
-	// uint16_t voxel_indices[36] = {
-	// 	0, 1, 2,  2, 3, 0,
-	// 	1, 5, 6,  6, 2, 1,
-	// 	5, 4, 7,  7, 6, 5,
-	// 	4, 0, 3,  3, 7, 4,
-	// 	4, 5, 1,  1, 0, 4,
-	// 	3, 2, 6,  6, 7, 3
-	// };
+
 	uint32_t indices_buffer_size = sizeof(voxel.indices);
 	SDL_GPUBufferCreateInfo indices_buffer_create_info{
 		.usage = SDL_GPU_BUFFERUSAGE_INDEX,
@@ -315,12 +296,12 @@ void App::update(float dt) {
 void App::render() {
 	lili::Mat4 model = lili::Mat4::identity();
 	lili::Mat4 view = lili::Mat4::look_at(
-		{ 3.0f, 1.0f, 3.0f },  // eye
+		{ 1.5f, 1.0f, 1.5f },  // eye
 		{ 0.0f, 0.0f, 0.0f },  // center
 		{ 0.0f, 1.0f, 0.0f }   // up
 	);
 	lili::Mat4 proj = lili::Mat4::perspective(
-		0.523599f,                             // FOV Y (in rad)
+		70.0f*3.14f/180.0f,                    // FOV Y (in rad)
 		(float)WIN_WIDTH / (float)WIN_HEIGHT,  // aspect ratio
 		0.1f,                                  // near distance unit
 		100.0f                                 // far distance unit
@@ -368,7 +349,6 @@ void App::render() {
 		&color_target_info,
 		1,
 		&depth_target_info
-		// nullptr
 	);
 	SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
 	SDL_GPUBufferBinding vertex_binding{

@@ -5,7 +5,7 @@
 # include <vector>
 # include <SDL3/SDL.h>
 
-# include "geometry.hpp"
+# include "geometry/voxel.hpp"
 
 const int WIN_WIDTH = 1280;
 const int WIN_HEIGHT = 720;

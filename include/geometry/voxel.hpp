@@ -1,14 +1,10 @@
-#ifndef GEOMETRY_HPP
-# define GEOMETRY_HPP
+#ifndef GEOMETRY_VOXEL_HPP
+# define GEOMETRY_VOXEL_HPP
 
 # include "math/vec3.hpp"
+# include "geometry/core.hpp"
 
 namespace lili {
-
-struct Vertex {
-	float x, y, z;  // (location 0)
-	float r, g, b, a;  // (location 1)
-};
 
 struct NormalVoxel {
 	Vec3 position;
@@ -73,6 +69,6 @@ struct NormalVoxel {
 	};
 };
 
-} // namespace lili
+}  // namespace lili
 
-#endif
+#endif  // GEOMETRY_VOXEL_HPP
