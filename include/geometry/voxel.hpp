@@ -9,55 +9,41 @@ namespace lili {
 struct Voxel {
 	Vec3 position;
 	Vec3 size;
-	Vertex vertices[8] = {
+	Vertex vertices[24] = {
+		// FRONT FACE (Z positive)
 		{
-			position.x,
-			-position.y,
-			position.z,
-			1.0f, 0.0f, 0.0f, 1.0f
+			position.x, position.y, position.z,
+			0.0f, 0.0f
 		},
 		{
-			position.x + size.x,
-			-position.y,
-			position.z,
-			0.0f, 1.0f, 0.0f, 1.0f
+			position.x + size.x, position.y, position.z,
+			1.0f, 0.0f
 		},
 		{
-			position.x + size.x,
-			-(position.y + size.y),
-			position.z,
-			0.0f, 0.0f, 1.0f, 1.0f
+			position.x + size.x, position.y - size.y, position.z,
+			1.0f, 1.0f
 		},
 		{
-			position.x,
-			-(position.y + size.x),
-			position.z,
-			1.0f, 1.0f, 0.0f, 1.0f
+			position.x, position.y - size.x, position.z,
+			0.0f, 1.0f
+		},
+		// BACK FACE (Z negative)
+		{
+			position.x + size.x, position.y, position.z,
+			0.0f, 0.0f
 		},
 		{
-			position.x,
-			-position.y,
-			position.z - size.z,
-			1.0f, 0.0f, 1.0f, 1.0f
+			position.x, position.y, position.z,
+			1.0f, 0.0f
 		},
 		{
-			position.x + size.x,
-			-position.y,
-			position.z - size.z,
-			0.0f, 1.0f, 1.0f, 1.0f
+			position.x, position.y - size.y, position.z,
+			1.0f, 1.0f
 		},
 		{
-			position.x + size.x,
-			-(position.y + size.y),
-			position.z - size.z,
-			1.0f, 1.0f, 1.0f, 1.0f
+			position.x + size.x, position.y - size.x, position.z,
+			0.0f, 1.0f
 		},
-		{
-			position.x,
-			-(position.y + size.x),
-			position.z - size.z,
-			0.0f, 0.0f, 0.0f, 1.0f
-		}
 	};
 	uint16_t indices[36] = {
 		0, 1, 2,  2, 3, 0,

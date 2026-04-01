@@ -66,6 +66,7 @@ void transfer_buffer_to_gpu(
 
 void App::run() {
 	init_shapes();
+	std::cout << "Shapes successfully initialized!" << '\n';
 	init_window();
 	std::cout << "Window successfully initialized!" << '\n';
 	init_device();
@@ -87,7 +88,7 @@ void App::run() {
 //
 
 void App::init_shapes() {
-	voxel = { { -0.5f, -0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f } };
+	voxel = { { -0.5f, 0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f } };
 	vox_rotation = 0.0f;
 }
 
@@ -291,7 +292,7 @@ void App::handle_events() {
 }
 
 void App::update(float dt) {
-	vox_rotation += 90.0f * dt;
+	vox_rotation += 45.0f * dt;
 	if (vox_rotation >= 360.0f || vox_rotation < 0) {
 		vox_rotation = 0;
 	}
