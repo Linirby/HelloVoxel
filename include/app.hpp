@@ -24,6 +24,9 @@ void transfer_buffer_to_gpu(
 	SDL_GPUBuffer *buffer,
 	uint32_t buffer_size
 );
+void load_img_to_gpu_texture(
+	SDL_GPUDevice *device, SDL_GPUTexture **texture, std::string filename
+);
 
 };
 
@@ -38,6 +41,8 @@ private:
 	SDL_Window *window = nullptr;
 	SDL_GPUDevice *device = nullptr;
 	SDL_GPUTexture *depth_texture = nullptr;
+	SDL_GPUTexture *voxel_texture = nullptr;
+	SDL_GPUSampler *texture_sampler = nullptr;
 	SDL_GPUBuffer *vertex_buffer = nullptr;
 	SDL_GPUBuffer *index_buffer = nullptr;
 	SDL_GPUShader *vertex_shader = nullptr;

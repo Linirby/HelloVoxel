@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <SDL3_image/SDL_image.h>
 
 #include "app.hpp"
 #include "math/mat4x4.hpp"
@@ -28,18 +29,18 @@ void transfer_buffer_to_gpu(
 	SDL_GPUDevice *device,
 	void *data,
 	SDL_GPUBuffer *buffer,
-	uint32_t buffer_size
+	uint32_t data_size
 ) {
-	SDL_GPUTransferBufferCreateInfo vertices_transfer_buffer_create_info{
+	SDL_GPUTransferBufferCreateInfo transfer_buffer_info{
 		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-		.size = buffer_size,
+		.size = data_size,
 		.props = 0
 	};
 	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(
-		device, &vertices_transfer_buffer_create_info
+		device, &transfer_buffer_info
 	);
 	void *map = SDL_MapGPUTransferBuffer(device, transfer_buffer, false);
-	std::memcpy(map, data, buffer_size);
+	std::memcpy(map, data, data_size);
 	SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
 	SDL_GPUCommandBuffer *upload_cmd = SDL_AcquireGPUCommandBuffer(device);
 	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(upload_cmd);
@@ -50,12 +51,66 @@ void transfer_buffer_to_gpu(
 	SDL_GPUBufferRegion dst{
 		.buffer = buffer,
 		.offset = 0,
-		.size = buffer_size
+		.size = data_size
 	};
 	SDL_UploadToGPUBuffer(copy_pass, &src, &dst, false);
 	SDL_EndGPUCopyPass(copy_pass);
 	SDL_SubmitGPUCommandBuffer(upload_cmd);
 	SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+}
+
+void load_img_to_gpu_texture(
+	SDL_GPUDevice *device, SDL_GPUTexture **texture, std::string filename
+) {
+	SDL_Surface *temp_surface = IMG_Load(filename.c_str());
+	if (!temp_surface) {
+		throw std::runtime_error("Failed to load image " + filename);
+	}
+	SDL_Surface *surface = SDL_ConvertSurface(
+		temp_surface, SDL_PIXELFORMAT_ABGR8888
+	);
+	SDL_DestroySurface(temp_surface);
+	SDL_GPUTextureCreateInfo texture_create_info{
+		.type = SDL_GPU_TEXTURETYPE_2D,
+		.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+		.width = static_cast<uint32_t>(surface->w),
+		.height = static_cast<uint32_t>(surface->h),
+		.layer_count_or_depth = 1,
+		.num_levels = 1,
+		.sample_count = SDL_GPU_SAMPLECOUNT_1,
+		.props = 0
+	};
+	*texture = SDL_CreateGPUTexture(device, &texture_create_info);
+	uint32_t image_size = surface->w * surface->h * 4;
+	SDL_GPUTransferBufferCreateInfo transfer_buffer_info{
+		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+		.size = image_size,
+		.props = 0
+	};
+	SDL_GPUTransferBuffer *transfer_buffer = SDL_CreateGPUTransferBuffer(
+		device, &transfer_buffer_info
+	);
+	void *map = SDL_MapGPUTransferBuffer(device, transfer_buffer, false);
+	std::memcpy(map, surface->pixels, image_size);
+	SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
+	SDL_GPUCommandBuffer *cmd = SDL_AcquireGPUCommandBuffer(device);
+	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(cmd);
+	SDL_GPUTextureTransferInfo src{
+		.transfer_buffer = transfer_buffer,
+		.offset = 0
+	};
+	SDL_GPUTextureRegion dst{
+		.texture = *texture,
+		.w = static_cast<uint32_t>(surface->w),
+		.h = static_cast<uint32_t>(surface->h),
+		.d = 1
+	};
+	SDL_UploadToGPUTexture(copy_pass, &src, &dst, false);
+	SDL_EndGPUCopyPass(copy_pass);
+	SDL_SubmitGPUCommandBuffer(cmd);
+	SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+	SDL_DestroySurface(surface);
 }
 
 } // namespace Utils
@@ -131,6 +186,17 @@ void App::init_textures() {
 	if (!depth_texture) {
 		throw std::runtime_error("Failed to create depth texture!");
 	}
+	Utils::load_img_to_gpu_texture(device, &voxel_texture, "assets/cube.png");
+	SDL_GPUSamplerCreateInfo sampler_info{
+		.min_filter = SDL_GPU_FILTER_LINEAR,
+		.mag_filter = SDL_GPU_FILTER_LINEAR,
+		.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
+		.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+		.props = 0
+	};
+	texture_sampler = SDL_CreateGPUSampler(device, &sampler_info);
 }
 
 void App::init_buffers() {
@@ -187,7 +253,7 @@ void App::init_shaders() {
 		.entrypoint = "main",
 		.format = SDL_GPU_SHADERFORMAT_SPIRV,
 		.stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-		.num_samplers = 0,
+		.num_samplers = 1,
 		.num_storage_textures = 0,
 		.num_storage_buffers = 0,
 		.num_uniform_buffers = 0,
@@ -202,7 +268,7 @@ void App::init_shaders() {
 void App::init_graphics_pipeline() {
 	SDL_GPUVertexBufferDescription vertex_buffer_desc{
 		.slot = 0,
-		.pitch = sizeof(float) * 7,
+		.pitch = sizeof(float) * 5,
 		.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
 		.instance_step_rate = 0
 	};
@@ -216,7 +282,7 @@ void App::init_graphics_pipeline() {
 		(SDL_GPUVertexAttribute){
 			.location = 1,
 			.buffer_slot = 0,
-			.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
+			.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
 			.offset = sizeof(float) * 3
 		}
 	};
@@ -372,6 +438,11 @@ void App::render() {
 	SDL_BindGPUIndexBuffer(
 		render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT
 	);
+	SDL_GPUTextureSamplerBinding texture_sampler_binding{
+		.texture = voxel_texture,
+		.sampler = texture_sampler
+	};
+	SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
 	SDL_DrawGPUIndexedPrimitives(render_pass, 36, 1, 0, 0, 0);
 	SDL_EndGPURenderPass(render_pass);
 	SDL_SubmitGPUCommandBuffer(cmd_buffer);
@@ -397,6 +468,8 @@ void App::cleanup() {
 	if (vertex_shader) SDL_ReleaseGPUShader(device, vertex_shader);
 	if (index_buffer) SDL_ReleaseGPUBuffer(device, index_buffer);
 	if (vertex_buffer) SDL_ReleaseGPUBuffer(device, vertex_buffer);
+	if (texture_sampler) SDL_ReleaseGPUSampler(device, texture_sampler);
+	if (voxel_texture) SDL_ReleaseGPUTexture(device, voxel_texture);
 	if (depth_texture) SDL_ReleaseGPUTexture(device, depth_texture);
 	if (device) SDL_DestroyGPUDevice(device);
 	if (window) SDL_DestroyWindow(window);
