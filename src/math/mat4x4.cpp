@@ -69,6 +69,15 @@ Mat4 Mat4::perspective(
 	return result;
 }
 
+Mat4 Mat4::translate(const Vec3 &pos) {
+	Mat4 result = Mat4::identity();
+
+	result.m[12] = pos.x;
+	result.m[13] = pos.y;
+	result.m[14] = pos.z;
+	return result;
+}
+
 Mat4 Mat4::rotation_x(float radians) {
 	Mat4 result;
 	float c = std::cos(radians);

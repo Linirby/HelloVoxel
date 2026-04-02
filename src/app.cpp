@@ -143,7 +143,7 @@ void App::run() {
 //
 
 void App::init_shapes() {
-	voxel = { { -0.5f, 0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f } };
+	atlas_voxel = { { -0.5f, 0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f } };
 	vox_rotation = 0.0f;
 }
 
@@ -186,11 +186,13 @@ void App::init_textures() {
 	if (!depth_texture) {
 		throw std::runtime_error("Failed to create depth texture!");
 	}
-	Utils::load_img_to_gpu_texture(device, &voxel_texture, "assets/cube.png");
+	Utils::load_img_to_gpu_texture(
+		device, &atlas_voxel_texture, "assets/cube_atlas.png"
+	);
 	SDL_GPUSamplerCreateInfo sampler_info{
-		.min_filter = SDL_GPU_FILTER_LINEAR,
-		.mag_filter = SDL_GPU_FILTER_LINEAR,
-		.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
+		.min_filter = SDL_GPU_FILTER_NEAREST,
+		.mag_filter = SDL_GPU_FILTER_NEAREST,
+		.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
 		.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
 		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
 		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
@@ -200,26 +202,25 @@ void App::init_textures() {
 }
 
 void App::init_buffers() {
-	uint32_t vertices_buffer_size = sizeof(voxel.vertices);
-	SDL_GPUBufferCreateInfo vertices_buffer_create_info{
+	uint32_t vertices_buffer_size = sizeof(atlas_voxel.vertices);
+	SDL_GPUBufferCreateInfo vertices_buffer_create_info = {
 		.usage = SDL_GPU_BUFFERUSAGE_VERTEX,
 		.size = vertices_buffer_size,
 		.props = 0
 	};
 	vertex_buffer = SDL_CreateGPUBuffer(device, &vertices_buffer_create_info);
 	Utils::transfer_buffer_to_gpu(
-		device, voxel.vertices, vertex_buffer, vertices_buffer_size
+		device, atlas_voxel.vertices, vertex_buffer, vertices_buffer_size
 	);
-
-	uint32_t indices_buffer_size = sizeof(voxel.indices);
-	SDL_GPUBufferCreateInfo indices_buffer_create_info{
+	uint32_t indices_buffer_size = sizeof(atlas_voxel.indices);
+	SDL_GPUBufferCreateInfo indices_buffer_create_info = {
 		.usage = SDL_GPU_BUFFERUSAGE_INDEX,
 		.size = indices_buffer_size,
 		.props = 0
 	};
 	index_buffer = SDL_CreateGPUBuffer(device, &indices_buffer_create_info);
 	Utils::transfer_buffer_to_gpu(
-		device, voxel.indices, index_buffer, indices_buffer_size
+		device, atlas_voxel.indices, index_buffer, indices_buffer_size
 	);
 }
 
@@ -365,13 +366,13 @@ void App::update(float dt) {
 }
 
 void App::render() {
-	lili::Mat4 model = lili::Mat4::identity();
-	lili::Mat4 rotation = lili::Mat4::rotation_y(
+	lili::Mat4 translation = lili::Mat4::translate({ 0.0f, 0.0f, 0.0f });
+	lili::Mat4 rotation_y = lili::Mat4::rotation_y(
 		(float)vox_rotation*3.14f/180.0f
 	);
-	model = rotation;
+	lili::Mat4 model = translation * rotation_y;
 	lili::Mat4 view = lili::Mat4::look_at(
-		{ 1.5f, 1.0f, 1.5f },  // eye
+		{ 0.0f, 1.0f, 3.0f },  // eye
 		{ 0.0f, 0.0f, 0.0f },  // center
 		{ 0.0f, 1.0f, 0.0f }   // up
 	);
@@ -438,11 +439,13 @@ void App::render() {
 	SDL_BindGPUIndexBuffer(
 		render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT
 	);
-	SDL_GPUTextureSamplerBinding texture_sampler_binding{
-		.texture = voxel_texture,
+	SDL_GPUTextureSamplerBinding atlas_texture_sampler_binding{
+		.texture = atlas_voxel_texture,
 		.sampler = texture_sampler
 	};
-	SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
+	SDL_BindGPUFragmentSamplers(
+		render_pass, 0, &atlas_texture_sampler_binding, 1
+	);
 	SDL_DrawGPUIndexedPrimitives(render_pass, 36, 1, 0, 0, 0);
 	SDL_EndGPURenderPass(render_pass);
 	SDL_SubmitGPUCommandBuffer(cmd_buffer);
@@ -469,7 +472,7 @@ void App::cleanup() {
 	if (index_buffer) SDL_ReleaseGPUBuffer(device, index_buffer);
 	if (vertex_buffer) SDL_ReleaseGPUBuffer(device, vertex_buffer);
 	if (texture_sampler) SDL_ReleaseGPUSampler(device, texture_sampler);
-	if (voxel_texture) SDL_ReleaseGPUTexture(device, voxel_texture);
+	if (atlas_voxel_texture) SDL_ReleaseGPUTexture(device, atlas_voxel_texture);
 	if (depth_texture) SDL_ReleaseGPUTexture(device, depth_texture);
 	if (device) SDL_DestroyGPUDevice(device);
 	if (window) SDL_DestroyWindow(window);

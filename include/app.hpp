@@ -36,12 +36,14 @@ public:
 
 private:
 	lili::Voxel voxel;
+	lili::AtlasVoxel atlas_voxel;
 	float vox_rotation;
 
 	SDL_Window *window = nullptr;
 	SDL_GPUDevice *device = nullptr;
 	SDL_GPUTexture *depth_texture = nullptr;
 	SDL_GPUTexture *voxel_texture = nullptr;
+	SDL_GPUTexture *atlas_voxel_texture = nullptr;
 	SDL_GPUSampler *texture_sampler = nullptr;
 	SDL_GPUBuffer *vertex_buffer = nullptr;
 	SDL_GPUBuffer *index_buffer = nullptr;
