@@ -35,21 +35,25 @@ public:
 	void run();
 
 private:
-	lili::Voxel voxel;
 	lili::AtlasVoxel atlas_voxel;
 	float vox_rotation;
 
-	SDL_Window *window = nullptr;
-	SDL_GPUDevice *device = nullptr;
-	SDL_GPUTexture *depth_texture = nullptr;
-	SDL_GPUTexture *voxel_texture = nullptr;
-	SDL_GPUTexture *atlas_voxel_texture = nullptr;
-	SDL_GPUSampler *texture_sampler = nullptr;
-	SDL_GPUBuffer *vertex_buffer = nullptr;
-	SDL_GPUBuffer *index_buffer = nullptr;
-	SDL_GPUShader *vertex_shader = nullptr;
-	SDL_GPUShader *fragment_shader = nullptr;
-	SDL_GPUGraphicsPipeline *pipeline = nullptr;
+	struct Core {
+		SDL_Window *window = nullptr;
+		SDL_GPUDevice *device = nullptr;
+	} core;
+	struct Resources {
+		SDL_GPUTexture *depth_texture = nullptr;
+		SDL_GPUTexture *atlas_voxel_texture = nullptr;
+		SDL_GPUSampler *texture_sampler = nullptr;
+		SDL_GPUBuffer *vertex_buffer = nullptr;
+		SDL_GPUBuffer *index_buffer = nullptr;
+	} res;
+	struct Pipeline {
+		SDL_GPUShader *vertex_shader = nullptr;
+		SDL_GPUShader *fragment_shader = nullptr;
+		SDL_GPUGraphicsPipeline *graphics_pipeline = nullptr;
+	} pipe;
 
 	bool is_running = false;
 

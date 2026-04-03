@@ -151,21 +151,21 @@ void App::init_window() {
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
 		throw std::runtime_error("Failed to initialize SDL!");
 	}
-	window = SDL_CreateWindow(
+	core.window = SDL_CreateWindow(
 		"HelloVoxel", WIN_WIDTH, WIN_HEIGHT, 0
 	);
-	if (!window) {
+	if (!core.window) {
 		throw std::runtime_error("Failed to create SDL_Window!");
 	}
 	is_running = true;
 }
 
 void App::init_device() {
-	device = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, "vulkan");
-	if (!device) {
+	core.device = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, "vulkan");
+	if (!core.device) {
 		throw std::runtime_error("Failed to create SDL_GPUDevice!");
 	}
-	if (!SDL_ClaimWindowForGPUDevice(device, window)) {
+	if (!SDL_ClaimWindowForGPUDevice(core.device, core.window)) {
 		throw std::runtime_error("Failed to claim window!");
 	}
 }
@@ -182,12 +182,12 @@ void App::init_textures() {
 		.sample_count = SDL_GPU_SAMPLECOUNT_1,
 		.props = 0
 	};
-	depth_texture = SDL_CreateGPUTexture(device, &depth_info);
-	if (!depth_texture) {
+	res.depth_texture = SDL_CreateGPUTexture(core.device, &depth_info);
+	if (!res.depth_texture) {
 		throw std::runtime_error("Failed to create depth texture!");
 	}
 	Utils::load_img_to_gpu_texture(
-		device, &atlas_voxel_texture, "assets/cube_atlas.png"
+		core.device, &res.atlas_voxel_texture, "assets/cube_atlas.png"
 	);
 	SDL_GPUSamplerCreateInfo sampler_info{
 		.min_filter = SDL_GPU_FILTER_NEAREST,
@@ -198,7 +198,7 @@ void App::init_textures() {
 		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
 		.props = 0
 	};
-	texture_sampler = SDL_CreateGPUSampler(device, &sampler_info);
+	res.texture_sampler = SDL_CreateGPUSampler(core.device, &sampler_info);
 }
 
 void App::init_buffers() {
@@ -208,9 +208,9 @@ void App::init_buffers() {
 		.size = vertices_buffer_size,
 		.props = 0
 	};
-	vertex_buffer = SDL_CreateGPUBuffer(device, &vertices_buffer_create_info);
+	res.vertex_buffer = SDL_CreateGPUBuffer(core.device, &vertices_buffer_create_info);
 	Utils::transfer_buffer_to_gpu(
-		device, atlas_voxel.vertices, vertex_buffer, vertices_buffer_size
+		core.device, atlas_voxel.vertices, res.vertex_buffer, vertices_buffer_size
 	);
 	uint32_t indices_buffer_size = sizeof(atlas_voxel.indices);
 	SDL_GPUBufferCreateInfo indices_buffer_create_info = {
@@ -218,9 +218,9 @@ void App::init_buffers() {
 		.size = indices_buffer_size,
 		.props = 0
 	};
-	index_buffer = SDL_CreateGPUBuffer(device, &indices_buffer_create_info);
+	res.index_buffer = SDL_CreateGPUBuffer(core.device, &indices_buffer_create_info);
 	Utils::transfer_buffer_to_gpu(
-		device, atlas_voxel.indices, index_buffer, indices_buffer_size
+		core.device, atlas_voxel.indices, res.index_buffer, indices_buffer_size
 	);
 }
 
@@ -240,8 +240,8 @@ void App::init_shaders() {
 		.num_uniform_buffers = 1,
 		.props = 0
 	};
-	vertex_shader = SDL_CreateGPUShader(device, &vert_shader_create_info);
-	if (!vertex_shader) {
+	pipe.vertex_shader = SDL_CreateGPUShader(core.device, &vert_shader_create_info);
+	if (!pipe.vertex_shader) {
 		throw std::runtime_error("Failed to create vertex shader!");
 	}
 
@@ -260,8 +260,8 @@ void App::init_shaders() {
 		.num_uniform_buffers = 0,
 		.props = 0
 	};
-	fragment_shader = SDL_CreateGPUShader(device, &frag_shader_ci);
-	if (!fragment_shader) {
+	pipe.fragment_shader = SDL_CreateGPUShader(core.device, &frag_shader_ci);
+	if (!pipe.fragment_shader) {
 		throw std::runtime_error("Failed to create fragment shader!");
 	}
 }
@@ -288,7 +288,7 @@ void App::init_graphics_pipeline() {
 		}
 	};
 	SDL_GPUColorTargetDescription color_target_desc{
-		.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+		.format = SDL_GetGPUSwapchainTextureFormat(core.device, core.window),
 		.blend_state = {
 			.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_COLOR,
 			.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_DST_COLOR,
@@ -305,8 +305,8 @@ void App::init_graphics_pipeline() {
 		}
 	};
 	SDL_GPUGraphicsPipelineCreateInfo create_info{
-		.vertex_shader = vertex_shader,
-		.fragment_shader = fragment_shader,
+		.vertex_shader = pipe.vertex_shader,
+		.fragment_shader = pipe.fragment_shader,
 		.vertex_input_state = {
 			.vertex_buffer_descriptions = &vertex_buffer_desc,
 			.num_vertex_buffers = 1,
@@ -340,7 +340,7 @@ void App::init_graphics_pipeline() {
 		},
 		.props = 0
 	};
-	pipeline = SDL_CreateGPUGraphicsPipeline(device, &create_info);
+	pipe.graphics_pipeline = SDL_CreateGPUGraphicsPipeline(core.device, &create_info);
 }
 
 void App::handle_events() {
@@ -383,20 +383,20 @@ void App::render() {
 		100.0f                                 // far distance unit
 	);
 	lili::Mat4 mvp = proj * view * model;
-	SDL_GPUCommandBuffer *cmd_buffer = SDL_AcquireGPUCommandBuffer(device);
+	SDL_GPUCommandBuffer *cmd_buffer = SDL_AcquireGPUCommandBuffer(core.device);
 	if (!cmd_buffer) {
 		throw std::runtime_error("Failed to acquire command buffer!");
 	}
 	SDL_GPUTexture *swapchain_texture = nullptr;
 	uint32_t width, height;
-	bool res = SDL_WaitAndAcquireGPUSwapchainTexture(
+	bool success = SDL_WaitAndAcquireGPUSwapchainTexture(
 		cmd_buffer,
-		window,
+		core.window,
 		&swapchain_texture,
 		&width,
 		&height
 	);
-	if (!res) {
+	if (!success) {
 		throw std::runtime_error("Failed to acquire swapchain texture!");
 	}
 	if (!swapchain_texture) {
@@ -411,7 +411,7 @@ void App::render() {
 		.store_op = SDL_GPU_STOREOP_STORE,
 	};
 	SDL_GPUDepthStencilTargetInfo depth_target_info{
-		.texture = depth_texture,
+		.texture = res.depth_texture,
 		.clear_depth = 0.0f,
 		.load_op = SDL_GPU_LOADOP_CLEAR,
 		.store_op = SDL_GPU_STOREOP_DONT_CARE,
@@ -426,22 +426,22 @@ void App::render() {
 		1,
 		&depth_target_info
 	);
-	SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
+	SDL_BindGPUGraphicsPipeline(render_pass, pipe.graphics_pipeline);
 	SDL_GPUBufferBinding vertex_binding{
-		.buffer = vertex_buffer,
+		.buffer = res.vertex_buffer,
 		.offset = 0
 	};
 	SDL_BindGPUVertexBuffers(render_pass, 0, &vertex_binding, 1);
 	SDL_GPUBufferBinding index_binding{
-		.buffer = index_buffer,
+		.buffer = res.index_buffer,
 		.offset = 0
 	};
 	SDL_BindGPUIndexBuffer(
 		render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT
 	);
 	SDL_GPUTextureSamplerBinding atlas_texture_sampler_binding{
-		.texture = atlas_voxel_texture,
-		.sampler = texture_sampler
+		.texture = res.atlas_voxel_texture,
+		.sampler = res.texture_sampler
 	};
 	SDL_BindGPUFragmentSamplers(
 		render_pass, 0, &atlas_texture_sampler_binding, 1
@@ -466,16 +466,26 @@ void App::mainloop() {
 }
 
 void App::cleanup() {
-	if (pipeline) SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
-	if (fragment_shader) SDL_ReleaseGPUShader(device, fragment_shader);
-	if (vertex_shader) SDL_ReleaseGPUShader(device, vertex_shader);
-	if (index_buffer) SDL_ReleaseGPUBuffer(device, index_buffer);
-	if (vertex_buffer) SDL_ReleaseGPUBuffer(device, vertex_buffer);
-	if (texture_sampler) SDL_ReleaseGPUSampler(device, texture_sampler);
-	if (atlas_voxel_texture) SDL_ReleaseGPUTexture(device, atlas_voxel_texture);
-	if (depth_texture) SDL_ReleaseGPUTexture(device, depth_texture);
-	if (device) SDL_DestroyGPUDevice(device);
-	if (window) SDL_DestroyWindow(window);
+	if (pipe.graphics_pipeline)
+		SDL_ReleaseGPUGraphicsPipeline(core.device, pipe.graphics_pipeline);
+	if (pipe.fragment_shader)
+		SDL_ReleaseGPUShader(core.device, pipe.fragment_shader);
+	if (pipe.vertex_shader)
+		SDL_ReleaseGPUShader(core.device, pipe.vertex_shader);
+	if (res.index_buffer)
+		SDL_ReleaseGPUBuffer(core.device, res.index_buffer);
+	if (res.vertex_buffer)
+		SDL_ReleaseGPUBuffer(core.device, res.vertex_buffer);
+	if (res.texture_sampler)
+		SDL_ReleaseGPUSampler(core.device, res.texture_sampler);
+	if (res.atlas_voxel_texture)
+		SDL_ReleaseGPUTexture(core.device, res.atlas_voxel_texture);
+	if (res.depth_texture)
+		SDL_ReleaseGPUTexture(core.device, res.depth_texture);
+	if (core.device)
+		SDL_DestroyGPUDevice(core.device);
+	if (core.window)
+		SDL_DestroyWindow(core.window);
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	SDL_Quit();
 }

@@ -11,7 +11,7 @@ struct Mat4 {
 	Mat4 operator*(const Mat4 &other) const;
 
 	static Mat4 identity();
-	static Mat4 look_at(const Vec3 &eye, const Vec3 &center, const Vec3 up);
+	static Mat4 look_at(const Vec3 &eye, const Vec3 &center, const Vec3 &up);
 	static Mat4 perspective(
 		float fovy_rad, float aspect, float near, float far
 	);

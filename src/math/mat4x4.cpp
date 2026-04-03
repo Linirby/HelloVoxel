@@ -29,7 +29,7 @@ Mat4 Mat4::identity() {
 	return result;
 }
 
-Mat4 Mat4::look_at(const Vec3 &eye, const Vec3 &center, const Vec3 up) {
+Mat4 Mat4::look_at(const Vec3 &eye, const Vec3 &center, const Vec3 &up) {
 	Vec3 f = (center - eye).normalized();
 	Vec3 s = f.cross(up).normalized();
 	Vec3 u = s.cross(f);
