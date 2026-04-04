@@ -1,40 +1,17 @@
 #ifndef APP_HPP
 # define APP_HPP
 
-# include <string>
-# include <vector>
 # include <SDL3/SDL.h>
-
 # include "geometry/voxel.hpp"
 
-const int WIN_WIDTH = 1280;
-const int WIN_HEIGHT = 720;
-
-struct CodeInfo {
-	size_t size;
-	std::vector<char> buffer;
-};
-
-namespace Utils {
-
-CodeInfo get_code_info(std::string filename);
-void transfer_buffer_to_gpu(
-	SDL_GPUDevice *device,
-	void *data,
-	SDL_GPUBuffer *buffer,
-	uint32_t buffer_size
-);
-void load_img_to_gpu_texture(
-	SDL_GPUDevice *device, SDL_GPUTexture **texture, std::string filename
-);
-
-};
 
 class App {
 public:
 	void run();
 
 private:
+	static constexpr int WIN_WIDTH = 1280;
+	static constexpr int WIN_HEIGHT = 720;
 	lili::AtlasVoxel atlas_voxel;
 	float vox_rotation;
 
