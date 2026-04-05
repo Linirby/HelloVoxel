@@ -6,7 +6,6 @@
 
 # include "geometry/core.hpp"
 # include "geometry/chunk.hpp"
-# include "math/vec3.hpp"
 
 struct Mesh {
 	std::vector<Vertex> vertices;
@@ -16,9 +15,6 @@ struct Mesh {
 class ChunkMesher {
 public:
 	static Mesh generate_mesh(const Chunk &chunk);
-
-private:
-	static void push_front_face(Mesh *mesh, lili::Vec3 pos);
 };
 
 #endif

@@ -10,11 +10,6 @@ struct Voxel {
 	Vec3 pos;
 	Vec3 size;
 	Vertex vertices[24] = {
-		// FRONT FACE
-		{ pos.x, pos.y, pos.z, 0.0f, 0.0f },
-		{ pos.x + size.x, pos.y, pos.z, 1.0f, 0.0f },
-		{ pos.x + size.x, pos.y - size.y, pos.z, 1.0f, 1.0f },
-		{ pos.x, pos.y - size.x, pos.z, 0.0f, 1.0f },
 		// TOP FACE
 		{ pos.x, pos.y, pos.z - size.z, 0.0f, 0.0f },
 		{ pos.x + size.x, pos.y, pos.z - size.z, 1.0f, 0.0f },
@@ -30,24 +25,29 @@ struct Voxel {
 		{ pos.x + size.x, pos.y, pos.z - size.z, 1.0f, 0.0f },
 		{ pos.x + size.x, pos.y - size.y, pos.z - size.z, 1.0f, 1.0f },
 		{ pos.x + size.x, pos.y - size.y, pos.z, 0.0f, 1.0f },
-		// BACK FACE
-		{ pos.x + size.x, pos.y, pos.z - size.z, 0.0f, 0.0f },
-		{ pos.x, pos.y, pos.z - size.z, 1.0f, 0.0f },
-		{ pos.x, pos.y - size.y, pos.z - size.z, 1.0f, 1.0f },
-		{ pos.x + size.x, pos.y - size.x, pos.z - size.z, 0.0f, 1.0f },
 		// LEFT FACE
 		{ pos.x, pos.y, pos.z - size.z, 0.0f, 0.0f },
 		{ pos.x, pos.y, pos.z, 1.0f, 0.0f },
 		{ pos.x, pos.y - size.y, pos.z, 1.0f, 1.0f },
 		{ pos.x, pos.y - size.y, pos.z - size.z, 0.0f, 1.0f },
+		// FRONT FACE
+		{ pos.x, pos.y, pos.z, 0.0f, 0.0f },
+		{ pos.x + size.x, pos.y, pos.z, 1.0f, 0.0f },
+		{ pos.x + size.x, pos.y - size.y, pos.z, 1.0f, 1.0f },
+		{ pos.x, pos.y - size.x, pos.z, 0.0f, 1.0f },
+		// BACK FACE
+		{ pos.x + size.x, pos.y, pos.z - size.z, 0.0f, 0.0f },
+		{ pos.x, pos.y, pos.z - size.z, 1.0f, 0.0f },
+		{ pos.x, pos.y - size.y, pos.z - size.z, 1.0f, 1.0f },
+		{ pos.x + size.x, pos.y - size.x, pos.z - size.z, 0.0f, 1.0f },
 	};
 	uint16_t indices[36] = {
-		 0,  1,  2,   2,  3,  0,  // Front
 		 4,  5,  6,   6,  7,  4,  // Top
 		 8,  9, 10,  10, 11,  8,  // Bottom
 		12, 13, 14,  14, 15, 12,  // Right
+		20, 21, 22,  22, 23, 20,  // Left
+		 0,  1,  2,   2,  3,  0,  // Front
 		16, 17, 18,  18, 19, 16,  // Back
-		20, 21, 22,  22, 23, 20   // Left
 	};
 };
 
