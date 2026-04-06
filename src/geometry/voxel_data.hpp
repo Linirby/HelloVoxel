@@ -23,9 +23,9 @@ inline constexpr float face_vertices[6][4][3]{
 	// Bottom (-Y)
 	{
 		{ 0.0f, 0.0f, 1.0f },
-		{ 0.0f, 0.0f, 0.0f },
+		{ 1.0f, 0.0f, 1.0f },
 		{ 1.0f, 0.0f, 0.0f },
-		{ 1.0f, 0.0f, 1.0f }
+		{ 0.0f, 0.0f, 0.0f }
 	},
 	// Right (+X)
 	{

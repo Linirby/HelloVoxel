@@ -2,8 +2,7 @@
 # define APP_HPP
 
 # include <SDL3/SDL.h>
-# include "geometry/voxel.hpp"
-
+# include "geometry/chunk.hpp"
 
 class App {
 public:
@@ -12,8 +11,10 @@ public:
 private:
 	static constexpr int WIN_WIDTH = 1280;
 	static constexpr int WIN_HEIGHT = 720;
-	lili::AtlasVoxel atlas_voxel;
-	float vox_rotation;
+	float rotation = 0.0f;
+
+	lili::Chunk test_chunk;	
+	uint32_t chunk_index_count = 0;
 
 	struct Core {
 		SDL_Window *window = nullptr;
@@ -34,10 +35,10 @@ private:
 
 	bool is_running = false;
 
-	void init_shapes();
 	void init_window();
 	void init_device();
 	void init_textures();
+	void init_test_chunk();
 	void init_buffers();
 	void init_shaders();
 	void init_graphics_pipeline();

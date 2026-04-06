@@ -4,16 +4,17 @@
 #include "utils.hpp"
 #include "math/mat4x4.hpp"
 #include "math/utils.hpp"
+#include "geometry/mesher.hpp"
 
 void App::run() {
-	init_shapes();
-	std::cout << "Shapes successfully initialized!" << '\n';
 	init_window();
 	std::cout << "Window successfully initialized!" << '\n';
 	init_device();
 	std::cout << "Device successfully initialized!" << '\n';
 	init_textures();
 	std::cout << "Textures successfully initialized!" << '\n';
+	init_test_chunk();
+	std::cout << "Chunk successfully initialized!" << '\n';
 	init_buffers();
 	std::cout << "Buffers successfully initialized!" << '\n';
 	init_shaders();
@@ -22,11 +23,6 @@ void App::run() {
 	std::cout << "Graphics pipeline successfully initialized!" << '\n';
 	mainloop();
 	cleanup();
-}
-
-void App::init_shapes() {
-	atlas_voxel = { { -0.5f, 0.5f, 0.5f }, { 1.0f, 1.0f, 1.0f } };
-	vox_rotation = 0.0f;
 }
 
 void App::init_window() {
@@ -83,26 +79,61 @@ void App::init_textures() {
 	res.texture_sampler = SDL_CreateGPUSampler(core.device, &sampler_info);
 }
 
+void App::init_test_chunk() {
+	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
+		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
+			test_chunk.set_block(1, x, 0, z);
+		}
+	}
+	for (int y = 0; y < lili::Chunk::SIZE; ++y) {
+		test_chunk.set_block(1, 0,  y, 0);
+		test_chunk.set_block(1, 0,  y, 15);
+		test_chunk.set_block(1, 15, y, 0);
+		test_chunk.set_block(1, 15, y, 15);
+	}
+	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
+		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
+			test_chunk.set_block(1, x, 14, z);
+		}
+	}
+}
+
 void App::init_buffers() {
-	uint32_t vertices_buffer_size = sizeof(atlas_voxel.vertices);
+	lili::Mesh chunk_mesh = lili::ChunkMesher::generate_mesh(test_chunk);
+	chunk_index_count = static_cast<uint32_t>(chunk_mesh.indices.size());
+
+	uint32_t vertices_buffer_size = (
+		chunk_mesh.vertices.size() * sizeof(lili::Vertex)
+	);
 	SDL_GPUBufferCreateInfo vertices_buffer_create_info{
 		.usage = SDL_GPU_BUFFERUSAGE_VERTEX,
 		.size = vertices_buffer_size,
 		.props = 0
 	};
-	res.vertex_buffer = SDL_CreateGPUBuffer(core.device, &vertices_buffer_create_info);
-	Utils::transfer_buffer_to_gpu(
-		core.device, atlas_voxel.vertices, res.vertex_buffer, vertices_buffer_size
+	res.vertex_buffer = SDL_CreateGPUBuffer(
+		core.device, &vertices_buffer_create_info
 	);
-	uint32_t indices_buffer_size = sizeof(atlas_voxel.indices);
+	Utils::transfer_buffer_to_gpu(
+		core.device,
+		chunk_mesh.vertices.data(),
+		res.vertex_buffer,
+		vertices_buffer_size
+	);
+
+	uint32_t indices_buffer_size = chunk_mesh.indices.size() * sizeof(uint16_t);
 	SDL_GPUBufferCreateInfo indices_buffer_create_info{
 		.usage = SDL_GPU_BUFFERUSAGE_INDEX,
 		.size = indices_buffer_size,
 		.props = 0
 	};
-	res.index_buffer = SDL_CreateGPUBuffer(core.device, &indices_buffer_create_info);
+	res.index_buffer = SDL_CreateGPUBuffer(
+		core.device, &indices_buffer_create_info
+	);
 	Utils::transfer_buffer_to_gpu(
-		core.device, atlas_voxel.indices, res.index_buffer, indices_buffer_size
+		core.device,
+		chunk_mesh.indices.data(),
+		res.index_buffer,
+		indices_buffer_size
 	);
 }
 
@@ -241,24 +272,24 @@ void App::handle_events() {
 }
 
 void App::update(float dt) {
-	vox_rotation += 45.0f * dt;
-	if (vox_rotation >= 360.0f || vox_rotation < 0) {
-		vox_rotation = 0;
+	rotation += 45.0f * dt;
+	if (rotation >= 360.0f || rotation < 0) {
+		rotation = 0;
 	}
 }
 
 void App::render() {
-	lili::Mat4 translation = lili::Mat4::translate({ 0.0f, 0.0f, 0.0f });
-	lili::Mat4 rotation_y = lili::Mat4::rotation_y(deg_to_rad(vox_rotation));
-	lili::Mat4 model = translation * rotation_y;
+	lili::Mat4 center_offset = lili::Mat4::translate({ -8.0f, -4.0f, -8.0f });
+	lili::Mat4 rotation_y = lili::Mat4::rotation_y(deg_to_rad(rotation));
+	lili::Mat4 model = rotation_y * center_offset;
 
 	lili::Mat4 view = lili::Mat4::look_at(
-		{ 0.0f, 1.0f, 3.0f },  // eye
-		{ 0.0f, 0.0f, 0.0f },  // center
-		{ 0.0f, 1.0f, 0.0f }   // up
+		{ 0.0f, 8.0f, 24.0f },  // eye
+		{ 0.0f, 0.0f,  0.0f },  // center
+		{ 0.0f, 1.0f,  0.0f }   // up
 	);
 	lili::Mat4 proj = lili::Mat4::perspective(
-		70.0f*3.14f/180.0f,                    // FOV Y (in rad)
+		deg_to_rad(70.0f),                    // FOV Y (in rad)
 		(float)WIN_WIDTH / (float)WIN_HEIGHT,  // aspect ratio
 		0.1f,                                  // near distance unit
 		100.0f                                 // far distance unit
@@ -327,7 +358,7 @@ void App::render() {
 	SDL_BindGPUFragmentSamplers(
 		render_pass, 0, &atlas_texture_sampler_binding, 1
 	);
-	SDL_DrawGPUIndexedPrimitives(render_pass, 36, 1, 0, 0, 0);
+	SDL_DrawGPUIndexedPrimitives(render_pass, chunk_index_count, 1, 0, 0, 0);
 	SDL_EndGPURenderPass(render_pass);
 	SDL_SubmitGPUCommandBuffer(cmd_buffer);
 }
