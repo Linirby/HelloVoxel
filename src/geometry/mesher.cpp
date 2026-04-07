@@ -1,7 +1,13 @@
 #include "geometry/mesher.hpp"
 #include "geometry/voxel_data.hpp"
+#include "geometry/block.hpp"
 
 namespace lili {
+
+inline constexpr int ATLAS_COLS = 4;
+inline constexpr int ATLAS_ROWS = 2;
+constexpr float UV_W = 1.0f / ATLAS_COLS;
+constexpr float UV_H = 1.0f / ATLAS_ROWS;
 
 Mesh ChunkMesher::generate_mesh(const Chunk &chunk) {
 	Mesh mesh;
@@ -9,7 +15,13 @@ Mesh ChunkMesher::generate_mesh(const Chunk &chunk) {
 	for (int x = 0; x < Chunk::SIZE; ++x) {
 		for (int y = 0; y < Chunk::SIZE; ++y) {
 			for (int z = 0; z < Chunk::SIZE; ++z) {
-				if (chunk.get_block(x, y, z) == 0) continue; // Skip air
+
+				uint8_t block_id = chunk.get_block(x, y, z);
+				if (block_id == 0) continue; // Skip air
+
+				const BlockDefinition &block_def = (
+					BlockRegistry::get().get_block(block_id)
+				);
 
 				float px = static_cast<float>(x);
 				float py = static_cast<float>(y);
@@ -28,13 +40,36 @@ Mesh ChunkMesher::generate_mesh(const Chunk &chunk) {
 						uint16_t start_idx = static_cast<uint16_t>(
 							mesh.vertices.size()
 						);
+						uint8_t tex_idx;
+						switch (face) {
+							case 0: tex_idx = block_def.top_texture;
+									break;
+							case 1: tex_idx = block_def.bottom_texture;
+									break;
+							case 2: tex_idx = block_def.right_texture;
+									break;
+							case 3: tex_idx = block_def.left_texture;
+									break;
+							case 4: tex_idx = block_def.front_texture;
+									break;
+							case 5: tex_idx = block_def.back_texture;
+									break;
+						}
+
+						float u_offset = (tex_idx % ATLAS_COLS) * UV_W;
+						float v_offset = (
+							(static_cast<int>(tex_idx / ATLAS_COLS)) * UV_H
+						);
 
 						for (int v = 0; v < 4; ++v) {
+							float final_u = u_offset + (face_uvs[v][0] * UV_W);
+							float final_v = v_offset + (face_uvs[v][1] * UV_H);
+
 							mesh.vertices.push_back({
 								px + face_vertices[face][v][0],
 								py + face_vertices[face][v][1],
 								pz + face_vertices[face][v][2],
-								0.0f, 0.0f
+								final_u, final_v
 							});
 						}
 

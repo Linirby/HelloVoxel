@@ -12,6 +12,13 @@ inline constexpr int face_checks[6][3]{
 	{  0,  0, -1 }   // Back
 };
 
+inline constexpr float face_uvs[4][2]{
+	{ 0.0f, 0.0f },  // Top-left
+	{ 1.0f, 0.0f },  // Top-right
+	{ 1.0f, 1.0f },  // Bottom-right
+	{ 0.0f, 1.0f }   // Bottom-left
+};
+
 inline constexpr float face_vertices[6][4][3]{
 	// Top (+Y)
 	{

@@ -93,7 +93,7 @@ void App::init_test_chunk() {
 	}
 	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
 		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
-			test_chunk.set_block(1, x, 14, z);
+			test_chunk.set_block(1, x, 15, z);
 		}
 	}
 }
@@ -236,7 +236,7 @@ void App::init_graphics_pipeline() {
 			.sample_count = SDL_GPU_SAMPLECOUNT_1,
 		},
 		.depth_stencil_state = {
-			.compare_op = SDL_GPU_COMPAREOP_GREATER,
+			.compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
 			.back_stencil_state = { SDL_GPU_STENCILOP_ZERO },
 			.front_stencil_state = { SDL_GPU_STENCILOP_ZERO },
 			.compare_mask = 0,
@@ -279,7 +279,7 @@ void App::update(float dt) {
 }
 
 void App::render() {
-	lili::Mat4 center_offset = lili::Mat4::translate({ -8.0f, -4.0f, -8.0f });
+	lili::Mat4 center_offset = lili::Mat4::translate({ -8.0f, -6.0f, -8.0f });
 	lili::Mat4 rotation_y = lili::Mat4::rotation_y(deg_to_rad(rotation));
 	lili::Mat4 model = rotation_y * center_offset;
 
@@ -289,7 +289,7 @@ void App::render() {
 		{ 0.0f, 1.0f,  0.0f }   // up
 	);
 	lili::Mat4 proj = lili::Mat4::perspective(
-		deg_to_rad(70.0f),                    // FOV Y (in rad)
+		deg_to_rad(70.0f),                     // FOV Y (in rad)
 		(float)WIN_WIDTH / (float)WIN_HEIGHT,  // aspect ratio
 		0.1f,                                  // near distance unit
 		100.0f                                 // far distance unit
@@ -324,7 +324,7 @@ void App::render() {
 	};
 	SDL_GPUDepthStencilTargetInfo depth_target_info{
 		.texture = res.depth_texture,
-		.clear_depth = 0.0f,
+		.clear_depth = 1.0f,
 		.load_op = SDL_GPU_LOADOP_CLEAR,
 		.store_op = SDL_GPU_STOREOP_DONT_CARE,
 		.stencil_load_op = SDL_GPU_LOADOP_DONT_CARE,
