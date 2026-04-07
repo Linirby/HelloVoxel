@@ -8,44 +8,53 @@
 
 void App::run() {
 	init_window();
-	std::cout << "Window successfully initialized!" << '\n';
 	init_device();
-	std::cout << "Device successfully initialized!" << '\n';
 	init_textures();
-	std::cout << "Textures successfully initialized!" << '\n';
 	init_test_chunk();
-	std::cout << "Chunk successfully initialized!" << '\n';
 	init_buffers();
-	std::cout << "Buffers successfully initialized!" << '\n';
 	init_shaders();
-	std::cout << "Shaders successfully initialized!" << '\n';
 	init_graphics_pipeline();
-	std::cout << "Graphics pipeline successfully initialized!" << '\n';
 	mainloop();
 	cleanup();
 }
 
 void App::init_window() {
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
-		throw std::runtime_error("Failed to initialize SDL!");
+		throw std::runtime_error(
+			"SDL_Init() failed!\n-> " +
+			std::string(SDL_GetError())
+		);
 	}
 	core.window = SDL_CreateWindow(
 		"HelloVoxel", WIN_WIDTH, WIN_HEIGHT, 0
 	);
 	if (!core.window) {
-		throw std::runtime_error("Failed to create SDL_Window!");
+		throw std::runtime_error(
+			"core.window creation failed!\n-> " +
+			std::string(SDL_GetError())
+		);
 	}
 	is_running = true;
+	std::cout << "core.window successfully initialized!" << '\n';
 }
 
 void App::init_device() {
-	core.device = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, "vulkan");
+	core.device = SDL_CreateGPUDevice(
+		SDL_GPU_SHADERFORMAT_SPIRV, true, "vulkan"
+	);
 	if (!core.device) {
-		throw std::runtime_error("Failed to create SDL_GPUDevice!");
+		throw std::runtime_error(
+			"core.device creation failed!\n-> " +
+			std::string(SDL_GetError())
+		);
 	}
 	if (!SDL_ClaimWindowForGPUDevice(core.device, core.window)) {
-		throw std::runtime_error("Failed to claim window!");
+		throw std::runtime_error(
+			"SDL_ClaimWindowForGPUDevice() failed!\n-> " +
+			std::string(SDL_GetError())
+		);
 	}
+	std::cout << "core.device successfully initialized!" << '\n';
 }
 
 void App::init_textures() {
@@ -62,8 +71,12 @@ void App::init_textures() {
 	};
 	res.depth_texture = SDL_CreateGPUTexture(core.device, &depth_info);
 	if (!res.depth_texture) {
-		throw std::runtime_error("Failed to create depth texture!");
+		throw std::runtime_error(
+			"res.depth_texture creation failed!\n-> " +
+			std::string(SDL_GetError())
+		);
 	}
+	std::cout << "res.depth_texture successfully created!" << '\n';
 	Utils::load_img_to_gpu_texture(
 		core.device, &res.atlas_voxel_texture, "assets/cube_atlas.png"
 	);
@@ -77,6 +90,13 @@ void App::init_textures() {
 		.props = 0
 	};
 	res.texture_sampler = SDL_CreateGPUSampler(core.device, &sampler_info);
+	if (!res.texture_sampler) {
+		throw std::runtime_error(
+			"res.texture_sampler creation failed!\n-> " +
+			std::string(SDL_GetError())
+		);
+	}
+	std::cout << "res.texture_sampler successfully created!" << '\n';
 }
 
 void App::init_test_chunk() {
@@ -96,6 +116,7 @@ void App::init_test_chunk() {
 			test_chunk.set_block(1, x, 15, z);
 		}
 	}
+	std::cout << "Chunk successfully initialized!" << '\n';
 }
 
 void App::init_buffers() {
@@ -113,6 +134,13 @@ void App::init_buffers() {
 	res.vertex_buffer = SDL_CreateGPUBuffer(
 		core.device, &vertices_buffer_create_info
 	);
+	if (!res.vertex_buffer) {
+		throw std::runtime_error(
+			"res.vertex_buffer creation failed!\n-> " +
+			std::string(SDL_GetError())
+		);
+	}
+	std::cout << "Transfering vertices to gpu" << '\n';
 	Utils::transfer_buffer_to_gpu(
 		core.device,
 		chunk_mesh.vertices.data(),
@@ -129,6 +157,13 @@ void App::init_buffers() {
 	res.index_buffer = SDL_CreateGPUBuffer(
 		core.device, &indices_buffer_create_info
 	);
+	if (!res.index_buffer) {
+		throw std::runtime_error(
+			"res.index_buffer creation failed!\n-> " +
+			std::string(SDL_GetError())
+		);
+	}
+	std::cout << "Transfering indices to gpu" << '\n';
 	Utils::transfer_buffer_to_gpu(
 		core.device,
 		chunk_mesh.indices.data(),
@@ -155,8 +190,12 @@ void App::init_shaders() {
 	};
 	pipe.vertex_shader = SDL_CreateGPUShader(core.device, &vert_shader_create_info);
 	if (!pipe.vertex_shader) {
-		throw std::runtime_error("Failed to create vertex shader!");
+		throw std::runtime_error(
+			"pipe.vertex_shader creation failed!\n-> " +
+			std::string(SDL_GetError())
+		);
 	}
+	std::cout << "pipe.vertex_shader successfully created!" << '\n';
 
 	CodeInfo frag_code_info = Utils::get_code_info(
 		"shader/triangle.frag.spv"
@@ -175,8 +214,12 @@ void App::init_shaders() {
 	};
 	pipe.fragment_shader = SDL_CreateGPUShader(core.device, &frag_shader_ci);
 	if (!pipe.fragment_shader) {
-		throw std::runtime_error("Failed to create fragment shader!");
+		throw std::runtime_error(
+			"pipe.fragment_shader creation failed!\n-> " +
+			std::string(SDL_GetError())
+		);
 	}
+	std::cout << "pipe.fragment_shader successfully created!" << '\n';
 }
 
 void App::init_graphics_pipeline() {
@@ -254,6 +297,13 @@ void App::init_graphics_pipeline() {
 		.props = 0
 	};
 	pipe.graphics_pipeline = SDL_CreateGPUGraphicsPipeline(core.device, &create_info);
+	if (!pipe.graphics_pipeline) {
+		throw std::runtime_error(
+			"pipe.graphics_pipeline creation failed!\n-> " +
+			std::string(SDL_GetError())
+		);
+	}
+	std::cout << "pipe.graphics_pipeline successfully initialized!" << '\n';
 }
 
 void App::handle_events() {
@@ -280,7 +330,7 @@ void App::update(float dt) {
 
 void App::render() {
 	lili::Mat4 center_offset = lili::Mat4::translate({ -8.0f, -6.0f, -8.0f });
-	lili::Mat4 rotation_y = lili::Mat4::rotation_y(deg_to_rad(rotation));
+	lili::Mat4 rotation_y = lili::Mat4::rotation_y(lili::deg_to_rad(rotation));
 	lili::Mat4 model = rotation_y * center_offset;
 
 	lili::Mat4 view = lili::Mat4::look_at(
@@ -289,7 +339,7 @@ void App::render() {
 		{ 0.0f, 1.0f,  0.0f }   // up
 	);
 	lili::Mat4 proj = lili::Mat4::perspective(
-		deg_to_rad(70.0f),                     // FOV Y (in rad)
+		lili::deg_to_rad(70.0f),                     // FOV Y (in rad)
 		(float)WIN_WIDTH / (float)WIN_HEIGHT,  // aspect ratio
 		0.1f,                                  // near distance unit
 		100.0f                                 // far distance unit
@@ -384,6 +434,7 @@ void App::cleanup() {
 		SDL_ReleaseGPUShader(core.device, pipe.fragment_shader);
 	if (pipe.vertex_shader)
 		SDL_ReleaseGPUShader(core.device, pipe.vertex_shader);
+	std::cout << "Successfully cleaned pipeline" << '\n';
 	if (res.index_buffer)
 		SDL_ReleaseGPUBuffer(core.device, res.index_buffer);
 	if (res.vertex_buffer)
@@ -394,10 +445,13 @@ void App::cleanup() {
 		SDL_ReleaseGPUTexture(core.device, res.atlas_voxel_texture);
 	if (res.depth_texture)
 		SDL_ReleaseGPUTexture(core.device, res.depth_texture);
+	std::cout << "Successfully cleaned ressources" << '\n';
 	if (core.device)
 		SDL_DestroyGPUDevice(core.device);
 	if (core.window)
 		SDL_DestroyWindow(core.window);
+	std::cout << "Successfully cleaned core" << '\n';
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	SDL_Quit();
+	std::cout << "Successfully cleaned SDL" << '\n';
 }

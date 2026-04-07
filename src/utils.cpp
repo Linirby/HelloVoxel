@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 #include <cstring>
 #include <SDL3_image/SDL_image.h>
 
@@ -9,17 +10,18 @@ namespace Utils {
 CodeInfo get_code_info(std::string filename) {
 	CodeInfo code_info;
 
-	std::ifstream vert_file(
+	std::ifstream file(
 		filename, std::ios::ate | std::ios::binary
 	);
-	if (!vert_file.is_open()) {
+	if (!file.is_open()) {
 		throw std::runtime_error("Failed to open file! \"" + filename + "\"");
 	}
-	code_info.size = vert_file.tellg();
-	vert_file.seekg(0);
+	code_info.size = file.tellg();
+	file.seekg(0);
 	code_info.buffer.resize(code_info.size);
-	vert_file.read(code_info.buffer.data(), code_info.size);
-	vert_file.close();
+	file.read(code_info.buffer.data(), code_info.size);
+	file.close();
+	std::cout << "Code \"" + filename + "\" successfully read" << '\n';
 	return code_info;
 }
 
@@ -55,11 +57,13 @@ void transfer_buffer_to_gpu(
 	SDL_EndGPUCopyPass(copy_pass);
 	SDL_SubmitGPUCommandBuffer(upload_cmd);
 	SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+	std::cout << "Transfering done..." << '\n';
 }
 
 void load_img_to_gpu_texture(
 	SDL_GPUDevice *device, SDL_GPUTexture **texture, std::string filename
 ) {
+	std::cout << "Transfering image " + filename + " to gpu..." << '\n';
 	SDL_Surface *temp_surface = IMG_Load(filename.c_str());
 	if (!temp_surface) {
 		throw std::runtime_error("Failed to load image " + filename);
@@ -109,6 +113,7 @@ void load_img_to_gpu_texture(
 	SDL_SubmitGPUCommandBuffer(cmd);
 	SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
 	SDL_DestroySurface(surface);
+	std::cout << "Transfering done..." << '\n';
 }
 
 } // namespace Utils

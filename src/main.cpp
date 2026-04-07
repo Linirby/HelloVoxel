@@ -7,7 +7,7 @@ int main() {
 
 	try {
 		app.run();
-	} catch (std::exception e) {
+	} catch (std::exception &e) {
 		std::cerr << "ERR: " << e.what() << '\n';
 		return EXIT_FAILURE;
 	}
