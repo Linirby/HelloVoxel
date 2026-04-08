@@ -19,8 +19,11 @@ inline float rsqrt(float number) {
 struct Vec3 {
 	float x, y, z;
 
+	Vec3 operator=(const Vec3 &o);
 	Vec3 operator-(const Vec3 &o) const;
+	Vec3 operator-=(const Vec3 &o);
 	Vec3 operator+(const Vec3 &o) const;
+	Vec3 operator+=(const Vec3 &o);
 	Vec3 operator*(const float scalar) const;
 
 	float dot(const Vec3 &o) const;

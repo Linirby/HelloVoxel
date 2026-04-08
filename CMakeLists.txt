@@ -13,9 +13,11 @@ target_include_directories(LiliMath PUBLIC src)
 
 # Lili Geometry
 add_library(LiliGeometry STATIC
+	src/geometry/block.cpp
+	src/geometry/camera.cpp
+	src/geometry/chunk.cpp
     src/geometry/mesher.cpp
-    src/geometry/chunk.cpp
-    src/geometry/block.cpp
+	src/geometry/player.cpp
 )
 target_include_directories(LiliGeometry PUBLIC src)
 target_link_libraries(LiliGeometry PRIVATE LiliMath)

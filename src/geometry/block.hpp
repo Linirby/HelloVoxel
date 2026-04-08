@@ -15,6 +15,12 @@ struct BlockDefinition {
 	uint8_t left_texture;
 };
 
+enum BlockID : uint8_t {
+	BLOCK_ID_AIR = 0,
+	BLOCK_ID_DEBUG = 1,
+	BLOCK_ID_LOG = 2
+};
+
 class BlockRegistry {
 public:
 	static BlockRegistry &get();

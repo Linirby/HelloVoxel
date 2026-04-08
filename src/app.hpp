@@ -3,6 +3,8 @@
 
 # include <SDL3/SDL.h>
 # include "geometry/chunk.hpp"
+# include "geometry/camera.hpp"
+# include "geometry/player.hpp"
 
 class App {
 public:
@@ -15,6 +17,8 @@ private:
 
 	lili::Chunk test_chunk;	
 	uint32_t chunk_index_count = 0;
+	lili::Camera camera;
+	lili::Player player;
 
 	struct Core {
 		SDL_Window *window = nullptr;

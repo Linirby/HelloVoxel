@@ -5,6 +5,7 @@
 #include "math/mat4x4.hpp"
 #include "math/utils.hpp"
 #include "geometry/mesher.hpp"
+#include "geometry/block.hpp"
 
 void App::run() {
 	init_window();
@@ -34,6 +35,7 @@ void App::init_window() {
 			std::string(SDL_GetError())
 		);
 	}
+	SDL_SetWindowRelativeMouseMode(core.window, true);
 	is_running = true;
 	std::cout << "core.window successfully initialized!" << '\n';
 }
@@ -102,18 +104,18 @@ void App::init_textures() {
 void App::init_test_chunk() {
 	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
 		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
-			test_chunk.set_block(1, x, 0, z);
+			test_chunk.set_block(lili::BLOCK_ID_DEBUG, x, 0, z);
 		}
 	}
 	for (int y = 0; y < lili::Chunk::SIZE; ++y) {
-		test_chunk.set_block(1, 0,  y, 0);
-		test_chunk.set_block(1, 0,  y, 15);
-		test_chunk.set_block(1, 15, y, 0);
-		test_chunk.set_block(1, 15, y, 15);
+		test_chunk.set_block(lili::BLOCK_ID_DEBUG, 0,  y, 0);
+		test_chunk.set_block(lili::BLOCK_ID_DEBUG, 0,  y, 15);
+		test_chunk.set_block(lili::BLOCK_ID_DEBUG, 15, y, 0);
+		test_chunk.set_block(lili::BLOCK_ID_DEBUG, 15, y, 15);
 	}
 	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
 		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
-			test_chunk.set_block(1, x, 15, z);
+			test_chunk.set_block(lili::BLOCK_ID_DEBUG, x, 15, z);
 		}
 	}
 	std::cout << "Chunk successfully initialized!" << '\n';
@@ -318,26 +320,25 @@ void App::handle_events() {
 				is_running = false;
 			}
 		}
+		if (event.type == SDL_EVENT_MOUSE_MOTION) {
+			camera.process_mouse(event.motion.xrel, event.motion.yrel);
+		}
 	}
 }
 
 void App::update(float dt) {
-	rotation += 45.0f * dt;
-	if (rotation >= 360.0f || rotation < 0) {
-		rotation = 0;
-	}
+	const bool *keys = SDL_GetKeyboardState(NULL);
+
+	player.process_keyboard(keys, camera.front, camera.right, camera.up, dt);
+	camera.position = player.position;
 }
 
 void App::render() {
-	lili::Mat4 center_offset = lili::Mat4::translate({ -8.0f, -6.0f, -8.0f });
+	lili::Mat4 center_offset = lili::Mat4::translate({ 0.0f, 0.0f, 0.0f });
 	lili::Mat4 rotation_y = lili::Mat4::rotation_y(lili::deg_to_rad(rotation));
 	lili::Mat4 model = rotation_y * center_offset;
 
-	lili::Mat4 view = lili::Mat4::look_at(
-		{ 0.0f, 8.0f, 24.0f },  // eye
-		{ 0.0f, 0.0f,  0.0f },  // center
-		{ 0.0f, 1.0f,  0.0f }   // up
-	);
+	lili::Mat4 view = camera.get_view_matrix();
 	lili::Mat4 proj = lili::Mat4::perspective(
 		lili::deg_to_rad(70.0f),                     // FOV Y (in rad)
 		(float)WIN_WIDTH / (float)WIN_HEIGHT,  // aspect ratio

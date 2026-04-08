@@ -5,7 +5,7 @@
 namespace lili {
 
 inline constexpr int ATLAS_COLS = 4;
-inline constexpr int ATLAS_ROWS = 2;
+inline constexpr int ATLAS_ROWS = 4;
 constexpr float UV_W = 1.0f / ATLAS_COLS;
 constexpr float UV_H = 1.0f / ATLAS_ROWS;
 
