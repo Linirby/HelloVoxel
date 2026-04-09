@@ -14,13 +14,23 @@ target_include_directories(LiliMath PUBLIC src)
 # Lili Geometry
 add_library(LiliGeometry STATIC
 	src/geometry/block.cpp
-	src/geometry/camera.cpp
 	src/geometry/chunk.cpp
     src/geometry/mesher.cpp
 	src/geometry/player.cpp
 )
 target_include_directories(LiliGeometry PUBLIC src)
 target_link_libraries(LiliGeometry PRIVATE LiliMath)
+
+# Lili Render
+add_library(LiliRender STATIC
+	src/render/buffer.cpp
+	src/render/camera.cpp
+	src/render/renderer.cpp
+	src/render/shader.cpp
+	src/render/texture.cpp
+)
+target_include_directories(LiliRender PUBLIC src)
+target_link_libraries(LiliRender PRIVATE LiliMath)
 
 # Main App
 add_executable(${PROJECT_NAME}
@@ -32,6 +42,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE src)
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
     LiliGeometry
+	LiliRender
     SDL3::SDL3
     SDL3_image::SDL3_image
 )

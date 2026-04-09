@@ -340,7 +340,7 @@ void App::render() {
 
 	lili::Mat4 view = camera.get_view_matrix();
 	lili::Mat4 proj = lili::Mat4::perspective(
-		lili::deg_to_rad(70.0f),                     // FOV Y (in rad)
+		lili::deg_to_rad(70.0f),               // FOV Y (in rad)
 		(float)WIN_WIDTH / (float)WIN_HEIGHT,  // aspect ratio
 		0.1f,                                  // near distance unit
 		100.0f                                 // far distance unit

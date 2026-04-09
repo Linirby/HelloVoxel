@@ -3,7 +3,7 @@
 
 # include <SDL3/SDL.h>
 # include "geometry/chunk.hpp"
-# include "geometry/camera.hpp"
+# include "render/camera.hpp"
 # include "geometry/player.hpp"
 
 class App {

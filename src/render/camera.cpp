@@ -1,5 +1,5 @@
 #include <cmath>
-#include "geometry/camera.hpp"
+#include "render/camera.hpp"
 #include "math/utils.hpp"
 
 namespace lili {

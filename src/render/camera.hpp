@@ -1,5 +1,5 @@
-#ifndef GEOMETRY_CAMERA_HPP
-# define GEOMETRY_CAMERA_HPP
+#ifndef RENDER_CAMERA_HPP
+# define RENDER_CAMERA_HPP
 
 # include "math/vec3.hpp"
 # include "math/mat4x4.hpp"
