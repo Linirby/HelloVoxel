@@ -42,18 +42,12 @@ Mesh ChunkMesher::generate_mesh(const Chunk &chunk) {
 						);
 						uint8_t tex_idx;
 						switch (face) {
-							case 0: tex_idx = block_def.top_texture;
-									break;
-							case 1: tex_idx = block_def.bottom_texture;
-									break;
-							case 2: tex_idx = block_def.right_texture;
-									break;
-							case 3: tex_idx = block_def.left_texture;
-									break;
-							case 4: tex_idx = block_def.front_texture;
-									break;
-							case 5: tex_idx = block_def.back_texture;
-									break;
+							case 0: tex_idx = block_def.top_texture; break;
+							case 1: tex_idx = block_def.bottom_texture; break;
+							case 2: tex_idx = block_def.right_texture; break;
+							case 3: tex_idx = block_def.left_texture; break;
+							case 4: tex_idx = block_def.front_texture; break;
+							case 5: tex_idx = block_def.back_texture; break;
 						}
 
 						float u_offset = (tex_idx % ATLAS_COLS) * UV_W;

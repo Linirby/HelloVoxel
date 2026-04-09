@@ -9,21 +9,24 @@ namespace lili {
 
 class Renderer {
 public:
-	void init(SDL_Window *window);
+	Renderer(SDL_Window *window);
+	~Renderer();
 
+	// Holy trinity of rendering, The TRIFORCE!
 	void begin_frame();
+	void draw_mesh(Mesh mesh, Camera camera);
 	void end_frame();
 
-	void draw_mesh(Mesh mesh, Camera camera);
+	SDL_GPUDevice *get_device() const;
 
 private:
-	SDL_Window *shared_window = nullptr;
+	SDL_Window *window;
 	SDL_GPUDevice *device = nullptr;
-
-	SDL_GPUCommandBuffer *cmd_buffer = nullptr;
+	SDL_GPUGraphicsPipeline *chunk_graphics_pipeline = nullptr;
 	SDL_GPUTexture *depth_texture = nullptr;
 
-	SDL_GPURenderPass *render_pass = nullptr;
+	SDL_GPUCommandBuffer *current_cmd_buffer = nullptr;
+	SDL_GPURenderPass *current_render_pass = nullptr;
 };
 
 }  // namespace lili

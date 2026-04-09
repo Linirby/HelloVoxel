@@ -334,18 +334,6 @@ void App::update(float dt) {
 }
 
 void App::render() {
-	lili::Mat4 center_offset = lili::Mat4::translate({ 0.0f, 0.0f, 0.0f });
-	lili::Mat4 rotation_y = lili::Mat4::rotation_y(lili::deg_to_rad(rotation));
-	lili::Mat4 model = rotation_y * center_offset;
-
-	lili::Mat4 view = camera.get_view_matrix();
-	lili::Mat4 proj = lili::Mat4::perspective(
-		lili::deg_to_rad(70.0f),               // FOV Y (in rad)
-		(float)WIN_WIDTH / (float)WIN_HEIGHT,  // aspect ratio
-		0.1f,                                  // near distance unit
-		100.0f                                 // far distance unit
-	);
-	lili::Mat4 mvp = proj * view * model;
 	SDL_GPUCommandBuffer *cmd_buffer = SDL_AcquireGPUCommandBuffer(core.device);
 	if (!cmd_buffer) {
 		throw std::runtime_error("Failed to acquire command buffer!");
@@ -366,7 +354,6 @@ void App::render() {
 		SDL_SubmitGPUCommandBuffer(cmd_buffer);
 		return;
 	}
-	SDL_PushGPUVertexUniformData(cmd_buffer, 0, &mvp, sizeof(lili::Mat4));
 	SDL_GPUColorTargetInfo color_target_info{
 		.texture = swapchain_texture,
 		.clear_color = SDL_FColor{ 0.1f, 0.1f, 0.1f, 1.0f },
@@ -383,6 +370,19 @@ void App::render() {
 		.cycle = false,
 		.clear_stencil = 0
 	};
+	lili::Mat4 center_offset = lili::Mat4::translate({ 0.0f, 0.0f, 0.0f });
+	lili::Mat4 rotation_y = lili::Mat4::rotation_y(lili::deg_to_rad(rotation));
+	lili::Mat4 model = rotation_y * center_offset;
+
+	lili::Mat4 view = camera.get_view_matrix();
+	lili::Mat4 proj = lili::Mat4::perspective(
+		lili::deg_to_rad(70.0f),               // FOV Y (in rad)
+		(float)WIN_WIDTH / (float)WIN_HEIGHT,  // aspect ratio
+		0.1f,                                  // near distance unit
+		100.0f                                 // far distance unit
+	);
+	lili::Mat4 mvp = proj * view * model;
+	SDL_PushGPUVertexUniformData(cmd_buffer, 0, &mvp, sizeof(lili::Mat4));
 	SDL_GPURenderPass *render_pass = SDL_BeginGPURenderPass(
 		cmd_buffer,
 		&color_target_info,
