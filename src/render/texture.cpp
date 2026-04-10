@@ -6,6 +6,7 @@
 namespace lili {
 
 Texture::Texture(SDL_GPUDevice *device, const std::string &img_path) {
+	this->device = device;
 	SDL_Surface *temp_surface = IMG_Load(img_path.c_str());
 	if (!temp_surface) {
 		throw std::runtime_error("Failed to load image " + img_path);
@@ -25,9 +26,25 @@ Texture::Texture(SDL_GPUDevice *device, const std::string &img_path) {
 		.sample_count = SDL_GPU_SAMPLECOUNT_1,
 		.props = 0
 	};
-	texture = SDL_CreateGPUTexture(device, &texture_create_info);
-
+	texture = SDL_CreateGPUTexture(this->device, &texture_create_info);
 	transfer_to_gpu(surface);
+
+	SDL_GPUSamplerCreateInfo sampler_info{
+		.min_filter = SDL_GPU_FILTER_NEAREST,
+		.mag_filter = SDL_GPU_FILTER_NEAREST,
+		.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
+		.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+		.props = 0
+	};
+	sampler = SDL_CreateGPUSampler(this->device, &sampler_info);
+	if (!sampler) {
+		throw std::runtime_error(
+			"res.texture_sampler creation failed!\n-> " +
+			std::string(SDL_GetError())
+		);
+	}
 }
 
 Texture::~Texture() {

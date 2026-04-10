@@ -8,11 +8,11 @@ namespace lili {
 
 class Buffer {
 public:
-	Buffer(SDL_GPUDevice *device, const Mesh &mesh);
+	Buffer(SDL_GPUDevice *device, Mesh &mesh);
 	~Buffer();
 
-	SDL_GPUBuffer *get_vertex_buffer() const;
-	SDL_GPUBuffer *get_index_buffer() const;
+	SDL_GPUBuffer *get_vertex() const;
+	SDL_GPUBuffer *get_index() const;
 	uint32_t get_index_count() const;
 
 private:
@@ -20,6 +20,8 @@ private:
 	SDL_GPUBuffer *vertex_buffer = nullptr;
 	SDL_GPUBuffer *index_buffer = nullptr;
 	uint32_t index_count = 0;
+
+	void transfer_to_gpu(void *data, SDL_GPUBuffer *buffer, uint32_t size);
 };
 
 }  // namespace lili
