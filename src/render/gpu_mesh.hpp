@@ -6,10 +6,10 @@
 
 namespace lili {
 
-class Buffer {
+class GPUMesh {
 public:
-	Buffer(SDL_GPUDevice *device, Mesh &mesh);
-	~Buffer();
+	GPUMesh(SDL_GPUDevice *device, MeshData &mesh);
+	~GPUMesh();
 
 	SDL_GPUBuffer *get_vertex() const;
 	SDL_GPUBuffer *get_index() const;

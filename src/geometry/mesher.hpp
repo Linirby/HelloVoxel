@@ -9,14 +9,14 @@
 
 namespace lili {
 
-struct Mesh {
+struct MeshData {
 	std::vector<Vertex> vertices;
 	std::vector<uint16_t> indices;
 };
 
 class ChunkMesher {
 public:
-	static Mesh generate_mesh(const Chunk &chunk);
+	static MeshData generate_mesh(const Chunk &chunk);
 };
 
 }  // namespace lili

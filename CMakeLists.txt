@@ -23,7 +23,7 @@ target_link_libraries(LiliGeometry PRIVATE LiliMath)
 
 # Lili Render
 add_library(LiliRender STATIC
-    src/render/buffer.cpp
+    src/render/gpu_mesh.cpp
     src/render/camera.cpp
     src/render/renderer.cpp
     src/render/shader.cpp
@@ -36,7 +36,6 @@ target_link_libraries(LiliRender PRIVATE LiliGeometry)
 add_executable(${PROJECT_NAME}
     src/main.cpp
     src/app.cpp
-    src/utils.cpp
 )
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 target_link_libraries(${PROJECT_NAME}

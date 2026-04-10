@@ -3,7 +3,6 @@
 #include "render/renderer.hpp"
 #include "math/mat4x4.hpp"
 #include "math/utils.hpp"
-#include "geometry/block.hpp"
 
 namespace lili {
 
@@ -18,12 +17,6 @@ Renderer::Renderer(SDL_Window *window) {
 	if (!shader) {
 		throw std::runtime_error("Shader creation failed!");
 	}
-	init_chunk();
-	lili::Mesh chunk_mesh = lili::ChunkMesher::generate_mesh(test_chunk);
-	buffer = new Buffer(device, chunk_mesh);
-	if (!buffer) {
-		throw std::runtime_error("Buffer creation failed!");
-	}
 	voxel_texture = new Texture(device, "assets/cube_atlas.png");
 	if (!voxel_texture) {
 		throw std::runtime_error("Texture creation failed!");
@@ -36,7 +29,6 @@ Renderer::~Renderer() {
 		device, graphics_pipeline
 	);
 	if (voxel_texture) delete voxel_texture;
-	if (buffer) delete buffer;
 	if (shader) delete shader;
 	if (depth_texture) SDL_ReleaseGPUTexture(device, depth_texture);
 	if (device) SDL_DestroyGPUDevice(device);
@@ -79,8 +71,12 @@ bool Renderer::begin_frame(Camera camera) {
 		.cycle = false,
 		.clear_stencil = 0
 	};
-	Mat4 model = Mat4::identity();
-
+	current_render_pass = SDL_BeginGPURenderPass(
+		current_cmd_buffer,
+		&color_target_info,
+		1,
+		&depth_target_info
+	);
 	Mat4 view = camera.get_view_matrix();
 	int win_w, win_h;
 	SDL_GetWindowSize(window, &win_w, &win_h);
@@ -90,22 +86,23 @@ bool Renderer::begin_frame(Camera camera) {
 		0.1f,                         // near distance unit
 		100.0f                        // far distance unit
 	);
-	lili::Mat4 mvp = proj * view * model;
+	projection_view = proj * view;
+	return true;
+}
+
+void Renderer::draw(
+	const GPUMesh *mesh, const Texture *texture, Mat4 transform
+) {
+	lili::Mat4 mvp = projection_view * transform;
 	SDL_PushGPUVertexUniformData(current_cmd_buffer, 0, &mvp, sizeof(lili::Mat4));
-	current_render_pass = SDL_BeginGPURenderPass(
-		current_cmd_buffer,
-		&color_target_info,
-		1,
-		&depth_target_info
-	);
 	SDL_BindGPUGraphicsPipeline(current_render_pass, graphics_pipeline);
 	SDL_GPUBufferBinding vertex_binding{
-		.buffer = buffer->get_vertex(),
+		.buffer = mesh->get_vertex(),
 		.offset = 0
 	};
 	SDL_BindGPUVertexBuffers(current_render_pass, 0, &vertex_binding, 1);
 	SDL_GPUBufferBinding index_binding{
-		.buffer = buffer->get_index(),
+		.buffer = mesh->get_index(),
 		.offset = 0
 	};
 	SDL_BindGPUIndexBuffer(
@@ -118,12 +115,8 @@ bool Renderer::begin_frame(Camera camera) {
 	SDL_BindGPUFragmentSamplers(
 		current_render_pass, 0, &atlas_texture_sampler_binding, 1
 	);
-	return true;
-}
-
-void Renderer::draw_chunk() {
 	SDL_DrawGPUIndexedPrimitives(
-		current_render_pass, buffer->get_index_count(), 1, 0, 0, 0
+		current_render_pass, mesh->get_index_count(), 1, 0, 0, 0
 	);
 }
 
@@ -174,25 +167,6 @@ void Renderer::init_depth_texture() {
 			"res.depth_texture creation failed!\n-> " +
 			std::string(SDL_GetError())
 		);
-	}
-}
-
-void Renderer::init_chunk() {
-	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
-		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
-			test_chunk.set_block(lili::BLOCK_ID_DEBUG, x, 0, z);
-		}
-	}
-	for (int y = 0; y < lili::Chunk::SIZE; ++y) {
-		test_chunk.set_block(lili::BLOCK_ID_DEBUG, 0,  y, 0);
-		test_chunk.set_block(lili::BLOCK_ID_DEBUG, 0,  y, 15);
-		test_chunk.set_block(lili::BLOCK_ID_DEBUG, 15, y, 0);
-		test_chunk.set_block(lili::BLOCK_ID_DEBUG, 15, y, 15);
-	}
-	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
-		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
-			test_chunk.set_block(lili::BLOCK_ID_DEBUG, x, 15, z);
-		}
 	}
 }
 

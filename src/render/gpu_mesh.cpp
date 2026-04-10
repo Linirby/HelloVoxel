@@ -1,10 +1,10 @@
 #include <cstring>
 #include <stdexcept>
-#include "render/buffer.hpp"
+#include "render/gpu_mesh.hpp"
 
 namespace lili {
 
-Buffer::Buffer(SDL_GPUDevice *device, Mesh &mesh) {
+GPUMesh::GPUMesh(SDL_GPUDevice *device, MeshData &mesh) {
 	this->device = device;
 	index_count = static_cast<uint32_t>(mesh.indices.size());
 
@@ -49,26 +49,26 @@ Buffer::Buffer(SDL_GPUDevice *device, Mesh &mesh) {
 	);
 }
 
-Buffer::~Buffer() {
+GPUMesh::~GPUMesh() {
 	if (index_buffer)
 		SDL_ReleaseGPUBuffer(device, index_buffer);
 	if (vertex_buffer)
 		SDL_ReleaseGPUBuffer(device, vertex_buffer);
 }
 
-SDL_GPUBuffer *Buffer::get_vertex() const {
+SDL_GPUBuffer *GPUMesh::get_vertex() const {
 	return vertex_buffer;
 }
 
-SDL_GPUBuffer *Buffer::get_index() const {
+SDL_GPUBuffer *GPUMesh::get_index() const {
 	return index_buffer;
 }
 
-uint32_t Buffer::get_index_count() const {
+uint32_t GPUMesh::get_index_count() const {
 	return index_count;
 }
 
-void Buffer::transfer_to_gpu(void *data, SDL_GPUBuffer *buffer, uint32_t size) {
+void GPUMesh::transfer_to_gpu(void *data, SDL_GPUBuffer *buffer, uint32_t size) {
 	SDL_GPUTransferBufferCreateInfo transfer_buffer_info{
 		.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
 		.size = size,

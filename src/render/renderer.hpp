@@ -5,7 +5,7 @@
 
 # include "render/camera.hpp"
 # include "render/shader.hpp"
-# include "render/buffer.hpp"
+# include "render/gpu_mesh.hpp"
 # include "render/texture.hpp"
 
 # include "geometry/chunk.hpp"
@@ -19,7 +19,7 @@ public:
 
 	// Holy trinity of rendering, The TRIFORCE!
 	bool begin_frame(Camera camera);
-	void draw_chunk();
+	void draw(const GPUMesh *mesh, const Texture *texture, Mat4 transform);
 	void end_frame();
 
 	SDL_GPUDevice *get_device() const;
@@ -28,12 +28,13 @@ private:
 	SDL_Window *window;
 	SDL_GPUDevice *device = nullptr;
 	Shader *shader = nullptr;
-	Buffer *buffer = nullptr;
 	SDL_GPUGraphicsPipeline *graphics_pipeline = nullptr;
 	SDL_GPUTexture *depth_texture = nullptr;
 
 	SDL_GPUCommandBuffer *current_cmd_buffer = nullptr;
 	SDL_GPURenderPass *current_render_pass = nullptr;
+
+	Mat4 projection_view;
 
 	Chunk test_chunk;
 	Texture *voxel_texture;

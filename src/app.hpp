@@ -5,6 +5,7 @@
 
 # include "render/renderer.hpp"
 # include "render/camera.hpp"
+# include "render/gpu_mesh.hpp"
 
 # include "geometry/chunk.hpp"
 # include "geometry/player.hpp"
@@ -19,7 +20,9 @@ private:
 		lili::Renderer *renderer = nullptr;
 	} core;
 	struct Resources {
-		lili::Chunk test_chunk;	
+		lili::Chunk chunk;
+		lili::GPUMesh *chunk_mesh;
+		lili::Texture *atlas;
 		lili::Camera camera;
 		lili::Player player;
 	} res;

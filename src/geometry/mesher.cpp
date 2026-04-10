@@ -9,8 +9,8 @@ inline constexpr int ATLAS_ROWS = 4;
 constexpr float UV_W = 1.0f / ATLAS_COLS;
 constexpr float UV_H = 1.0f / ATLAS_ROWS;
 
-Mesh ChunkMesher::generate_mesh(const Chunk &chunk) {
-	Mesh mesh;
+MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
+	MeshData mesh;
 
 	for (int x = 0; x < Chunk::SIZE; ++x) {
 		for (int y = 0; y < Chunk::SIZE; ++y) {
