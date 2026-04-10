@@ -1,6 +1,9 @@
 #include <string>
 #include <stdexcept>
+
 #include "render/renderer.hpp"
+#include "render/model.hpp"
+
 #include "math/mat4x4.hpp"
 #include "math/utils.hpp"
 
@@ -91,18 +94,18 @@ bool Renderer::begin_frame(Camera camera) {
 }
 
 void Renderer::draw(
-	const GPUMesh *mesh, const Texture *texture, Mat4 transform
+	const Model &model, Mat4 transform
 ) {
 	lili::Mat4 mvp = projection_view * transform;
 	SDL_PushGPUVertexUniformData(current_cmd_buffer, 0, &mvp, sizeof(lili::Mat4));
 	SDL_BindGPUGraphicsPipeline(current_render_pass, graphics_pipeline);
 	SDL_GPUBufferBinding vertex_binding{
-		.buffer = mesh->get_vertex(),
+		.buffer = model.mesh->get_vertex(),
 		.offset = 0
 	};
 	SDL_BindGPUVertexBuffers(current_render_pass, 0, &vertex_binding, 1);
 	SDL_GPUBufferBinding index_binding{
-		.buffer = mesh->get_index(),
+		.buffer = model.mesh->get_index(),
 		.offset = 0
 	};
 	SDL_BindGPUIndexBuffer(
@@ -116,7 +119,7 @@ void Renderer::draw(
 		current_render_pass, 0, &atlas_texture_sampler_binding, 1
 	);
 	SDL_DrawGPUIndexedPrimitives(
-		current_render_pass, mesh->get_index_count(), 1, 0, 0, 0
+		current_render_pass, model.mesh->get_index_count(), 1, 0, 0, 0
 	);
 }
 

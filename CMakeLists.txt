@@ -28,6 +28,7 @@ add_library(LiliRender STATIC
     src/render/renderer.cpp
     src/render/shader.cpp
     src/render/texture.cpp
+	src/render/model.cpp
 )
 target_include_directories(LiliRender PUBLIC src)
 target_link_libraries(LiliRender PRIVATE LiliGeometry)

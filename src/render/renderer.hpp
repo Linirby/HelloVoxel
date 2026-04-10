@@ -5,8 +5,8 @@
 
 # include "render/camera.hpp"
 # include "render/shader.hpp"
-# include "render/gpu_mesh.hpp"
 # include "render/texture.hpp"
+# include "render/model.hpp"
 
 # include "geometry/chunk.hpp"
 
@@ -19,7 +19,7 @@ public:
 
 	// Holy trinity of rendering, The TRIFORCE!
 	bool begin_frame(Camera camera);
-	void draw(const GPUMesh *mesh, const Texture *texture, Mat4 transform);
+	void draw(const Model &model, Mat4 transform);
 	void end_frame();
 
 	SDL_GPUDevice *get_device() const;

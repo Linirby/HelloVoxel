@@ -1,23 +1,46 @@
-#include <iostream>
-
+#include <stdexcept>
 #include "app.hpp"
 #include "geometry/block.hpp"
+
+static lili::Chunk load_chunk() {
+	lili::Chunk chunk;
+
+	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
+		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
+			chunk.set_block(lili::BLOCK_ID_DEBUG, x, 0, z);
+		}
+	}
+	for (int y = 0; y < lili::Chunk::SIZE; ++y) {
+		chunk.set_block(lili::BLOCK_ID_DEBUG, 0,  y, 0);
+		chunk.set_block(lili::BLOCK_ID_DEBUG, 0,  y, 15);
+		chunk.set_block(lili::BLOCK_ID_DEBUG, 15, y, 0);
+		chunk.set_block(lili::BLOCK_ID_DEBUG, 15, y, 15);
+	}
+	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
+		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
+			chunk.set_block(lili::BLOCK_ID_DEBUG, x, 15, z);
+		}
+	}
+	return chunk;
+}
 
 void App::run() {
 	init_window();
 	core.renderer = new lili::Renderer(core.window);
-	init_chunk();
-	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(res.chunk);
-	res.chunk_mesh = new lili::GPUMesh(core.renderer->get_device(), chunk_data);
-	if (!res.chunk_mesh) {
-		throw std::runtime_error("Buffer creation failed!");
-	}
-	res.atlas = new lili::Texture(
+
+	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(load_chunk());
+	lili::GPUMesh *chunk_mesh = new lili::GPUMesh(
+		core.renderer->get_device(), chunk_data
+	);
+	if (!chunk_mesh) throw std::runtime_error("Buffer creation failed!");
+
+	lili::Texture *atlas = new lili::Texture(
 		core.renderer->get_device(), "assets/cube_atlas.png"
 	);
-	if (!res.atlas) {
-		throw std::runtime_error("Atlas texture creation failed!");
-	}
+	if (!atlas) throw std::runtime_error("Atlas texture creation failed!");
+
+	res.chunk_model = lili::Model(chunk_mesh, atlas);
+
 	mainloop();
 	cleanup();
 }
@@ -40,25 +63,6 @@ void App::init_window() {
 	}
 	SDL_SetWindowRelativeMouseMode(core.window, true);
 	is_running = true;
-}
-
-void App::init_chunk() {
-	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
-		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
-			res.chunk.set_block(lili::BLOCK_ID_DEBUG, x, 0, z);
-		}
-	}
-	for (int y = 0; y < lili::Chunk::SIZE; ++y) {
-		res.chunk.set_block(lili::BLOCK_ID_DEBUG, 0,  y, 0);
-		res.chunk.set_block(lili::BLOCK_ID_DEBUG, 0,  y, 15);
-		res.chunk.set_block(lili::BLOCK_ID_DEBUG, 15, y, 0);
-		res.chunk.set_block(lili::BLOCK_ID_DEBUG, 15, y, 15);
-	}
-	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
-		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
-			res.chunk.set_block(lili::BLOCK_ID_DEBUG, x, 15, z);
-		}
-	}
 }
 
 void App::handle_events() {
@@ -89,32 +93,9 @@ void App::update(float dt) {
 }
 
 void App::render() {
-	if (core.renderer->begin_frame(res.camera)) {
-		core.renderer->draw(res.chunk_mesh, res.atlas, lili::Mat4::identity());
-		core.renderer->draw(
-			res.chunk_mesh,
-			res.atlas,
-			lili::Mat4::translate({ 16.0f, 0.0f, 0.0f })
-		);
-		core.renderer->draw(
-			res.chunk_mesh,
-			res.atlas,
-			lili::Mat4::translate({ -16.0f, 0.0f, 0.0f })
-		);
-		core.renderer->draw(
-			res.chunk_mesh,
-			res.atlas,
-			lili::Mat4::translate({ 0.0f, 0.0f, 16.0f })
-		);
-		core.renderer->draw(
-			res.chunk_mesh,
-			res.atlas,
-			lili::Mat4::translate({ 0.0f, 0.0f, -16.0f })
-		);
-		core.renderer->end_frame();
-	} else {
-		std::cout << "Can't begin frame!" << '\n';
-	}
+	core.renderer->begin_frame(res.camera);
+	core.renderer->draw(res.chunk_model, lili::Mat4::identity());
+	core.renderer->end_frame();
 }
 
 void App::mainloop() {
@@ -132,8 +113,6 @@ void App::mainloop() {
 }
 
 void App::cleanup() {
-	if (res.atlas) delete res.atlas;
-	if (res.chunk_mesh) delete res.chunk_mesh;
 	if (core.renderer) delete core.renderer;
 	if (core.window) SDL_DestroyWindow(core.window);
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
