@@ -5,7 +5,7 @@ This repository demonstrates the complete pipeline from voxel data on CPU memory
 
 ## Why this project exists
 
-I built this engine to demonstrate practical, low-level graphics engineering, focusing on core implementation details::
+I built this engine to demonstrate practical, low-level graphics engineering, focusing on core implementation details:
 
 - low-level GPU resource lifecycle
 - mesh generation from voxel data
