@@ -1,5 +1,5 @@
 #include <SDL3/SDL.h>
-#include "geometry/player.hpp"
+#include "entity/player.hpp"
 
 namespace lili {
 

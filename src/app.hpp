@@ -8,7 +8,7 @@
 # include "render/camera.hpp"
 # include "render/model.hpp"
 
-# include "geometry/player.hpp"
+# include "entity/player.hpp"
 
 class App {
 public:

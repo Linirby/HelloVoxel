@@ -1,5 +1,5 @@
-#ifndef GEOMETRY_PLAYER_HPP
-# define GEOMETRY_PLAYER_HPP
+#ifndef ENTITY_PLAYER_HPP
+# define ENTITY_PLAYER_HPP
 
 # include "math/vec3.hpp"
 

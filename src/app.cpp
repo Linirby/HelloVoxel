@@ -109,8 +109,20 @@ void App::update(float dt) {
 void App::render() {
 	core.renderer->begin_frame(res.camera);
 
-	for (lili::Model *chunk_model : res.chunk_models)
-		core.renderer->draw(*chunk_model, lili::Mat4::identity());
+	for (lili::Model *chunk_model : res.chunk_models) {
+		core.renderer->submit(
+			*chunk_model,lili::Mat4::identity(), lili::RenderLayer::World3D
+		);
+		core.renderer->submit(
+			*chunk_model,
+			lili::Mat4::translate({
+				0.0f,
+				lili::Chunk::SIZE,
+				0.0f
+			}),
+			lili::RenderLayer::World3D
+		);
+	}
 
 	core.renderer->end_frame();
 }

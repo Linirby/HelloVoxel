@@ -29,8 +29,8 @@ Renderer::Renderer(SDL_Window *window) {
 }
 
 Renderer::~Renderer() {
-	if (hud_pipeline) SDL_ReleaseGPUGraphicsPipeline(device, hud_pipeline);
-	if (depth_pipeline) SDL_ReleaseGPUGraphicsPipeline(device, depth_pipeline);
+	if (ui_pipeline) SDL_ReleaseGPUGraphicsPipeline(device, ui_pipeline);
+	if (world_pipeline) SDL_ReleaseGPUGraphicsPipeline(device, world_pipeline);
 	if (shader) delete shader;
 	if (depth_texture) SDL_ReleaseGPUTexture(device, depth_texture);
 	if (device) SDL_DestroyGPUDevice(device);
@@ -80,31 +80,93 @@ bool Renderer::begin_frame(Camera camera) {
 		1,
 		&depth_target_info
 	);
-	Mat4 view = camera.get_view_matrix();
+
 	int win_w, win_h;
 	SDL_GetWindowSize(window, &win_w, &win_h);
+	Mat4 view = camera.get_view_matrix();
 	Mat4 proj = Mat4::perspective(
 		deg_to_rad(70.0f),            // FOV Y (in rad)
 		(float)win_w / (float)win_h,  // aspect ratio
 		0.1f,                         // near distance unit
 		100.0f                        // far distance unit
 	);
-	projection_view = proj * view;
+	projection_view_3d = proj * view;
+	projection_2d = Mat4::orthographic(
+		0.0f, static_cast<float>(win_w),  // left - right
+		static_cast<float>(win_h), 0.0f,  // bottom - top
+		-1.0f, 1.0f                       // near - far
+	);
 	return true;
 }
 
-void Renderer::draw(
-	const Model &model, Mat4 transform
-) {
-	lili::Mat4 mvp = projection_view * transform;
-	SDL_PushGPUVertexUniformData(
-		current_cmd_buffer, 0, &mvp, sizeof(lili::Mat4)
-	);
-	draw_depth_pipeline(model);
-	draw_hud_pipeline();
+void Renderer::submit(const Model &model, Mat4 transform, RenderLayer layer) {
+	if (layer == RenderLayer::World3D) {
+		world_queue.push_back({ model, transform });
+	} else if (layer == RenderLayer::UI2D) {
+		ui_queue.push_back({ model, transform });
+	}
 }
 
 void Renderer::end_frame() {
+	if (!world_queue.empty()) {
+		SDL_BindGPUGraphicsPipeline(current_render_pass, world_pipeline);
+
+		for (const DrawCommand &cmd : world_queue) {
+			Mat4 mvp = projection_view_3d * cmd.transform;
+			SDL_PushGPUVertexUniformData(
+				current_cmd_buffer, 0, &mvp, sizeof(Mat4)
+			);
+
+			SDL_GPUBufferBinding vertex_binding{
+				.buffer = cmd.model.mesh->get_vertex(),
+				.offset = 0
+			};
+			SDL_BindGPUVertexBuffers(
+				current_render_pass, 0, &vertex_binding, 1
+			);
+			SDL_GPUBufferBinding index_binding{
+				.buffer = cmd.model.mesh->get_index(),
+				.offset = 0
+			};
+			SDL_BindGPUIndexBuffer(
+				current_render_pass,
+				&index_binding,
+				SDL_GPU_INDEXELEMENTSIZE_16BIT
+			);
+			SDL_GPUTextureSamplerBinding atlas_texture_sampler_binding{
+				.texture = cmd.model.texture->get_texture(),
+				.sampler = cmd.model.texture->get_sampler()
+			};
+			SDL_BindGPUFragmentSamplers(
+				current_render_pass, 0, &atlas_texture_sampler_binding, 1
+			);
+
+			SDL_DrawGPUIndexedPrimitives(
+				current_render_pass,
+				cmd.model.mesh->get_index_count(),
+				1, 0, 0, 0
+			);
+		}
+	}
+	if (!ui_queue.empty()) {
+		SDL_BindGPUGraphicsPipeline(current_render_pass, ui_pipeline);
+
+		for (const DrawCommand &cmd : ui_queue) {
+			Mat4 mvp = projection_2d * cmd.transform;
+			SDL_PushGPUVertexUniformData(
+				current_cmd_buffer, 0, &mvp, sizeof(Mat4)
+			);
+
+			SDL_DrawGPUIndexedPrimitives(
+				current_render_pass,
+				cmd.model.mesh->get_index_count(),
+				1, 0, 0, 0
+			);
+		}
+	}
+
+	world_queue.clear();
+	ui_queue.clear();
 	SDL_EndGPURenderPass(current_render_pass);
 	SDL_SubmitGPUCommandBuffer(current_cmd_buffer);
 }
@@ -232,39 +294,13 @@ void Renderer::init_depth_pipeline() {
 		},
 		.props = 0
 	};
-	depth_pipeline = SDL_CreateGPUGraphicsPipeline(device, &create_info);
-	if (!depth_pipeline) {
+	world_pipeline = SDL_CreateGPUGraphicsPipeline(device, &create_info);
+	if (!world_pipeline) {
 		throw std::runtime_error(
 			"Chunk graphics pipeline creation failed!\n-> " +
 			std::string(SDL_GetError())
 		);
 	}
-}
-
-void Renderer::draw_depth_pipeline(const Model &model) {
-	SDL_BindGPUGraphicsPipeline(current_render_pass, depth_pipeline);
-	SDL_GPUBufferBinding vertex_binding{
-		.buffer = model.mesh->get_vertex(),
-		.offset = 0
-	};
-	SDL_BindGPUVertexBuffers(current_render_pass, 0, &vertex_binding, 1);
-	SDL_GPUBufferBinding index_binding{
-		.buffer = model.mesh->get_index(),
-		.offset = 0
-	};
-	SDL_BindGPUIndexBuffer(
-		current_render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT
-	);
-	SDL_GPUTextureSamplerBinding atlas_texture_sampler_binding{
-		.texture = model.texture->get_texture(),
-		.sampler = model.texture->get_sampler()
-	};
-	SDL_BindGPUFragmentSamplers(
-		current_render_pass, 0, &atlas_texture_sampler_binding, 1
-	);
-	SDL_DrawGPUIndexedPrimitives(
-		current_render_pass, model.mesh->get_index_count(), 1, 0, 0, 0
-	);
 }
 
 void Renderer::init_hud_pipeline() {
@@ -330,17 +366,13 @@ void Renderer::init_hud_pipeline() {
 		},
 		.props = 0
 	};
-	hud_pipeline = SDL_CreateGPUGraphicsPipeline(device, &create_info);
-	if (!hud_pipeline) {
+	ui_pipeline = SDL_CreateGPUGraphicsPipeline(device, &create_info);
+	if (!ui_pipeline) {
 		throw std::runtime_error(
 			"HUD graphics pipeline creation failed!\n-> " +
 			std::string(SDL_GetError())
 		);
 	}
-}
-
-void Renderer::draw_hud_pipeline() {
-	SDL_BindGPUGraphicsPipeline(current_render_pass, hud_pipeline);
 }
 
 }  // namespace lili

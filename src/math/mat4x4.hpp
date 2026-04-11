@@ -15,6 +15,9 @@ struct Mat4 {
 	static Mat4 perspective(
 		float fovy_rad, float aspect, float near, float far
 	);
+	static Mat4 orthographic(
+		float left, float right, float bottom, float top, float near, float far
+	);
 	static Mat4 translate(const Vec3 &pos);
 	static Mat4 rotation_x(float radians);
 	static Mat4 rotation_y(float radians);
