@@ -12,6 +12,7 @@ struct Model {
 
 	Model() = default;
 	Model(GPUMesh *model, Texture *texture);
+	~Model();
 };
 
 }  // namespace lili

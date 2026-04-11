@@ -9,6 +9,10 @@
 
 namespace lili {
 
+//
+//  PUBLIC
+//
+
 Renderer::Renderer(SDL_Window *window) {
 	this->window = window;
 
@@ -20,18 +24,13 @@ Renderer::Renderer(SDL_Window *window) {
 	if (!shader) {
 		throw std::runtime_error("Shader creation failed!");
 	}
-	voxel_texture = new Texture(device, "assets/cube_atlas.png");
-	if (!voxel_texture) {
-		throw std::runtime_error("Texture creation failed!");
-	}
-	init_graphics_pipeline();
+	init_depth_pipeline();
+	init_hud_pipeline();
 }
 
 Renderer::~Renderer() {
-	if (graphics_pipeline) SDL_ReleaseGPUGraphicsPipeline(
-		device, graphics_pipeline
-	);
-	if (voxel_texture) delete voxel_texture;
+	if (hud_pipeline) SDL_ReleaseGPUGraphicsPipeline(device, hud_pipeline);
+	if (depth_pipeline) SDL_ReleaseGPUGraphicsPipeline(device, depth_pipeline);
 	if (shader) delete shader;
 	if (depth_texture) SDL_ReleaseGPUTexture(device, depth_texture);
 	if (device) SDL_DestroyGPUDevice(device);
@@ -43,7 +42,8 @@ bool Renderer::begin_frame(Camera camera) {
 		throw std::runtime_error("Failed to acquire command buffer!");
 	}
 	SDL_GPUTexture *swapchain_texture = nullptr;
-	uint32_t width, height;
+	uint32_t width = 0;
+	uint32_t height = 0;
 	bool success = SDL_WaitAndAcquireGPUSwapchainTexture(
 		current_cmd_buffer,
 		window,
@@ -97,30 +97,11 @@ void Renderer::draw(
 	const Model &model, Mat4 transform
 ) {
 	lili::Mat4 mvp = projection_view * transform;
-	SDL_PushGPUVertexUniformData(current_cmd_buffer, 0, &mvp, sizeof(lili::Mat4));
-	SDL_BindGPUGraphicsPipeline(current_render_pass, graphics_pipeline);
-	SDL_GPUBufferBinding vertex_binding{
-		.buffer = model.mesh->get_vertex(),
-		.offset = 0
-	};
-	SDL_BindGPUVertexBuffers(current_render_pass, 0, &vertex_binding, 1);
-	SDL_GPUBufferBinding index_binding{
-		.buffer = model.mesh->get_index(),
-		.offset = 0
-	};
-	SDL_BindGPUIndexBuffer(
-		current_render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT
+	SDL_PushGPUVertexUniformData(
+		current_cmd_buffer, 0, &mvp, sizeof(lili::Mat4)
 	);
-	SDL_GPUTextureSamplerBinding atlas_texture_sampler_binding{
-		.texture = voxel_texture->get_texture(),
-		.sampler = voxel_texture->get_sampler()
-	};
-	SDL_BindGPUFragmentSamplers(
-		current_render_pass, 0, &atlas_texture_sampler_binding, 1
-	);
-	SDL_DrawGPUIndexedPrimitives(
-		current_render_pass, model.mesh->get_index_count(), 1, 0, 0, 0
-	);
+	draw_depth_pipeline(model);
+	draw_hud_pipeline();
 }
 
 void Renderer::end_frame() {
@@ -132,13 +113,17 @@ SDL_GPUDevice *Renderer::get_device() const {
 	return device;
 }
 
+//
+//  PRIVATE
+//
+
 void Renderer::init_device() {
 	device = SDL_CreateGPUDevice(
 		SDL_GPU_SHADERFORMAT_SPIRV, true, "vulkan"
 	);
 	if (!device) {
 		throw std::runtime_error(
-			"core.device creation failed!\n-> " +
+			"Device creation failed!\n-> " +
 			std::string(SDL_GetError())
 		);
 	}
@@ -167,13 +152,13 @@ void Renderer::init_depth_texture() {
 	depth_texture = SDL_CreateGPUTexture(device, &depth_info);
 	if (!depth_texture) {
 		throw std::runtime_error(
-			"res.depth_texture creation failed!\n-> " +
+			"Depth texture creation failed!\n-> " +
 			std::string(SDL_GetError())
 		);
 	}
 }
 
-void Renderer::init_graphics_pipeline() {
+void Renderer::init_depth_pipeline() {
 	SDL_GPUVertexBufferDescription vertex_buffer_desc{
 		.slot = 0,
 		.pitch = sizeof(float) * 5,
@@ -247,13 +232,115 @@ void Renderer::init_graphics_pipeline() {
 		},
 		.props = 0
 	};
-	graphics_pipeline = SDL_CreateGPUGraphicsPipeline(device, &create_info);
-	if (!graphics_pipeline) {
+	depth_pipeline = SDL_CreateGPUGraphicsPipeline(device, &create_info);
+	if (!depth_pipeline) {
 		throw std::runtime_error(
-			"pipe.graphics_pipeline creation failed!\n-> " +
+			"Chunk graphics pipeline creation failed!\n-> " +
 			std::string(SDL_GetError())
 		);
 	}
+}
+
+void Renderer::draw_depth_pipeline(const Model &model) {
+	SDL_BindGPUGraphicsPipeline(current_render_pass, depth_pipeline);
+	SDL_GPUBufferBinding vertex_binding{
+		.buffer = model.mesh->get_vertex(),
+		.offset = 0
+	};
+	SDL_BindGPUVertexBuffers(current_render_pass, 0, &vertex_binding, 1);
+	SDL_GPUBufferBinding index_binding{
+		.buffer = model.mesh->get_index(),
+		.offset = 0
+	};
+	SDL_BindGPUIndexBuffer(
+		current_render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_16BIT
+	);
+	SDL_GPUTextureSamplerBinding atlas_texture_sampler_binding{
+		.texture = model.texture->get_texture(),
+		.sampler = model.texture->get_sampler()
+	};
+	SDL_BindGPUFragmentSamplers(
+		current_render_pass, 0, &atlas_texture_sampler_binding, 1
+	);
+	SDL_DrawGPUIndexedPrimitives(
+		current_render_pass, model.mesh->get_index_count(), 1, 0, 0, 0
+	);
+}
+
+void Renderer::init_hud_pipeline() {
+	SDL_GPUVertexBufferDescription vertex_buffer_desc{
+		.slot = 0,
+		.pitch = sizeof(float) * 5,
+		.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+		.instance_step_rate = 0
+	};
+	SDL_GPUVertexAttribute vertex_attributes[2] = {
+		(SDL_GPUVertexAttribute){
+			.location = 0,
+			.buffer_slot = 0,
+			.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+			.offset = 0
+		},
+		(SDL_GPUVertexAttribute){
+			.location = 1,
+			.buffer_slot = 0,
+			.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+			.offset = sizeof(float) * 3
+		}
+	};
+	SDL_GPUColorTargetDescription color_target_desc{
+		.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+		.blend_state = {
+			.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_COLOR,
+			.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+			.color_blend_op = SDL_GPU_BLENDOP_ADD,
+			.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_COLOR,
+			.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+			.alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+			.color_write_mask = SDL_GPU_COLORCOMPONENT_R |
+				SDL_GPU_COLORCOMPONENT_G |
+				SDL_GPU_COLORCOMPONENT_B |
+				SDL_GPU_COLORCOMPONENT_A,
+			.enable_blend = true,
+			.enable_color_write_mask = true,
+		}
+	};
+	SDL_GPUGraphicsPipelineCreateInfo create_info{
+		.vertex_shader = shader->get_vertex(),
+		.fragment_shader = shader->get_fragment(),
+		.vertex_input_state = {
+			.vertex_buffer_descriptions = &vertex_buffer_desc,
+			.num_vertex_buffers = 1,
+			.vertex_attributes = vertex_attributes,
+			.num_vertex_attributes = 2
+		},
+		.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+		.rasterizer_state = {
+			.fill_mode = SDL_GPU_FILLMODE_FILL,
+			.cull_mode = SDL_GPU_CULLMODE_BACK,
+			.front_face = SDL_GPU_FRONTFACE_CLOCKWISE,
+		},
+		.multisample_state = {
+			.sample_count = SDL_GPU_SAMPLECOUNT_1,
+		},
+		.target_info = {
+			.color_target_descriptions = &color_target_desc,
+			.num_color_targets = 1,
+			.has_depth_stencil_target = false
+		},
+		.props = 0
+	};
+	hud_pipeline = SDL_CreateGPUGraphicsPipeline(device, &create_info);
+	if (!hud_pipeline) {
+		throw std::runtime_error(
+			"HUD graphics pipeline creation failed!\n-> " +
+			std::string(SDL_GetError())
+		);
+	}
+}
+
+void Renderer::draw_hud_pipeline() {
+	SDL_BindGPUGraphicsPipeline(current_render_pass, hud_pipeline);
 }
 
 }  // namespace lili

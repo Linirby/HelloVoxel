@@ -28,8 +28,11 @@ private:
 	SDL_Window *window;
 	SDL_GPUDevice *device = nullptr;
 	Shader *shader = nullptr;
-	SDL_GPUGraphicsPipeline *graphics_pipeline = nullptr;
+
+	SDL_GPUGraphicsPipeline *depth_pipeline = nullptr;
 	SDL_GPUTexture *depth_texture = nullptr;
+
+	SDL_GPUGraphicsPipeline *hud_pipeline = nullptr;
 
 	SDL_GPUCommandBuffer *current_cmd_buffer = nullptr;
 	SDL_GPURenderPass *current_render_pass = nullptr;
@@ -41,8 +44,12 @@ private:
 
 	void init_device();
 	void init_depth_texture();
-	void init_chunk();
-	void init_graphics_pipeline();
+
+	void init_depth_pipeline();
+	void draw_depth_pipeline(const Model &model);
+
+	void init_hud_pipeline();
+	void draw_hud_pipeline();
 };
 
 }  // namespace lili

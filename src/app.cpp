@@ -11,14 +11,19 @@ static lili::Chunk load_chunk() {
 		}
 	}
 	for (int y = 0; y < lili::Chunk::SIZE; ++y) {
-		chunk.set_block(lili::BLOCK_ID_DEBUG, 0,  y, 0);
-		chunk.set_block(lili::BLOCK_ID_DEBUG, 0,  y, 15);
-		chunk.set_block(lili::BLOCK_ID_DEBUG, 15, y, 0);
-		chunk.set_block(lili::BLOCK_ID_DEBUG, 15, y, 15);
+		chunk.set_block(lili::BLOCK_ID_DEBUG, 0, y, 0);
+		chunk.set_block(lili::BLOCK_ID_DEBUG, lili::Chunk::SIZE - 1, y, 0);
+		chunk.set_block(lili::BLOCK_ID_DEBUG, 0, y, lili::Chunk::SIZE - 1);
+		chunk.set_block(
+			lili::BLOCK_ID_DEBUG,
+			lili::Chunk::SIZE - 1,
+			y,
+			lili::Chunk::SIZE - 1
+		);
 	}
 	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
 		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
-			chunk.set_block(lili::BLOCK_ID_DEBUG, x, 15, z);
+			chunk.set_block(lili::BLOCK_ID_DEBUG, x, lili::Chunk::SIZE - 1, z);
 		}
 	}
 	return chunk;
@@ -27,6 +32,15 @@ static lili::Chunk load_chunk() {
 void App::run() {
 	init_window();
 	core.renderer = new lili::Renderer(core.window);
+
+	res.player = {
+		{
+			static_cast<int>(lili::Chunk::SIZE / 2),
+			static_cast<int>(lili::Chunk::SIZE / 2),
+			30.0f
+		},
+		10.0f
+	};
 
 	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(load_chunk());
 	lili::GPUMesh *chunk_mesh = new lili::GPUMesh(
@@ -39,7 +53,7 @@ void App::run() {
 	);
 	if (!atlas) throw std::runtime_error("Atlas texture creation failed!");
 
-	res.chunk_model = lili::Model(chunk_mesh, atlas);
+	res.chunk_models.push_back(new lili::Model(chunk_mesh, atlas));
 
 	mainloop();
 	cleanup();
@@ -94,7 +108,10 @@ void App::update(float dt) {
 
 void App::render() {
 	core.renderer->begin_frame(res.camera);
-	core.renderer->draw(res.chunk_model, lili::Mat4::identity());
+
+	for (lili::Model *chunk_model : res.chunk_models)
+		core.renderer->draw(*chunk_model, lili::Mat4::identity());
+
 	core.renderer->end_frame();
 }
 
@@ -113,6 +130,9 @@ void App::mainloop() {
 }
 
 void App::cleanup() {
+	for (lili::Model *chunk_model : res.chunk_models)
+		delete chunk_model;
+	res.chunk_models.clear();
 	if (core.renderer) delete core.renderer;
 	if (core.window) SDL_DestroyWindow(core.window);
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
