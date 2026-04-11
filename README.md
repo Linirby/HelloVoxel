@@ -12,6 +12,7 @@ I built this engine to demonstrate practical, low-level graphics engineering, fo
 - texture atlas mapping
 - camera movement and matrix math
 - render pass and pipeline setup
+- clean architectural abstraction between logic and rendering
 
 ## Current capabilities
 
@@ -24,6 +25,8 @@ I built this engine to demonstrate practical, low-level graphics engineering, fo
 - Texture atlas sampling with nearest-neighbor filtering.
 - Mouse-look camera + fly movement controls.
 - Custom math types (`Vec3`, `Mat4`) for transforms and view/projection.
+- Clean separation of the render pipeline (`Renderer`, `GPUMesh`, `Model`, `Texture`, `Shader`).
+- HUD rendering with a crosshair overlay.
 
 ## Architecture (big picture)
 
@@ -32,9 +35,9 @@ I built this engine to demonstrate practical, low-level graphics engineering, fo
 | App lifecycle | Init, main loop (events, updates, render), cleanup | `src/app.cpp`, `src/app.hpp`, `src/main.cpp` |
 | Voxel data | Chunk storage and block registry | `src/geometry/chunk.*`, `src/geometry/block.*` |
 | Meshing | Convert voxels to renderable triangles | `src/geometry/mesher.*`, `src/geometry/voxel_data.hpp` |
-| Camera + player | Mouse orientation + keyboard movement | `src/geometry/camera.*`, `src/geometry/player.*` |
+| Render pipeline | Encapsulates SDL3 GPU setup, pipelines, and draws | `src/render/renderer.*`, `src/render/gpu_mesh.*`, `src/render/model.*`, `src/render/texture.*`, `src/render/shader.*` |
+| Camera + player | Mouse orientation + keyboard movement | `src/render/camera.*`, `src/geometry/player.*` |
 | Math | Vector and matrix operations | `src/math/vec3.*`, `src/math/mat4x4.*` |
-| GPU helpers | Shader loading and buffer/texture uploads | `src/utils.*` |
 | Shaders | Vertex transform + atlas sampling | `shader/triangle.vert`, `shader/triangle.frag` |
 
 ## Rendering flow (from startup to frame)
@@ -44,12 +47,11 @@ I built this engine to demonstrate practical, low-level graphics engineering, fo
 `App::run()` executes this sequence:
 
 1. `init_window()` -> creates SDL window and enables relative mouse mode.
-2. `init_device()` -> creates SDL GPU device (`vulkan`) and claims the window.
-3. `init_textures()` -> creates depth texture, loads `assets/cube_atlas.png`, creates sampler.
-4. `init_test_chunk()` -> generates a test chunk layout in memory.
-5. `init_buffers()` -> generates chunk mesh, uploads vertices/indices to GPU buffers.
-6. `init_shaders()` -> loads SPIR-V shader binaries.
-7. `init_graphics_pipeline()` -> creates raster, depth, and vertex input pipeline state.
+2. Creates `Renderer` instance -> claims the window, initializes SDL GPU device, depth buffer, pipelines (including HUD), and shaders.
+3. Generates chunk data (`MeshData`) using `ChunkMesher::generate_mesh()`.
+4. Creates a `GPUMesh` -> uploads vertices and indices to GPU buffers.
+5. Loads a `Texture` from `assets/cube_atlas.png` -> creates sampler.
+6. Assembles a `Model` linking the `GPUMesh` and `Texture`.
 
 ### 2. Per-frame loop
 
@@ -58,15 +60,13 @@ In each frame:
 1. Poll SDL events (quit, escape, mouse motion).
 2. Update player position from keyboard input.
 3. Sync camera position with player.
-4. Build `model`, `view`, `projection`, then `MVP`.
-5. Acquire swapchain texture.
-6. Begin render pass, bind pipeline + buffers + texture sampler.
-7. Draw indexed chunk geometry.
-8. Submit GPU command buffer.
+4. `Renderer::begin_frame(camera)` -> Acquires swapchain texture, builds projection/view matrices, and begins the main render pass.
+5. `Renderer::draw(model, transform)` -> Binds pipeline, vertex/index buffers, texture sampler, and draws the geometry.
+6. `Renderer::end_frame()` -> Draws the HUD/crosshair, ends the render pass, and submits the GPU command buffer.
 
 ### 3. Shutdown
 
-`cleanup()` releases pipeline/shaders, buffers, textures, sampler, GPU device, window, and SDL subsystems in order.
+`cleanup()` releases the renderer, window, and SDL subsystems in order. The `Renderer` destructor handles releasing pipelines, shaders, buffers, textures, and the GPU device.
 
 ## Voxel meshing explained (non-graphics friendly)
 
@@ -158,7 +158,6 @@ Right now it focuses on correctness for a voxel renderer core (single chunk, tex
 
 ## Next milestones
 
-- Cleaner Architecture of the render pipeline.
 - Multi-chunk world generation and management.
 - Meshing optimizations (for fewer triangles and faster updates).
 - Better lighting/shading pipeline.

@@ -39,7 +39,7 @@ void App::run() {
 			static_cast<int>(lili::Chunk::SIZE / 2),
 			30.0f
 		},
-		10.0f
+		20.0f
 	};
 
 	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(load_chunk());
