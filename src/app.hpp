@@ -2,7 +2,6 @@
 # define APP_HPP
 
 # include <SDL3/SDL.h>
-# include <vector>
 
 # include "render/renderer.hpp"
 # include "render/camera.hpp"
@@ -20,7 +19,8 @@ private:
 		lili::Renderer *renderer = nullptr;
 	} core;
 	struct Resources {
-		std::vector<lili::Model *> chunk_models;
+		lili::Model *chunk_model;
+		lili::Model *crosshair_model;
 		lili::Camera camera;
 		lili::Player player;
 	} res;

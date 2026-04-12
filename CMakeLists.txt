@@ -16,6 +16,7 @@ add_library(LiliGeometry STATIC
 	src/geometry/block.cpp
 	src/geometry/chunk.cpp
 	src/geometry/mesher.cpp
+	src/geometry/primitives.cpp
 )
 target_include_directories(LiliGeometry PUBLIC src)
 target_link_libraries(LiliGeometry PRIVATE LiliMath)

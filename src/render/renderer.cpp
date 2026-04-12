@@ -157,6 +157,30 @@ void Renderer::end_frame() {
 				current_cmd_buffer, 0, &mvp, sizeof(Mat4)
 			);
 
+			SDL_GPUBufferBinding vertex_binding{
+				.buffer = cmd.model.mesh->get_vertex(),
+				.offset = 0
+			};
+			SDL_BindGPUVertexBuffers(
+				current_render_pass, 0, &vertex_binding, 1
+			);
+			SDL_GPUBufferBinding index_binding{
+				.buffer = cmd.model.mesh->get_index(),
+				.offset = 0
+			};
+			SDL_BindGPUIndexBuffer(
+				current_render_pass,
+				&index_binding,
+				SDL_GPU_INDEXELEMENTSIZE_16BIT
+			);
+			SDL_GPUTextureSamplerBinding atlas_texture_sampler_binding{
+				.texture = cmd.model.texture->get_texture(),
+				.sampler = cmd.model.texture->get_sampler()
+			};
+			SDL_BindGPUFragmentSamplers(
+				current_render_pass, 0, &atlas_texture_sampler_binding, 1
+			);
+
 			SDL_DrawGPUIndexedPrimitives(
 				current_render_pass,
 				cmd.model.mesh->get_index_count(),
@@ -327,10 +351,10 @@ void Renderer::init_hud_pipeline() {
 	SDL_GPUColorTargetDescription color_target_desc{
 		.format = SDL_GetGPUSwapchainTextureFormat(device, window),
 		.blend_state = {
-			.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_COLOR,
+			.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
 			.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
 			.color_blend_op = SDL_GPU_BLENDOP_ADD,
-			.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_COLOR,
+			.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
 			.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
 			.alpha_blend_op = SDL_GPU_BLENDOP_ADD,
 			.color_write_mask = SDL_GPU_COLORCOMPONENT_R |
@@ -353,16 +377,27 @@ void Renderer::init_hud_pipeline() {
 		.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
 		.rasterizer_state = {
 			.fill_mode = SDL_GPU_FILLMODE_FILL,
-			.cull_mode = SDL_GPU_CULLMODE_BACK,
+			.cull_mode = SDL_GPU_CULLMODE_NONE,
 			.front_face = SDL_GPU_FRONTFACE_CLOCKWISE,
 		},
 		.multisample_state = {
 			.sample_count = SDL_GPU_SAMPLECOUNT_1,
 		},
+		.depth_stencil_state = {
+			.compare_op = SDL_GPU_COMPAREOP_ALWAYS,
+			.back_stencil_state = { SDL_GPU_STENCILOP_ZERO },
+			.front_stencil_state = { SDL_GPU_STENCILOP_ZERO },
+			.compare_mask = 0,
+			.write_mask = 0,
+			.enable_depth_test = false,
+			.enable_depth_write = false,
+			.enable_stencil_test = false
+		},
 		.target_info = {
 			.color_target_descriptions = &color_target_desc,
 			.num_color_targets = 1,
-			.has_depth_stencil_target = false
+			.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+			.has_depth_stencil_target = true
 		},
 		.props = 0
 	};

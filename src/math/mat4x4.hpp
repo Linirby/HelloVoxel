@@ -22,6 +22,7 @@ struct Mat4 {
 	static Mat4 rotation_x(float radians);
 	static Mat4 rotation_y(float radians);
 	static Mat4 rotation_z(float radians);
+	static Mat4 scale(const Vec3 &v);
 };
 
 } // namespace lili

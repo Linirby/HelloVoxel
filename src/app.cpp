@@ -1,6 +1,9 @@
 #include <stdexcept>
+
 #include "app.hpp"
+
 #include "geometry/block.hpp"
+#include "geometry/primitives.hpp"
 
 static lili::Chunk load_chunk() {
 	lili::Chunk chunk;
@@ -46,14 +49,24 @@ void App::run() {
 	lili::GPUMesh *chunk_mesh = new lili::GPUMesh(
 		core.renderer->get_device(), chunk_data
 	);
-	if (!chunk_mesh) throw std::runtime_error("Buffer creation failed!");
-
+	if (!chunk_mesh) throw std::runtime_error("GPU Mesh creation failed!");
 	lili::Texture *atlas = new lili::Texture(
 		core.renderer->get_device(), "assets/cube_atlas.png"
 	);
 	if (!atlas) throw std::runtime_error("Atlas texture creation failed!");
+	res.chunk_model = new lili::Model(chunk_mesh, atlas);
 
-	res.chunk_models.push_back(new lili::Model(chunk_mesh, atlas));
+	lili::MeshData quad_data = lili::create_unit_quad();
+	lili::GPUMesh *quad_mesh = new lili::GPUMesh(
+		core.renderer->get_device(), quad_data
+	);
+	if (!quad_mesh) throw std::runtime_error("GPU Mesh creation failed!");
+	lili::Texture *crosshair_texture = new lili::Texture(
+		core.renderer->get_device(), "assets/crosshair.png"
+	);
+	if (!crosshair_texture)
+		throw std::runtime_error("Crosshair texture creation failed!");
+	res.crosshair_model = new lili::Model(quad_mesh, crosshair_texture);
 
 	mainloop();
 	cleanup();
@@ -109,20 +122,21 @@ void App::update(float dt) {
 void App::render() {
 	core.renderer->begin_frame(res.camera);
 
-	for (lili::Model *chunk_model : res.chunk_models) {
-		core.renderer->submit(
-			*chunk_model,lili::Mat4::identity(), lili::RenderLayer::World3D
-		);
-		core.renderer->submit(
-			*chunk_model,
-			lili::Mat4::translate({
-				0.0f,
-				lili::Chunk::SIZE,
-				0.0f
-			}),
-			lili::RenderLayer::World3D
-		);
-	}
+	core.renderer->submit(
+		*res.chunk_model, lili::Mat4::identity(), lili::RenderLayer::World3D
+	);
+
+	int win_w = 0;
+	int win_h = 0;
+	SDL_GetWindowSize(core.window, &win_w, &win_h);
+	lili::Mat4 translation = lili::Mat4::translate(
+		{ win_w / 2.0f, win_h / 2.0f, 0.0f }
+	);
+	lili::Mat4 scale = lili::Mat4::scale({ 18.0f, 18.0f, 1.0f });
+	lili::Mat4 transformation = translation * scale;
+	core.renderer->submit(
+		*res.crosshair_model, transformation, lili::RenderLayer::UI2D
+	);
 
 	core.renderer->end_frame();
 }
@@ -142,9 +156,8 @@ void App::mainloop() {
 }
 
 void App::cleanup() {
-	for (lili::Model *chunk_model : res.chunk_models)
-		delete chunk_model;
-	res.chunk_models.clear();
+	if (res.crosshair_model) delete res.crosshair_model;
+	if (res.chunk_model) delete res.chunk_model;
 	if (core.renderer) delete core.renderer;
 	if (core.window) SDL_DestroyWindow(core.window);
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
