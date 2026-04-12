@@ -54,7 +54,7 @@ private:
 	void init_depth_texture();
 
 	void init_depth_pipeline();
-	void init_hud_pipeline();
+	void init_ui_pipeline();
 };
 
 }  // namespace lili

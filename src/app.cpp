@@ -45,7 +45,8 @@ void App::run() {
 		20.0f
 	};
 
-	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(load_chunk());
+	res.chunk = load_chunk();
+	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(res.chunk);
 	lili::GPUMesh *chunk_mesh = new lili::GPUMesh(
 		core.renderer->get_device(), chunk_data
 	);
@@ -103,6 +104,9 @@ void App::handle_events() {
 			if (event.key.key == SDLK_ESCAPE) {
 				is_running = false;
 			}
+			if (event.key.key == SDLK_P) {
+				res.player.toggle_mode();
+			}
 		}
 		if (event.type == SDL_EVENT_MOUSE_MOTION) {
 			res.camera.process_mouse(event.motion.xrel, event.motion.yrel);
@@ -113,10 +117,13 @@ void App::handle_events() {
 void App::update(float dt) {
 	const bool *keys = SDL_GetKeyboardState(NULL);
 
-	res.player.process_keyboard(
+	res.player.process_input(
 		keys, res.camera.front, res.camera.right, res.camera.up, dt
 	);
+	res.player.update_physics(dt, res.chunk);
 	res.camera.position = res.player.position;
+	if (res.player.mode == lili::PlayerMode::Physical)
+		res.camera.position.y += 1.6f;
 }
 
 void App::render() {

@@ -19,6 +19,7 @@ private:
 		lili::Renderer *renderer = nullptr;
 	} core;
 	struct Resources {
+		lili::Chunk chunk;
 		lili::Model *chunk_model;
 		lili::Model *crosshair_model;
 		lili::Camera camera;

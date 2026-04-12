@@ -139,4 +139,4 @@ Mat4 Mat4::scale(const Vec3 &v) {
 	return result;
 }
 
-}
+}  // namespace lili
