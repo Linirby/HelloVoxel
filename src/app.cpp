@@ -40,7 +40,7 @@ void App::run() {
 		{
 			static_cast<int>(lili::Chunk::SIZE / 2),
 			static_cast<int>(lili::Chunk::SIZE / 2),
-			30.0f
+			static_cast<int>(lili::Chunk::SIZE / 2)
 		},
 		20.0f
 	};

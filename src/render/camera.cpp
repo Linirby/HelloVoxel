@@ -19,15 +19,15 @@ void Camera::process_mouse(float x_offset, float y_offset) {
 }
 
 Mat4 Camera::get_view_matrix() const {
-	return Mat4::look_at(position, position + front, { 0.0f, 1.0f, 0.0f });
+	return Mat4::look_at(position, position + front, up);
 }
 
 void Camera::update_vectors() {
 	Vec3 new_front;
 
-	new_front.x = cos(deg_to_rad(pitch)) * cos(deg_to_rad(yaw));
-	new_front.y = sin(deg_to_rad(pitch));
-	new_front.z = cos(deg_to_rad(pitch)) * sin(deg_to_rad(yaw));
+	new_front.x = std::cos(deg_to_rad(pitch)) * std::cos(deg_to_rad(yaw));
+	new_front.y = std::sin(deg_to_rad(pitch));
+	new_front.z = std::cos(deg_to_rad(pitch)) * std::sin(deg_to_rad(yaw));
 
 	front = new_front.normalized();
 	right = front.cross({ 0.0f, 1.0f, 0.0f }).normalized();

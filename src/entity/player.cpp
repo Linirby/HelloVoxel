@@ -1,4 +1,5 @@
 #include <SDL3/SDL.h>
+#include <cmath>
 #include "entity/player.hpp"
 
 namespace lili {
@@ -32,11 +33,17 @@ void Player::process_input(
 	if (keys[SDL_SCANCODE_W]) move_dir += flat_front;
 	if (keys[SDL_SCANCODE_S]) move_dir -= flat_front;
 	if (keys[SDL_SCANCODE_D]) move_dir += flat_right;
-	if (keys[SDL_SCANCODE_A]) move_dir -= flat_front;
+	if (keys[SDL_SCANCODE_A]) move_dir -= flat_right;
 
+	float current_speed = walk_speed;
+	if (keys[SDL_SCANCODE_LSHIFT] && keys[SDL_SCANCODE_W]) {
+		current_speed = run_speed;
+	} else {
+		current_speed = walk_speed;
+	}
 	move_dir = move_dir.normalized();
-	velocity.x = move_dir.x * speed;
-	velocity.z = move_dir.z * speed;
+	velocity.x = move_dir.x * current_speed;
+	velocity.z = move_dir.z * current_speed;
 
 	if (keys[SDL_SCANCODE_SPACE] && is_grounded) {
 		velocity.y = jump_power;
@@ -46,6 +53,37 @@ void Player::process_input(
 
 void Player::update_physics(float dt, const Chunk &chunk) {
 	if (mode == PlayerMode::Spectator) return;
+
+	velocity.y += gravity * dt;
+	
+	Vec3 next_x = position;
+	next_x.x += velocity.x * dt;
+	if (!check_collision(next_x, chunk)) {
+		position.x = next_x.x;
+	} else {
+		velocity.x = 0.0f;
+	}
+
+	Vec3 next_y = position;
+	next_y.y += velocity.y * dt;
+	is_grounded = false;
+	if (!check_collision(next_y, chunk)) {
+		position.y = next_y.y;
+	} else {
+		if (velocity.y < 0.0f) {
+			is_grounded = true;
+			position.y = std::floor(position.y);
+		}
+		velocity.y = 0.0f;
+	}
+
+	Vec3 next_z = position;
+	next_z.z += velocity.z * dt;
+	if (!check_collision(next_z, chunk)) {
+		position.z = next_z.z;
+	} else {
+		velocity.z = 0.0f;
+	}
 }
 
 void Player::toggle_mode() {
@@ -56,6 +94,37 @@ void Player::toggle_mode() {
 	} else {
 		mode = PlayerMode::Physical;
 	}
+}
+
+bool Player::check_collision(const Vec3 &test_pos, const Chunk &chunk) const {
+	float pad = 0.05f;
+	float min_x = test_pos.x - (width / 2.0f) + pad;
+	float max_x = test_pos.x + (width / 2.0f) - pad;
+
+	float min_y = test_pos.y;
+	float max_y = test_pos.y + height;
+
+	float min_z = test_pos.z - (width / 2.0f) + pad;
+	float max_z = test_pos.z + (width / 2.0f) - pad;
+
+	for (int x = std::floor(min_x); x <= std::floor(max_x); ++x) {
+		for (int y = std::floor(min_y); y <= std::floor(max_y); ++y) {
+			for (int z = std::floor(min_z); z <= std::floor(max_z); ++z) {
+				if (
+					x < 0 || x >= Chunk::SIZE ||
+					y < 0 || y >= Chunk::SIZE ||
+					z < 0 || z >= Chunk::SIZE
+				) {
+					continue;
+				}
+				if (chunk.get_block(x, y, z) != 0) {
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
 }
 
 }  // namespace lili

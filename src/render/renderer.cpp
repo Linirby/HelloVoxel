@@ -83,11 +83,13 @@ bool Renderer::begin_frame(Camera camera) {
 
 	int win_w, win_h;
 	SDL_GetWindowSize(window, &win_w, &win_h);
+	float aspect = static_cast<float>(win_w) / static_cast<float>(win_h);
+
 	Mat4 view = camera.get_view_matrix();
 	Mat4 proj = Mat4::perspective(
-		deg_to_rad(70.0f),            // FOV Y (in rad)
+		deg_to_rad(90.0f),            // FOV Y (in rad)
 		(float)win_w / (float)win_h,  // aspect ratio
-		0.1f,                         // near distance unit
+		0.3f,                         // near distance unit
 		100.0f                        // far distance unit
 	);
 	projection_view_3d = proj * view;

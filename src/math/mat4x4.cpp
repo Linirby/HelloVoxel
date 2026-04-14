@@ -20,7 +20,7 @@ Mat4 Mat4::operator*(const Mat4 &other) const {
 }
 
 Mat4 Mat4::identity() {
-	Mat4 result;
+	Mat4 result = {};
 
 	result.m[0] = 1.0f;
 	result.m[5] = 1.0f;
@@ -58,7 +58,7 @@ Mat4 Mat4::look_at(const Vec3 &eye, const Vec3 &center, const Vec3 &up) {
 Mat4 Mat4::perspective(
 	float fovy_rad, float aspect, float near, float far
 ) {
-	Mat4 result = identity();
+	Mat4 result = {};
 
 	float tan_half_fovy = std::tan(fovy_rad * 0.5f);
 	result.m[0] = 1.0f / (aspect * tan_half_fovy);
@@ -72,7 +72,7 @@ Mat4 Mat4::perspective(
 Mat4 Mat4::orthographic(
 	float left, float right, float bottom, float top, float near, float far
 ) {
-	Mat4 result = identity();
+	Mat4 result = {};
 
 	result.m[0] = 2.0f / (right - left);
 	result.m[5] = 2.0f / (bottom - top);
