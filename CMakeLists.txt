@@ -47,6 +47,7 @@ target_link_libraries(LiliRender PRIVATE LiliMath)
 add_library(LiliTools STATIC
 	src/tools/map_loader.cpp
 )
+target_include_directories(LiliTools PUBLIC src)
 
 # Main App
 add_executable(${PROJECT_NAME}
