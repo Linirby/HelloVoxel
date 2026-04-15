@@ -27,13 +27,8 @@ private:
 	} res;
 	bool is_running = false;
 
-	void init_window();
-	void init_device();
-	void init_textures();
-	void init_chunk();
-	void init_buffers();
-	void init_shaders();
-	void init_graphics_pipeline();
+	void init_core();
+	void init_resources();
 
 	void handle_events();
 	void update(float dt);

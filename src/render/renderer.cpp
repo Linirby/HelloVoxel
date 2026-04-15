@@ -207,7 +207,7 @@ SDL_GPUDevice *Renderer::get_device() const {
 
 void Renderer::init_device() {
 	device = SDL_CreateGPUDevice(
-		SDL_GPU_SHADERFORMAT_SPIRV, true, "vulkan"
+		SDL_GPU_SHADERFORMAT_SPIRV, true, nullptr
 	);
 	if (!device) {
 		throw std::runtime_error(

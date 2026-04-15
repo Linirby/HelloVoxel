@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <iostream>
 
 #include "app.hpp"
 
@@ -33,17 +34,44 @@ static lili::Chunk load_chunk() {
 }
 
 void App::run() {
-	init_window();
-	core.renderer = new lili::Renderer(core.window);
+	init_core();
+	init_resources();
 
+	mainloop();
+
+	cleanup();
+}
+
+void App::init_core() {
+	if (!SDL_Init(SDL_INIT_VIDEO)) {
+		throw std::runtime_error(
+			"SDL_Init() failed!\n-> " +
+			std::string(SDL_GetError())
+		);
+	}
+	core.window = SDL_CreateWindow(
+		"HelloVoxel", 1280, 720, 0
+	);
+	if (!core.window) {
+		throw std::runtime_error(
+			"core.window creation failed!\n-> " +
+			std::string(SDL_GetError())
+		);
+	}
+	SDL_SetWindowRelativeMouseMode(core.window, true);
+	core.renderer = new lili::Renderer(core.window);
+	is_running = true;
+}
+
+void App::init_resources() {
 	res.player = {
 		{
 			static_cast<int>(lili::Chunk::SIZE / 2),
 			static_cast<int>(lili::Chunk::SIZE / 2),
 			static_cast<int>(lili::Chunk::SIZE / 2)
-		},
-		20.0f
+		}
 	};
+	std::cout << res.player.velocity.x << '\n';
 
 	res.chunk = load_chunk();
 	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(res.chunk);
@@ -68,29 +96,6 @@ void App::run() {
 	if (!crosshair_texture)
 		throw std::runtime_error("Crosshair texture creation failed!");
 	res.crosshair_model = new lili::Model(quad_mesh, crosshair_texture);
-
-	mainloop();
-	cleanup();
-}
-
-void App::init_window() {
-	if (!SDL_Init(SDL_INIT_VIDEO)) {
-		throw std::runtime_error(
-			"SDL_Init() failed!\n-> " +
-			std::string(SDL_GetError())
-		);
-	}
-	core.window = SDL_CreateWindow(
-		"HelloVoxel", 1280, 720, 0
-	);
-	if (!core.window) {
-		throw std::runtime_error(
-			"core.window creation failed!\n-> " +
-			std::string(SDL_GetError())
-		);
-	}
-	SDL_SetWindowRelativeMouseMode(core.window, true);
-	is_running = true;
 }
 
 void App::handle_events() {
@@ -106,6 +111,9 @@ void App::handle_events() {
 			}
 			if (event.key.key == SDLK_P) {
 				res.player.toggle_mode();
+			}
+			if (event.key.key == SDLK_R) {
+				init_resources();
 			}
 		}
 		if (event.type == SDL_EVENT_MOUSE_MOTION) {

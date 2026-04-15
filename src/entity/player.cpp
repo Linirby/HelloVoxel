@@ -23,9 +23,6 @@ void Player::process_input(
 		return;
 	}
 
-	velocity.x = 0.0f;
-	velocity.z = 0.0f;
-
 	Vec3 flat_front = Vec3{ cam_front.x, 0.0f, cam_front.z }.normalized();
 	Vec3 flat_right = Vec3{ cam_right.x, 0.0f, cam_right.z }.normalized();
 
@@ -35,15 +32,21 @@ void Player::process_input(
 	if (keys[SDL_SCANCODE_D]) move_dir += flat_right;
 	if (keys[SDL_SCANCODE_A]) move_dir -= flat_right;
 
-	float current_speed = walk_speed;
-	if (keys[SDL_SCANCODE_LSHIFT] && keys[SDL_SCANCODE_W]) {
-		current_speed = run_speed;
-	} else {
-		current_speed = walk_speed;
-	}
+	float current_speed = (
+		keys[SDL_SCANCODE_LSHIFT] && keys[SDL_SCANCODE_W] ?
+		run_speed : walk_speed
+	);
+
+	float target_vel_x = 0.0f;
+	float target_vel_z = 0.0f;
 	move_dir = move_dir.normalized();
-	velocity.x = move_dir.x * current_speed;
-	velocity.z = move_dir.z * current_speed;
+	target_vel_x = move_dir.x * current_speed;
+	target_vel_z = move_dir.z * current_speed;
+
+	float control_speed = is_grounded ? 15.0f : 2.0f;
+
+	velocity.x += (target_vel_x - velocity.x) * control_speed * dt;
+	velocity.z += (target_vel_z - velocity.z) * control_speed * dt;
 
 	if (keys[SDL_SCANCODE_SPACE] && is_grounded) {
 		velocity.y = jump_power;
@@ -117,6 +120,7 @@ bool Player::check_collision(const Vec3 &test_pos, const Chunk &chunk) const {
 				) {
 					continue;
 				}
+
 				if (chunk.get_block(x, y, z) != 0) {
 					return true;
 				}
