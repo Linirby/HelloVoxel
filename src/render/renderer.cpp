@@ -24,7 +24,7 @@ Renderer::Renderer(SDL_Window *window) {
 	if (!shader) {
 		throw std::runtime_error("Shader creation failed!");
 	}
-	init_depth_pipeline();
+	init_world_pipeline();
 	init_ui_pipeline();
 }
 
@@ -246,7 +246,7 @@ void Renderer::init_depth_texture() {
 	}
 }
 
-void Renderer::init_depth_pipeline() {
+void Renderer::init_world_pipeline() {
 	SDL_GPUVertexBufferDescription vertex_buffer_desc{
 		.slot = 0,
 		.pitch = sizeof(float) * 5,

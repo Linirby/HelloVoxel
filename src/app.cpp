@@ -1,5 +1,4 @@
 #include <stdexcept>
-#include <iostream>
 
 #include "app.hpp"
 
@@ -15,21 +14,17 @@ static lili::Chunk load_chunk() {
 		}
 	}
 	for (int y = 0; y < lili::Chunk::SIZE; ++y) {
-		chunk.set_block(lili::BLOCK_ID_DEBUG, 0, y, 0);
-		chunk.set_block(lili::BLOCK_ID_DEBUG, lili::Chunk::SIZE - 1, y, 0);
-		chunk.set_block(lili::BLOCK_ID_DEBUG, 0, y, lili::Chunk::SIZE - 1);
-		chunk.set_block(
-			lili::BLOCK_ID_DEBUG,
-			lili::Chunk::SIZE - 1,
-			y,
-			lili::Chunk::SIZE - 1
-		);
+		chunk.set_block(lili::BLOCK_ID_DEBUG, 0, y, 7);
+		chunk.set_block(lili::BLOCK_ID_DEBUG, 0, y, 8);
+		chunk.set_block(lili::BLOCK_ID_DEBUG, lili::Chunk::SIZE - 1, y, 7);
+		chunk.set_block(lili::BLOCK_ID_DEBUG, lili::Chunk::SIZE - 1, y, 8);
 	}
 	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
 		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
 			chunk.set_block(lili::BLOCK_ID_DEBUG, x, lili::Chunk::SIZE - 1, z);
 		}
 	}
+
 	return chunk;
 }
 
@@ -71,7 +66,6 @@ void App::init_resources() {
 			static_cast<int>(lili::Chunk::SIZE / 2)
 		}
 	};
-	std::cout << res.player.velocity.x << '\n';
 
 	res.chunk = load_chunk();
 	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(res.chunk);
@@ -113,6 +107,8 @@ void App::handle_events() {
 				res.player.toggle_mode();
 			}
 			if (event.key.key == SDLK_R) {
+				if (res.crosshair_model) delete res.crosshair_model;
+				if (res.chunk_model) delete res.chunk_model;
 				init_resources();
 			}
 		}
@@ -170,11 +166,19 @@ void App::mainloop() {
 	}
 }
 
-void App::cleanup() {
+void App::cleanup_resources() {
 	if (res.crosshair_model) delete res.crosshair_model;
 	if (res.chunk_model) delete res.chunk_model;
+}
+
+void App::cleanup_core() {
 	if (core.renderer) delete core.renderer;
 	if (core.window) SDL_DestroyWindow(core.window);
+}
+
+void App::cleanup() {
+	cleanup_resources();
+	cleanup_core();
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	SDL_Quit();
 }

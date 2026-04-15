@@ -35,10 +35,8 @@ private:
 	SDL_Window *window;
 	SDL_GPUDevice *device = nullptr;
 	Shader *shader = nullptr;
-
 	SDL_GPUGraphicsPipeline *world_pipeline = nullptr;
 	SDL_GPUTexture *depth_texture = nullptr;
-
 	SDL_GPUGraphicsPipeline *ui_pipeline = nullptr;
 
 	SDL_GPUCommandBuffer *current_cmd_buffer = nullptr;
@@ -53,7 +51,7 @@ private:
 	void init_device();
 	void init_depth_texture();
 
-	void init_depth_pipeline();
+	void init_world_pipeline();
 	void init_ui_pipeline();
 };
 

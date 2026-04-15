@@ -43,7 +43,7 @@ void Player::process_input(
 	target_vel_x = move_dir.x * current_speed;
 	target_vel_z = move_dir.z * current_speed;
 
-	float control_speed = is_grounded ? 15.0f : 2.0f;
+	float control_speed = is_grounded ? 15.0f : 5.0f;
 
 	velocity.x += (target_vel_x - velocity.x) * control_speed * dt;
 	velocity.z += (target_vel_z - velocity.z) * control_speed * dt;

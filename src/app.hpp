@@ -35,6 +35,9 @@ private:
 	void render();
 	
 	void mainloop();
+
+	void cleanup_resources();
+	void cleanup_core();
 	void cleanup();
 };
 

@@ -17,7 +17,7 @@ public:
 	Vec3 velocity = { 0.0f, 0.0f, 0.0f };
 	
 	float walk_speed = 5.0f;
-	float run_speed = 6.5f;
+	float run_speed = 7.5f;
 	float fly_speed = 20.0f;
 
 	float jump_power = 8.0f;
