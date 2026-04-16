@@ -7,7 +7,7 @@
 # include "render/camera.hpp"
 # include "render/model.hpp"
 
-# include "entity/player.hpp"
+# include "entity/playerv2.hpp"
 
 class App {
 public:
@@ -23,7 +23,7 @@ private:
 		lili::Model *chunk_model;
 		lili::Model *crosshair_model;
 		lili::Camera camera;
-		lili::Player player;
+		lili::PlayerV2 player;
 	} res;
 	bool is_running = false;
 

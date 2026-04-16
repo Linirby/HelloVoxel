@@ -15,8 +15,6 @@ static lili::Chunk load_chunk() {
 	}
 	for (int y = 0; y < lili::Chunk::SIZE; ++y) {
 		chunk.set_block(lili::BLOCK_ID_DEBUG, 0, y, 7);
-		chunk.set_block(lili::BLOCK_ID_DEBUG, 0, y, 8);
-		chunk.set_block(lili::BLOCK_ID_DEBUG, lili::Chunk::SIZE - 1, y, 7);
 		chunk.set_block(lili::BLOCK_ID_DEBUG, lili::Chunk::SIZE - 1, y, 8);
 	}
 	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
@@ -31,9 +29,7 @@ static lili::Chunk load_chunk() {
 void App::run() {
 	init_core();
 	init_resources();
-
 	mainloop();
-
 	cleanup();
 }
 
@@ -126,8 +122,10 @@ void App::update(float dt) {
 	);
 	res.player.update_physics(dt, res.chunk);
 	res.camera.position = res.player.position;
-	if (res.player.mode == lili::PlayerMode::Physical)
-		res.camera.position.y += 1.6f;
+	if (res.player.mode == lili::PlayerMode::Physical) {
+		float eye_offset = res.player.is_crouching ? 0.7f : 1.6f;
+		res.camera.position.y += eye_offset;
+	}
 }
 
 void App::render() {

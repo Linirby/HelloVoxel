@@ -1,4 +1,5 @@
 #include "math/vec3.hpp"
+#include <math.h>
 
 namespace lili {
 
@@ -53,6 +54,10 @@ Vec3 Vec3::normalized() const {
 		return { 0.0f, 0.0f, 0.0f };
 	}
 	return *this * rsqrt(sq_len);
+}
+
+float Vec3::length() const {
+	return std::sqrt(x * x + y * y + z * z);
 }
 
 }  // namespace lili

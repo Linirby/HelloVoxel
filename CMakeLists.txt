@@ -39,6 +39,7 @@ target_link_libraries(LiliRender PRIVATE LiliGeometry)
 # Lili Entity
 add_library(LiliEntity STATIC
 	src/entity/player.cpp
+	src/entity/playerv2.cpp
 )
 target_include_directories(LiliEntity PUBLIC src)
 target_link_libraries(LiliRender PRIVATE LiliMath)

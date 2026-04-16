@@ -1,5 +1,5 @@
-#ifndef ENTITY_PLAYER_HPP
-# define ENTITY_PLAYER_HPP
+#ifndef ENTITY_PLAYERV2_HPP
+# define ENTITY_PLAYERV2_HPP
 
 # include "math/vec3.hpp"
 # include "geometry/chunk.hpp"
@@ -11,21 +11,28 @@ enum class PlayerMode {
 	Spectator
 };
 
-class Player {
+class PlayerV2 {
 public:
 	Vec3 position = { 0.0f, 0.0f, 0.0f };
 	Vec3 velocity = { 0.0f, 0.0f, 0.0f };
 	
-	float walk_speed = 5.0f;
-	float run_speed = 7.5f;
-	float fly_speed = 20.0f;
+	float max_speed = 10.0f;
+	float ground_accel = 25.0f;
+	float friction = 12.0f;
 
-	float jump_power = 8.0f;
+	float max_air_speed = 1.5f;
+	float air_accel = 500.0f;
+
+	float jump_power = 9.0f;
 	float gravity = -25.0f;
-	bool is_grounded = false;
 
 	float width = 0.6f;
-	float height = 1.8f;
+	float standing_height = 1.8f;
+	float crouching_height = 0.9;
+	float height = standing_height;
+
+	bool is_grounded = false;
+	bool is_crouching = false;
 
 	PlayerMode mode = PlayerMode::Physical;
 
@@ -39,6 +46,10 @@ public:
 
 private:
 	bool check_collision(const Vec3 &test_pos, const Chunk &chunk) const;
+	void apply_friction(float dt);
+	void accelerate(
+		Vec3 wish_dir, float wish_speed, float accel, float dt
+	);
 };
 
 }  // namespace lili

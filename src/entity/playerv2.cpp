@@ -1,16 +1,16 @@
 #include <SDL3/SDL.h>
 #include <cmath>
-#include "entity/player.hpp"
+#include "entity/playerv2.hpp"
 
 namespace lili {
 
-void Player::process_input(
+void PlayerV2::process_input(
 	const bool *keys,
 	const Vec3 &cam_front, const Vec3 &cam_right, const Vec3 &cam_up,
 	float dt
 ) {
 	if (mode == PlayerMode::Spectator) {
-		float current_fly_speed = fly_speed * dt;
+		float current_fly_speed = max_speed * dt;
 
 		if (keys[SDL_SCANCODE_W]) position += cam_front * current_fly_speed;
 		if (keys[SDL_SCANCODE_S]) position -= cam_front * current_fly_speed;
@@ -23,38 +23,51 @@ void Player::process_input(
 		return;
 	}
 
+	// Crouch
+	if (keys[SDL_SCANCODE_LCTRL]) {
+		if (!is_crouching) {
+			is_crouching = true;
+			position.y += (standing_height - crouching_height);
+			height = crouching_height;
+		}
+	} else {
+		if (is_crouching) {
+			is_crouching = false;
+			position.y -= (standing_height - crouching_height);
+			height = standing_height;
+		}
+	}
+
+	// Wish direction
 	Vec3 flat_front = Vec3{ cam_front.x, 0.0f, cam_front.z }.normalized();
 	Vec3 flat_right = Vec3{ cam_right.x, 0.0f, cam_right.z }.normalized();
 
-	Vec3 move_dir = Vec3{ 0.0f, 0.0f, 0.0f };
-	if (keys[SDL_SCANCODE_W]) move_dir += flat_front;
-	if (keys[SDL_SCANCODE_S]) move_dir -= flat_front;
-	if (keys[SDL_SCANCODE_D]) move_dir += flat_right;
-	if (keys[SDL_SCANCODE_A]) move_dir -= flat_right;
+	Vec3 wish_dir = Vec3{ 0.0f, 0.0f, 0.0f };
+	if (keys[SDL_SCANCODE_W]) wish_dir += flat_front;
+	if (keys[SDL_SCANCODE_S]) wish_dir -= flat_front;
+	if (keys[SDL_SCANCODE_D]) wish_dir += flat_right;
+	if (keys[SDL_SCANCODE_A]) wish_dir -= flat_right;
 
-	float current_speed = (
-		keys[SDL_SCANCODE_LSHIFT] && keys[SDL_SCANCODE_W] ?
-		run_speed : walk_speed
-	);
+	if (wish_dir.length() > 0.0f) {
+		wish_dir = wish_dir.normalized();
+	}
 
-	float target_vel_x = 0.0f;
-	float target_vel_z = 0.0f;
-	// move_dir = move_dir.normalized();
-	target_vel_x = move_dir.x * current_speed;
-	target_vel_z = move_dir.z * current_speed;
-
-	float control_speed = is_grounded ? 15.0f : 5.0f;
-
-	velocity.x += (target_vel_x - velocity.x) * control_speed * dt;
-	velocity.z += (target_vel_z - velocity.z) * control_speed * dt;
-
-	if (keys[SDL_SCANCODE_SPACE] && is_grounded) {
-		velocity.y = jump_power;
-		is_grounded = false;
+	// Ground
+	if (is_grounded) {
+		apply_friction(dt);
+		float target_speed = is_crouching ? (max_speed * 0.4f) : max_speed;
+		accelerate(wish_dir, target_speed, ground_accel, dt);
+		if (keys[SDL_SCANCODE_SPACE]) {
+			velocity.y = jump_power;
+			is_grounded = false;
+		}
+	// Air
+	} else {
+		accelerate(wish_dir, max_air_speed, air_accel, dt);
 	}
 }
 
-void Player::update_physics(float dt, const Chunk &chunk) {
+void PlayerV2::update_physics(float dt, const Chunk &chunk) {
 	if (mode == PlayerMode::Spectator) return;
 
 	velocity.y += gravity * dt;
@@ -89,7 +102,7 @@ void Player::update_physics(float dt, const Chunk &chunk) {
 	}
 }
 
-void Player::toggle_mode() {
+void PlayerV2::toggle_mode() {
 	if (mode == PlayerMode::Physical) {
 		mode = PlayerMode::Spectator;
 		position.y += 0.5f;
@@ -99,7 +112,7 @@ void Player::toggle_mode() {
 	}
 }
 
-bool Player::check_collision(const Vec3 &test_pos, const Chunk &chunk) const {
+bool PlayerV2::check_collision(const Vec3 &test_pos, const Chunk &chunk) const {
 	float pad = 0.05f;
 	float min_x = test_pos.x - (width / 2.0f) + pad;
 	float max_x = test_pos.x + (width / 2.0f) - pad;
@@ -129,6 +142,45 @@ bool Player::check_collision(const Vec3 &test_pos, const Chunk &chunk) const {
 	}
 
 	return false;
+}
+
+void PlayerV2::apply_friction(float dt) {
+	Vec3 flat_velocity = { velocity.x, 0.0f, velocity.z };
+	float speed = flat_velocity.length();
+
+	if (speed < 0.0001f) {
+		velocity.x = 0.0f;
+		velocity.z = 0.0f;
+		return;
+	}
+
+	float drop = 0.0f;
+	if (is_grounded) {
+		float control = (speed < ground_accel) ? ground_accel : speed;
+		drop = control * friction * dt;
+	}
+
+	float new_speed = speed - drop;
+	if (new_speed < 0.0f) new_speed = 0.0f;
+
+	new_speed /= speed;
+	velocity.x *= new_speed;
+	velocity.z *= new_speed;
+}
+
+void PlayerV2::accelerate(
+	Vec3 wish_dir, float wish_speed, float accel, float dt
+) {
+	float current_speed = (velocity.x * wish_dir.x) + (velocity.z * wish_dir.z);
+	float add_speed = wish_speed - current_speed;
+
+	if (add_speed <= 0) return;
+
+	float accel_speed = accel * wish_speed * dt; 
+
+	if (accel_speed > add_speed) accel_speed = add_speed;
+	velocity.x += accel_speed * wish_dir.x;
+	velocity.z += accel_speed * wish_dir.z;
 }
 
 }  // namespace lili
