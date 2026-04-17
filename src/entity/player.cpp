@@ -39,6 +39,7 @@ void Player::process_input(
 
 	float target_vel_x = 0.0f;
 	float target_vel_z = 0.0f;
+	// Removed because want faster diagonals
 	// move_dir = move_dir.normalized();
 	target_vel_x = move_dir.x * current_speed;
 	target_vel_z = move_dir.z * current_speed;
@@ -54,14 +55,14 @@ void Player::process_input(
 	}
 }
 
-void Player::update_physics(float dt, const Chunk &chunk) {
+void Player::update_physics(float dt, Map &map) {
 	if (mode == PlayerMode::Spectator) return;
 
 	velocity.y += gravity * dt;
 	
 	Vec3 next_x = position;
 	next_x.x += velocity.x * dt;
-	if (!check_collision(next_x, chunk)) {
+	if (!check_collision(next_x, map)) {
 		position.x = next_x.x;
 	} else {
 		velocity.x = 0.0f;
@@ -70,7 +71,7 @@ void Player::update_physics(float dt, const Chunk &chunk) {
 	Vec3 next_y = position;
 	next_y.y += velocity.y * dt;
 	is_grounded = false;
-	if (!check_collision(next_y, chunk)) {
+	if (!check_collision(next_y, map)) {
 		position.y = next_y.y;
 	} else {
 		if (velocity.y < 0.0f) {
@@ -82,7 +83,7 @@ void Player::update_physics(float dt, const Chunk &chunk) {
 
 	Vec3 next_z = position;
 	next_z.z += velocity.z * dt;
-	if (!check_collision(next_z, chunk)) {
+	if (!check_collision(next_z, map)) {
 		position.z = next_z.z;
 	} else {
 		velocity.z = 0.0f;
@@ -99,7 +100,7 @@ void Player::toggle_mode() {
 	}
 }
 
-bool Player::check_collision(const Vec3 &test_pos, const Chunk &chunk) const {
+bool Player::check_collision(const Vec3 &test_pos, Map &map) const {
 	float pad = 0.05f;
 	float min_x = test_pos.x - (width / 2.0f) + pad;
 	float max_x = test_pos.x + (width / 2.0f) - pad;
@@ -121,7 +122,7 @@ bool Player::check_collision(const Vec3 &test_pos, const Chunk &chunk) const {
 					continue;
 				}
 
-				if (chunk.get_block(x, y, z) != 0) {
+				if (map.get_block_global(x, y, z) != 0) {
 					return true;
 				}
 			}

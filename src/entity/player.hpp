@@ -2,7 +2,7 @@
 # define ENTITY_PLAYER_HPP
 
 # include "math/vec3.hpp"
-# include "geometry/chunk.hpp"
+# include "map.hpp"
 
 namespace lili {
 
@@ -34,11 +34,11 @@ public:
 		const Vec3 &cam_front, const Vec3 &cam_right, const Vec3 &cam_up,
 		float dt
 	);
-	void update_physics(float dt, const Chunk &chunk);
+	void update_physics(float dt, Map &map);
 	void toggle_mode();
 
 private:
-	bool check_collision(const Vec3 &test_pos, const Chunk &chunk) const;
+	bool check_collision(const Vec3 &test_pos, Map &map) const;
 };
 
 }  // namespace lili

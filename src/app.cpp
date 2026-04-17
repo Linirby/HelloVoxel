@@ -1,6 +1,7 @@
 #include <stdexcept>
 
 #include "app.hpp"
+#include "map_loader.hpp"
 
 #include "geometry/block.hpp"
 #include "geometry/primitives.hpp"
@@ -55,25 +56,27 @@ void App::init_core() {
 }
 
 void App::init_resources() {
-	res.player = {
-		{
-			static_cast<int>(lili::Chunk::SIZE / 2),
-			static_cast<int>(lili::Chunk::SIZE / 2),
-			static_cast<int>(lili::Chunk::SIZE / 2)
-		}
-	};
+	if (res.crosshair_model) delete res.crosshair_model;
+	for (lili::Model *model : res.chunk_models) {
+		delete model;
+	}
+	res.chunk_models.clear();
 
-	res.chunk = load_chunk();
-	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(res.chunk);
-	lili::GPUMesh *chunk_mesh = new lili::GPUMesh(
-		core.renderer->get_device(), chunk_data
-	);
-	if (!chunk_mesh) throw std::runtime_error("GPU Mesh creation failed!");
 	lili::Texture *atlas = new lili::Texture(
 		core.renderer->get_device(), "assets/cube_atlas.png"
 	);
 	if (!atlas) throw std::runtime_error("Atlas texture creation failed!");
-	res.chunk_model = new lili::Model(chunk_mesh, atlas);
+
+	res.map = lili::load_map("assets/maps/test_01.json", res.player);
+
+	for (lili::Chunk &chunk : res.map.chunks) {
+		lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(chunk);
+		if (chunk_data.vertices.empty()) continue;
+		lili::GPUMesh *chunk_mesh = new lili::GPUMesh(
+			core.renderer->get_device(), chunk_data
+		);
+		res.chunk_models.push_back(new lili::Model(chunk_mesh, atlas));
+	}
 
 	lili::MeshData quad_data = lili::create_unit_quad();
 	lili::GPUMesh *quad_mesh = new lili::GPUMesh(
@@ -103,8 +106,6 @@ void App::handle_events() {
 				res.player.toggle_mode();
 			}
 			if (event.key.key == SDLK_R) {
-				if (res.crosshair_model) delete res.crosshair_model;
-				if (res.chunk_model) delete res.chunk_model;
 				init_resources();
 			}
 		}
@@ -120,20 +121,21 @@ void App::update(float dt) {
 	res.player.process_input(
 		keys, res.camera.front, res.camera.right, res.camera.up, dt
 	);
-	res.player.update_physics(dt, res.chunk);
+	res.player.update_physics(dt, res.map);
 	res.camera.position = res.player.position;
 	if (res.player.mode == lili::PlayerMode::Physical) {
-		float eye_offset = res.player.is_crouching ? 0.7f : 1.6f;
-		res.camera.position.y += eye_offset;
+		res.camera.position.y += 1.6f;
 	}
 }
 
 void App::render() {
 	core.renderer->begin_frame(res.camera);
 
-	core.renderer->submit(
-		*res.chunk_model, lili::Mat4::identity(), lili::RenderLayer::World3D
-	);
+	for (lili::Model *model : res.chunk_models) {
+		core.renderer->submit(
+			*model, lili::Mat4::identity(), lili::RenderLayer::World3D
+		);
+	}
 
 	int win_w = 0;
 	int win_h = 0;
@@ -166,7 +168,10 @@ void App::mainloop() {
 
 void App::cleanup_resources() {
 	if (res.crosshair_model) delete res.crosshair_model;
-	if (res.chunk_model) delete res.chunk_model;
+	for (lili::Model *model : res.chunk_models) {
+		delete model;
+	}
+	res.chunk_models.clear();
 }
 
 void App::cleanup_core() {

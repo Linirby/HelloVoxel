@@ -11,7 +11,7 @@ struct Model {
 	Texture *texture = nullptr;
 
 	Model() = default;
-	Model(GPUMesh *model, Texture *texture);
+	Model(GPUMesh *mesh, Texture *texture);
 	~Model();
 };
 

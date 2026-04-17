@@ -7,7 +7,7 @@
 # include "render/camera.hpp"
 # include "render/model.hpp"
 
-# include "entity/playerv2.hpp"
+# include "entity/player.hpp"
 
 class App {
 public:
@@ -19,11 +19,13 @@ private:
 		lili::Renderer *renderer = nullptr;
 	} core;
 	struct Resources {
-		lili::Chunk chunk;
-		lili::Model *chunk_model;
-		lili::Model *crosshair_model;
+		lili::Map map;
+		std::vector<lili::Model *> chunk_models;
+
+		lili::Model *crosshair_model = nullptr;
+
+		lili::Player player;
 		lili::Camera camera;
-		lili::PlayerV2 player;
 	} res;
 	bool is_running = false;
 

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(HelloVoxel)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(SDL3 REQUIRED CONFIG)
@@ -44,16 +44,12 @@ add_library(LiliEntity STATIC
 target_include_directories(LiliEntity PUBLIC src)
 target_link_libraries(LiliRender PRIVATE LiliMath)
 
-# Lili Tools
-add_library(LiliTools STATIC
-	src/tools/map_loader.cpp
-)
-target_include_directories(LiliTools PUBLIC src)
-
 # Main App
 add_executable(${PROJECT_NAME}
 	src/main.cpp
 	src/app.cpp
+	src/map.cpp
+	src/map_loader.cpp
 )
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 target_link_libraries(${PROJECT_NAME} PRIVATE
