@@ -17554,7 +17554,8 @@ class binary_writer
     static CharType to_char_type(std::uint8_t x) noexcept
     {
         static_assert(sizeof(std::uint8_t) == sizeof(CharType), "size of CharType must be equal to std::uint8_t");
-        static_assert(std::is_trivial<CharType>::value, "CharType must be trivial");
+		// Lili update because of a warning in C++26
+        static_assert(std::is_trivially_default_constructible<CharType>::value, "CharType must be trivial");
         CharType result;
         std::memcpy(&result, &x, sizeof(x));
         return result;
@@ -17612,7 +17613,6 @@ NLOHMANN_JSON_NAMESPACE_END
 #include <cstdio> // snprintf
 #include <limits> // numeric_limits
 #include <string> // string, char_traits
-#include <iomanip> // setfill, setw
 #include <type_traits> // is_same
 #include <utility> // move
 

@@ -69,8 +69,10 @@ void App::init_resources() {
 
 	res.map = lili::load_map("assets/maps/test_01.json", res.player);
 
-	for (lili::Chunk &chunk : res.map.chunks) {
-		lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(chunk);
+	for (auto &pair : res.map.chunks) {
+		lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(
+			pair.second
+		);
 		if (chunk_data.vertices.empty()) continue;
 		lili::GPUMesh *chunk_mesh = new lili::GPUMesh(
 			core.renderer->get_device(), chunk_data

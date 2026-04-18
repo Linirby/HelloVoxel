@@ -1,4 +1,3 @@
-#include <algorithm>
 #include "map.hpp"
 
 namespace lili {
@@ -28,13 +27,13 @@ uint8_t Map::get_block_global(int x, int y, int z) {
 	int chunk_z = z >> 4;
 
 	uint64_t key = get_chunk_key(chunk_x, chunk_z);
-	auto it = std::find(chunks.begin(), chunks.end(), key);
+	auto it = chunks.find(key);
 
 	if (it == chunks.end()) return 0;
 
 	int local_x = x & 15;
 	int local_z = z & 15;
-	return it->get_block(local_x, y, local_z);
+	return it->second.get_block(local_x, y, local_z);
 }
 
 uint64_t Map::get_chunk_key(int x, int z) const {
