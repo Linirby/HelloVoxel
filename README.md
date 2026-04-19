@@ -5,6 +5,21 @@ This repository demonstrates the complete pipeline from voxel data on CPU memory
 
 <img width="400" height="225" alt="engine_demo" src="https://github.com/Linirby/HelloVoxel/blob/main/assets/demo/engine_demo.gif" />
 
+## Table of Contents
+- [Why this project exists](#why-this-project-exists)
+- [Current capabilities](#current-capabilities)
+- [Architecture (big picture)](#architecture-big-picture)
+- [Rendering flow (from startup to frame)](#rendering-flow-from-startup-to-frame)
+  - [1. Initialization](#1-initialization)
+  - [2. Per-frame loop](#2-per-frame-loop)
+  - [3. Shutdown](#3-shutdown)
+- [Voxel meshing explained](#voxel-meshing-explained-non-graphics-friendly)
+- [Shader pipeline](#shader-pipeline)
+- [Controls](#controls)
+- [Build and run](#build-and-run)
+- [Project status](#project-status)
+- [Next milestones](#next-milestones)
+
 ## Why this project exists
 
 I built this engine to demonstrate practical, low-level graphics engineering, focusing on core implementation details:
@@ -158,10 +173,10 @@ sh clean.sh && sh build.sh
 ## Project status
 
 This is an actively growing foundation.  
-Right now it focuses on correctness for a voxel renderer core (multi-chunk map, textured faces, active physics and collision, camera + controls, and full SDL GPU path).
+Right now it focuses on fundations for a voxel engine (multi-chunk map, textured faces, active physics and collision, camera + controls).
 
 ## Next milestones
 
-- Infinite procedural terrain generation.
+- Level editor in free cam.
 - Dynamic lighting and shading pipeline.
 - Chunk streaming optimization for large worlds.
