@@ -64,7 +64,7 @@ void App::init_resources() {
 	res.chunk_models.clear();
 	if (res.atlas) delete res.atlas;
 
-	res.camera = lili::Camera(90.0f, 0.0f);
+	res.camera = lili::Camera(-90.0f, 0.0f);
 	res.atlas = new lili::Texture(
 		core.renderer->get_device(), "assets/cube_atlas.png"
 	);
