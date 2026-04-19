@@ -2,13 +2,17 @@
 # define APP_HPP
 
 # include <SDL3/SDL.h>
-# include <vector>
 
 # include "render/renderer.hpp"
 # include "render/camera.hpp"
 # include "render/model.hpp"
 
-# include "geometry/player.hpp"
+# include "entity/player.hpp"
+
+struct ChunkRenderData {
+	lili::Model *model;
+	lili::Mat4 transform;
+};
 
 class App {
 public:
@@ -20,25 +24,29 @@ private:
 		lili::Renderer *renderer = nullptr;
 	} core;
 	struct Resources {
-		std::vector<lili::Model *> chunk_models;
-		lili::Camera camera;
+		lili::Map map;
+		lili::Texture *atlas = nullptr;
+		std::vector<ChunkRenderData> chunk_models;
+
+		lili::Texture *crosshair_texture = nullptr;
+		lili::Model *crosshair_model = nullptr;
+
 		lili::Player player;
+		lili::Camera camera;
 	} res;
 	bool is_running = false;
 
-	void init_window();
-	void init_device();
-	void init_textures();
-	void init_chunk();
-	void init_buffers();
-	void init_shaders();
-	void init_graphics_pipeline();
+	void init_core();
+	void init_resources();
 
 	void handle_events();
 	void update(float dt);
 	void render();
 	
 	void mainloop();
+
+	void cleanup_resources();
+	void cleanup_core();
 	void cleanup();
 };
 

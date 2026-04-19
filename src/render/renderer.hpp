@@ -5,12 +5,19 @@
 
 # include "render/camera.hpp"
 # include "render/shader.hpp"
-# include "render/texture.hpp"
 # include "render/model.hpp"
 
-# include "geometry/chunk.hpp"
-
 namespace lili {
+
+enum class RenderLayer {
+	World3D,
+	UI2D
+};
+
+struct DrawCommand {
+	const Model &model;
+	Mat4 transform;
+};
 
 class Renderer {
 public:
@@ -19,7 +26,7 @@ public:
 
 	// Holy trinity of rendering, The TRIFORCE!
 	bool begin_frame(Camera camera);
-	void draw(const Model &model, Mat4 transform);
+	void submit(const Model &model, Mat4 transform, RenderLayer layer);
 	void end_frame();
 
 	SDL_GPUDevice *get_device() const;
@@ -28,28 +35,24 @@ private:
 	SDL_Window *window;
 	SDL_GPUDevice *device = nullptr;
 	Shader *shader = nullptr;
-
-	SDL_GPUGraphicsPipeline *depth_pipeline = nullptr;
+	SDL_GPUGraphicsPipeline *world_pipeline = nullptr;
 	SDL_GPUTexture *depth_texture = nullptr;
-
-	SDL_GPUGraphicsPipeline *hud_pipeline = nullptr;
+	SDL_GPUGraphicsPipeline *ui_pipeline = nullptr;
 
 	SDL_GPUCommandBuffer *current_cmd_buffer = nullptr;
 	SDL_GPURenderPass *current_render_pass = nullptr;
 
-	Mat4 projection_view;
+	std::vector<DrawCommand> world_queue;
+	std::vector<DrawCommand> ui_queue;
 
-	Chunk test_chunk;
-	Texture *voxel_texture;
+	Mat4 projection_view_3d;
+	Mat4 projection_2d;
 
 	void init_device();
 	void init_depth_texture();
 
-	void init_depth_pipeline();
-	void draw_depth_pipeline(const Model &model);
-
-	void init_hud_pipeline();
-	void draw_hud_pipeline();
+	void init_world_pipeline();
+	void init_ui_pipeline();
 };
 
 }  // namespace lili

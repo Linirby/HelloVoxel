@@ -8,8 +8,7 @@ Model::Model(GPUMesh *mesh, Texture *texture) {
 }
 
 Model::~Model() {
-	delete texture;
-	delete mesh;
+	if (mesh) delete mesh;
 }
 
 }  // namespace lili

@@ -20,7 +20,7 @@ Mat4 Mat4::operator*(const Mat4 &other) const {
 }
 
 Mat4 Mat4::identity() {
-	Mat4 result;
+	Mat4 result = {};
 
 	result.m[0] = 1.0f;
 	result.m[5] = 1.0f;
@@ -33,7 +33,7 @@ Mat4 Mat4::look_at(const Vec3 &eye, const Vec3 &center, const Vec3 &up) {
 	Vec3 f = (center - eye).normalized();
 	Vec3 s = f.cross(up).normalized();
 	Vec3 u = s.cross(f);
-	Mat4 result;
+	Mat4 result = identity();
 
 	// X axis
 	result.m[0] = s.x;
@@ -58,7 +58,7 @@ Mat4 Mat4::look_at(const Vec3 &eye, const Vec3 &center, const Vec3 &up) {
 Mat4 Mat4::perspective(
 	float fovy_rad, float aspect, float near, float far
 ) {
-	Mat4 result;
+	Mat4 result = {};
 
 	float tan_half_fovy = std::tan(fovy_rad * 0.5f);
 	result.m[0] = 1.0f / (aspect * tan_half_fovy);
@@ -69,8 +69,23 @@ Mat4 Mat4::perspective(
 	return result;
 }
 
+Mat4 Mat4::orthographic(
+	float left, float right, float bottom, float top, float near, float far
+) {
+	Mat4 result = {};
+
+	result.m[0] = 2.0f / (right - left);
+	result.m[5] = 2.0f / (bottom - top);
+	result.m[10] = -1.0f / (far - near);
+	result.m[12] = -(right + left) / (right - left);
+	result.m[13] = -(bottom + top) / (bottom - top);
+	result.m[14] = -near / (far - near);
+	result.m[15] = 1.0f;
+	return result;
+}
+
 Mat4 Mat4::translate(const Vec3 &pos) {
-	Mat4 result = Mat4::identity();
+	Mat4 result = identity();
 
 	result.m[12] = pos.x;
 	result.m[13] = pos.y;
@@ -79,11 +94,10 @@ Mat4 Mat4::translate(const Vec3 &pos) {
 }
 
 Mat4 Mat4::rotation_x(float radians) {
-	Mat4 result;
+	Mat4 result = identity();
 	float c = std::cos(radians);
 	float s = std::sin(radians);
 
-	result = Mat4::identity();
 	result.m[5] = c;
 	result.m[6] = s;
 	result.m[9] = -s;
@@ -92,11 +106,10 @@ Mat4 Mat4::rotation_x(float radians) {
 }
 
 Mat4 Mat4::rotation_y(float radians) {
-	Mat4 result;
+	Mat4 result = identity();
 	float c = std::cos(radians);
 	float s = std::sin(radians);
 
-	result = Mat4::identity();
 	result.m[0] = c;
 	result.m[2] = -s;
 	result.m[8] = s;
@@ -105,7 +118,7 @@ Mat4 Mat4::rotation_y(float radians) {
 }
 
 Mat4 Mat4::rotation_z(float radians) {
-	Mat4 result;
+	Mat4 result = identity();
 	float c = std::cos(radians);
 	float s = std::sin(radians);
 
@@ -117,4 +130,13 @@ Mat4 Mat4::rotation_z(float radians) {
 	return result;
 }
 
+Mat4 Mat4::scale(const Vec3 &v) {
+	Mat4 result = identity();
+
+	result.m[0] = v.x;
+	result.m[5] = v.y;
+	result.m[10] = v.z;
+	return result;
 }
+
+}  // namespace lili

@@ -29,6 +29,7 @@ struct Vec3 {
 	float dot(const Vec3 &o) const;
 	Vec3 cross(const Vec3 &o) const;
 	Vec3 normalized() const;
+	float length() const;
 };
 
 } // namespace lili
