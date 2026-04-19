@@ -16,12 +16,12 @@ Map load_map(const std::string &file_path, Player &player) {
 	nlohmann::json map_data;
 	file >> map_data;
 	if (map_data.contains("spawn")) {
-		// if (!map_data.contains("x"))
-		// 	throw std::runtime_error("Spawn does not contains X coordinate");
-		// if (!map_data.contains("y"))
-		// 	throw std::runtime_error("Spawn does not contains Y coordinate");
-		// if (!map_data.contains("z"))
-		// 	throw std::runtime_error("Spawn does not contains Z coordinate");
+		if (!map_data["spawn"].contains("x"))
+			throw std::runtime_error("Spawn does not contains X coordinate");
+		if (!map_data["spawn"].contains("y"))
+			throw std::runtime_error("Spawn does not contains Y coordinate");
+		if (!map_data["spawn"].contains("z"))
+			throw std::runtime_error("Spawn does not contains Z coordinate");
 		player.position.x = map_data["spawn"]["x"];
 		player.position.y = map_data["spawn"]["y"];
 		player.position.z = map_data["spawn"]["z"];

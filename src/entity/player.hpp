@@ -20,6 +20,9 @@ public:
 	float run_speed = 7.5f;
 	float fly_speed = 20.0f;
 
+	float ground_control = 15.0f;
+	float air_control = 4.0f;
+
 	float jump_power = 8.0f;
 	float gravity = -25.0f;
 	bool is_grounded = false;

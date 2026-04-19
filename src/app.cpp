@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <iostream>
 
 #include "app.hpp"
 #include "map_loader.hpp"
@@ -57,27 +58,38 @@ void App::init_core() {
 
 void App::init_resources() {
 	if (res.crosshair_model) delete res.crosshair_model;
-	for (lili::Model *model : res.chunk_models) {
-		delete model;
+	if (res.crosshair_texture) delete res.crosshair_texture;
+	for (ChunkRenderData &data : res.chunk_models) {
+		delete data.model;
 	}
 	res.chunk_models.clear();
+	if (res.atlas) delete res.atlas;
 
-	lili::Texture *atlas = new lili::Texture(
+	res.atlas = new lili::Texture(
 		core.renderer->get_device(), "assets/cube_atlas.png"
 	);
-	if (!atlas) throw std::runtime_error("Atlas texture creation failed!");
-
+	if (!res.atlas) throw std::runtime_error("Atlas texture creation failed!");
 	res.map = lili::load_map("assets/maps/test_01.json", res.player);
 
-	for (auto &pair : res.map.chunks) {
-		lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(
-			pair.second
-		);
+	for (const std::pair<uint64_t, lili::Chunk> &pair : res.map.chunks) {
+		uint64_t key = pair.first;
+		const lili::Chunk &chunk = pair.second;
+
+		int chunk_x = static_cast<int>(key >> 32);
+		int chunk_z = static_cast<int>(key & 0xFFFFFFFF);
+		lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(chunk);
 		if (chunk_data.vertices.empty()) continue;
+	
 		lili::GPUMesh *chunk_mesh = new lili::GPUMesh(
 			core.renderer->get_device(), chunk_data
 		);
-		res.chunk_models.push_back(new lili::Model(chunk_mesh, atlas));
+		lili::Model *chunk_model = new lili::Model(chunk_mesh, res.atlas);
+		lili::Mat4 transform = lili::Mat4::translate({
+			static_cast<float>(chunk_x * lili::Chunk::SIZE),
+			0.0f,
+			static_cast<float>(chunk_z * lili::Chunk::SIZE)
+		});
+		res.chunk_models.push_back(ChunkRenderData{ chunk_model, transform });
 	}
 
 	lili::MeshData quad_data = lili::create_unit_quad();
@@ -85,12 +97,12 @@ void App::init_resources() {
 		core.renderer->get_device(), quad_data
 	);
 	if (!quad_mesh) throw std::runtime_error("GPU Mesh creation failed!");
-	lili::Texture *crosshair_texture = new lili::Texture(
+	res.crosshair_texture = new lili::Texture(
 		core.renderer->get_device(), "assets/crosshair.png"
 	);
-	if (!crosshair_texture)
+	if (!res.crosshair_texture)
 		throw std::runtime_error("Crosshair texture creation failed!");
-	res.crosshair_model = new lili::Model(quad_mesh, crosshair_texture);
+	res.crosshair_model = new lili::Model(quad_mesh, res.crosshair_texture);
 }
 
 void App::handle_events() {
@@ -128,14 +140,18 @@ void App::update(float dt) {
 	if (res.player.mode == lili::PlayerMode::Physical) {
 		res.camera.position.y += 1.6f;
 	}
+
+	std::cout << "Player Position:" << '\n';
+	std::cout << "  x: " << res.player.position.x << '\n';
+	std::cout << "  z: " << res.player.position.z << '\n';
 }
 
 void App::render() {
 	core.renderer->begin_frame(res.camera);
 
-	for (lili::Model *model : res.chunk_models) {
+	for (ChunkRenderData &data : res.chunk_models) {
 		core.renderer->submit(
-			*model, lili::Mat4::identity(), lili::RenderLayer::World3D
+			*data.model, data.transform, lili::RenderLayer::World3D
 		);
 	}
 
@@ -170,10 +186,13 @@ void App::mainloop() {
 
 void App::cleanup_resources() {
 	if (res.crosshair_model) delete res.crosshair_model;
-	for (lili::Model *model : res.chunk_models) {
-		delete model;
+	if (res.crosshair_texture) delete res.crosshair_texture;
+
+	for (ChunkRenderData &data : res.chunk_models) {
+		delete data.model;
 	}
 	res.chunk_models.clear();
+	if (res.atlas) delete res.atlas;
 }
 
 void App::cleanup_core() {

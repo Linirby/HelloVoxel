@@ -1,7 +1,7 @@
 #ifndef MAP_HPP
 # define MAP_HPP
 
-# include <map>
+# include <unordered_map>
 
 # include "geometry/chunk.hpp"
 
@@ -11,7 +11,7 @@ class Map {
 public:
 	~Map();
 
-	std::map<int, Chunk> chunks;
+	std::unordered_map<uint64_t, Chunk> chunks;
 
 	void set_block_global(uint8_t id, int x, int y, int z);
 	uint8_t get_block_global(int x, int y, int z);

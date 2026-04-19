@@ -8,7 +8,6 @@ Model::Model(GPUMesh *mesh, Texture *texture) {
 }
 
 Model::~Model() {
-	if (texture) delete texture;
 	if (mesh) delete mesh;
 }
 

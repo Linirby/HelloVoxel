@@ -8,7 +8,7 @@ Map::~Map() {
 
 void Map::set_block_global(uint8_t id, int x, int y, int z) {
 	// The map is only one chunk high for now
-	if (y < 0 || y > 16) return;
+	if (y < 0 || y >= 16) return;
 
 	int chunk_x = x >> 4;
 	int chunk_z = z >> 4;
@@ -21,7 +21,7 @@ void Map::set_block_global(uint8_t id, int x, int y, int z) {
 }
 
 uint8_t Map::get_block_global(int x, int y, int z) {
-	if (y < 0 || y > 16) return 0;
+	if (y < 0 || y >= 16) return 0;
 
 	int chunk_x = x >> 4;
 	int chunk_z = z >> 4;
@@ -37,7 +37,10 @@ uint8_t Map::get_block_global(int x, int y, int z) {
 }
 
 uint64_t Map::get_chunk_key(int x, int z) const {
-	return (static_cast<uint64_t>(x) << 32) | (static_cast<uint32_t>(z));
+	return (
+		(static_cast<uint64_t>(static_cast<uint32_t>(x)) << 32) |
+		(static_cast<uint64_t>(static_cast<uint32_t>(z)))
+	);
 }
 
 }  // namespace lili

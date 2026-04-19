@@ -9,6 +9,11 @@
 
 # include "entity/player.hpp"
 
+struct ChunkRenderData {
+	lili::Model *model;
+	lili::Mat4 transform;
+};
+
 class App {
 public:
 	void run();
@@ -20,8 +25,10 @@ private:
 	} core;
 	struct Resources {
 		lili::Map map;
-		std::vector<lili::Model *> chunk_models;
+		lili::Texture *atlas = nullptr;
+		std::vector<ChunkRenderData> chunk_models;
 
+		lili::Texture *crosshair_texture = nullptr;
 		lili::Model *crosshair_model = nullptr;
 
 		lili::Player player;

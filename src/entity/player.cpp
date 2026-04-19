@@ -44,7 +44,7 @@ void Player::process_input(
 	target_vel_x = move_dir.x * current_speed;
 	target_vel_z = move_dir.z * current_speed;
 
-	float control_speed = is_grounded ? 15.0f : 5.0f;
+	float control_speed = is_grounded ? ground_control : air_control;
 
 	velocity.x += (target_vel_x - velocity.x) * control_speed * dt;
 	velocity.z += (target_vel_z - velocity.z) * control_speed * dt;
@@ -102,26 +102,21 @@ void Player::toggle_mode() {
 
 bool Player::check_collision(const Vec3 &test_pos, Map &map) const {
 	float pad = 0.05f;
-	float min_x = test_pos.x - (width / 2.0f) + pad;
-	float max_x = test_pos.x + (width / 2.0f) - pad;
 
-	float min_y = test_pos.y;
-	float max_y = test_pos.y + height;
+	Vec3 min = {
+		test_pos.x - (width / 2.0f) + pad,
+		test_pos.y,
+		test_pos.z - (width / 2.0f) + pad
+	};
+	Vec3 max = {
+		test_pos.x + (width / 2.0f) - pad,
+		test_pos.y + height,
+		test_pos.z + (width / 2.0f) - pad
+	};
 
-	float min_z = test_pos.z - (width / 2.0f) + pad;
-	float max_z = test_pos.z + (width / 2.0f) - pad;
-
-	for (int x = std::floor(min_x); x <= std::floor(max_x); ++x) {
-		for (int y = std::floor(min_y); y <= std::floor(max_y); ++y) {
-			for (int z = std::floor(min_z); z <= std::floor(max_z); ++z) {
-				if (
-					x < 0 || x >= Chunk::SIZE ||
-					y < 0 || y >= Chunk::SIZE ||
-					z < 0 || z >= Chunk::SIZE
-				) {
-					continue;
-				}
-
+	for (int x = std::floor(min.x); x <= std::floor(max.x); ++x) {
+		for (int y = std::floor(min.y); y <= std::floor(max.y); ++y) {
+			for (int z = std::floor(min.z); z <= std::floor(max.z); ++z) {
 				if (map.get_block_global(x, y, z) != 0) {
 					return true;
 				}
