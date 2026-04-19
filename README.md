@@ -1,7 +1,7 @@
 # HelloVoxel
 
-HelloVoxel is a C++ voxel rendering prototype built on **SDL3 GPU** (Vulkan backend).  
-This repository demonstrates the complete pipeline from voxel data on CPU memory to textured pixels on screen, without relying on a full game engine.
+HelloVoxel is a C++ voxel game engine with a Vulkan backend.  
+This repository is a lightweight, custom voxel game engine demonstrating a complete, low-level graphics and gameplay pipeline built entirely on **SDL3 GPU**.
 
 <img width="400" height="225" alt="engine_demo" src="https://github.com/Linirby/HelloVoxel/blob/main/assets/demo/engine_demo.gif" />
 
