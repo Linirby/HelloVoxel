@@ -1,5 +1,4 @@
 #include <stdexcept>
-#include <iostream>
 
 #include "app.hpp"
 #include "map_loader.hpp"
@@ -65,6 +64,7 @@ void App::init_resources() {
 	res.chunk_models.clear();
 	if (res.atlas) delete res.atlas;
 
+	res.camera = lili::Camera(90.0f, 0.0f);
 	res.atlas = new lili::Texture(
 		core.renderer->get_device(), "assets/cube_atlas.png"
 	);
@@ -140,10 +140,9 @@ void App::update(float dt) {
 	if (res.player.mode == lili::PlayerMode::Physical) {
 		res.camera.position.y += 1.6f;
 	}
-
-	std::cout << "Player Position:" << '\n';
-	std::cout << "  x: " << res.player.position.x << '\n';
-	std::cout << "  z: " << res.player.position.z << '\n';
+	// std::cout << "Player Position:" << '\n';
+	// std::cout << "  x: " << res.player.position.x << '\n';
+	// std::cout << "  z: " << res.player.position.z << '\n';
 }
 
 void App::render() {

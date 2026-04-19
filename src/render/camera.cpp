@@ -4,7 +4,9 @@
 
 namespace lili {
 
-Camera::Camera() {
+Camera::Camera(float yaw, float pitch) {
+	this->yaw = yaw;
+	this->pitch = pitch;
 	update_vectors();
 }
 

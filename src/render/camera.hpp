@@ -13,11 +13,11 @@ public:
 	Vec3 right = { 1.0f, 0.0f,  0.0f };
 	Vec3 up    = { 0.0f, 1.0f,  0.0f };
 
-	float yaw = -90.0f;
+	float yaw = 90.0f;
 	float pitch = 0.0f;
 	float mouse_sensitivity = 0.1f;
 
-	Camera();
+	Camera(float yaw = 90.0f, float pitch = 0.0f);
 
 	void process_mouse(float offset_x, float offset_y);
 	Mat4 get_view_matrix() const;
