@@ -8,7 +8,8 @@ namespace lili {
 
 enum class PlayerMode {
 	Physical,
-	Spectator
+	Spectator,
+	Builder
 };
 
 class Player {
@@ -18,7 +19,8 @@ public:
 	
 	float walk_speed = 5.0f;
 	float run_speed = 7.0f;
-	float fly_speed = 20.0f;
+	float builder_speed = 8.0f;
+	float spectator_speed = 15.0f;
 
 	float ground_control = 15.0f;
 	float air_control = 4.0f;
@@ -27,7 +29,7 @@ public:
 	float gravity = -25.0f;
 	bool is_grounded = false;
 
-	float width = 0.6f;
+	float width = 0.8f;
 	float height = 1.8f;
 
 	PlayerMode mode = PlayerMode::Physical;
@@ -38,7 +40,8 @@ public:
 		float dt
 	);
 	void update_physics(float dt, Map &map);
-	void toggle_mode();
+	void toggle_spectator();
+	void toggle_builder();
 
 private:
 	bool check_collision(const Vec3 &test_pos, Map &map) const;

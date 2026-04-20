@@ -122,6 +122,7 @@ SPIR-V binaries (`*.spv`) are loaded at runtime from the `shader/` folder.
 | `Space` | Jump (Physical) / Move up (Spectator) |
 | `Left Shift` | Move down (Spectator) |
 | `P` | Toggle Physical/Spectator mode |
+| `B` | Toggle Physical/Builder mode |
 | `Esc` | Exit |
 
 ## Build and run

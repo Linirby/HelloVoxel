@@ -10,15 +10,32 @@ void Player::process_input(
 	float dt
 ) {
 	if (mode == PlayerMode::Spectator) {
-		float current_fly_speed = fly_speed * dt;
+		float current_speed = spectator_speed * dt;
 
-		if (keys[SDL_SCANCODE_W]) position += cam_front * current_fly_speed;
-		if (keys[SDL_SCANCODE_S]) position -= cam_front * current_fly_speed;
-		if (keys[SDL_SCANCODE_D]) position += cam_right * current_fly_speed;
-		if (keys[SDL_SCANCODE_A]) position -= cam_right * current_fly_speed;
+		if (keys[SDL_SCANCODE_W]) position += cam_front * current_speed;
+		if (keys[SDL_SCANCODE_S]) position -= cam_front * current_speed;
+		if (keys[SDL_SCANCODE_D]) position += cam_right * current_speed;
+		if (keys[SDL_SCANCODE_A]) position -= cam_right * current_speed;
 
-		if (keys[SDL_SCANCODE_SPACE]) position += cam_up * current_fly_speed;
-		if (keys[SDL_SCANCODE_LSHIFT]) position -= cam_up * current_fly_speed;
+		if (keys[SDL_SCANCODE_SPACE]) position += cam_up * current_speed;
+		if (keys[SDL_SCANCODE_LSHIFT]) position -= cam_up * current_speed;
+
+		return;
+	}
+	else if (mode == PlayerMode::Builder) {
+		float current_speed = builder_speed * dt;
+
+		Vec3 flat_front = Vec3{ cam_front.x, 0.0f, cam_front.z }.normalized();
+		Vec3 flat_right = Vec3{ cam_right.x, 0.0f, cam_right.z }.normalized();
+		Vec3 flat_up = Vec3{ 0.0f, cam_up.y, 0.0f }.normalized();
+
+		if (keys[SDL_SCANCODE_W]) position += flat_front * current_speed;
+		if (keys[SDL_SCANCODE_S]) position -= flat_front * current_speed;
+		if (keys[SDL_SCANCODE_D]) position += flat_right * current_speed;
+		if (keys[SDL_SCANCODE_A]) position -= flat_right * current_speed;
+
+		if (keys[SDL_SCANCODE_SPACE]) position += flat_up * current_speed;
+		if (keys[SDL_SCANCODE_LSHIFT]) position -= flat_up * current_speed;
 
 		return;
 	}
@@ -56,7 +73,7 @@ void Player::process_input(
 }
 
 void Player::update_physics(float dt, Map &map) {
-	if (mode == PlayerMode::Spectator) return;
+	if (mode == PlayerMode::Spectator || mode == PlayerMode::Builder) return;
 
 	velocity.y += gravity * dt;
 	
@@ -90,10 +107,19 @@ void Player::update_physics(float dt, Map &map) {
 	}
 }
 
-void Player::toggle_mode() {
-	if (mode == PlayerMode::Physical) {
+void Player::toggle_spectator() {
+	if (mode != PlayerMode::Spectator) {
 		mode = PlayerMode::Spectator;
 		position.y += 0.5f;
+		velocity = Vec3{ 0.0f, 0.0f, 0.0f };
+	} else {
+		mode = PlayerMode::Physical;
+	}
+}
+
+void Player::toggle_builder() {
+	if (mode != PlayerMode::Builder) {
+		mode = PlayerMode::Builder;
 		velocity = Vec3{ 0.0f, 0.0f, 0.0f };
 	} else {
 		mode = PlayerMode::Physical;

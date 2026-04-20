@@ -7,17 +7,14 @@
 
 namespace lili {
 
-class Map {
-public:
+struct Map {
 	~Map();
 
 	std::unordered_map<uint64_t, Chunk> chunks;
 
 	void set_block_global(uint8_t id, int x, int y, int z);
-	uint8_t get_block_global(int x, int y, int z);
-
-private:
-	uint64_t get_chunk_key(int x, int z) const;
+	uint8_t get_block_global(int x, int y, int z) const;
+	uint64_t get_chunk_key(int x, int y, int z) const;
 };
 
 }  // namespace lili

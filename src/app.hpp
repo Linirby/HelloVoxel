@@ -10,7 +10,7 @@
 # include "entity/player.hpp"
 
 struct ChunkRenderData {
-	lili::Model *model;
+	lili::Model *model = nullptr;
 	lili::Mat4 transform;
 };
 
@@ -26,7 +26,7 @@ private:
 	struct Resources {
 		lili::Map map;
 		lili::Texture *atlas = nullptr;
-		std::vector<ChunkRenderData> chunk_models;
+		std::unordered_map<uint64_t, ChunkRenderData> chunk_models;
 
 		lili::Texture *crosshair_texture = nullptr;
 		lili::Model *crosshair_model = nullptr;
@@ -38,6 +38,8 @@ private:
 
 	void init_core();
 	void init_resources();
+
+	void update_chunk_mesh(uint64_t key);
 
 	void handle_events();
 	void update(float dt);
