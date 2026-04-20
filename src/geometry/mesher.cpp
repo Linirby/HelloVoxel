@@ -48,6 +48,7 @@ MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
 							case 3: tex_idx = block_def.left_texture; break;
 							case 4: tex_idx = block_def.front_texture; break;
 							case 5: tex_idx = block_def.back_texture; break;
+							default: tex_idx = 0; break;
 						}
 
 						float u_offset = (tex_idx % ATLAS_COLS) * UV_W;

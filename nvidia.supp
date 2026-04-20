@@ -1,0 +1,7 @@
+{
+   nvidia_swapchain_internal_uninit
+   Memcheck:Cond
+   obj:*libnvidia-glcore*
+   ...
+   fun:*QueuePresentKHR*
+}

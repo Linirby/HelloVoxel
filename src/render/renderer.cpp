@@ -56,6 +56,8 @@ bool Renderer::begin_frame(Camera camera) {
 	}
 	if (!swapchain_texture) {
 		SDL_SubmitGPUCommandBuffer(current_cmd_buffer);
+		current_cmd_buffer = nullptr;
+		current_render_pass = nullptr;
 		return false;
 	}
 	SDL_GPUColorTargetInfo color_target_info{

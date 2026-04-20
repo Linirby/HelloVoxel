@@ -62,10 +62,7 @@ void App::init_resources() {
 
 	if (res.crosshair_model) delete res.crosshair_model;
 	if (res.crosshair_texture) delete res.crosshair_texture;
-	for (
-		const std::pair<const uint64_t, ChunkRenderData> &data :
-		res.chunk_models
-	) {
+	for (const auto &data : res.chunk_models) {
 		delete data.second.model;
 	}
 	res.chunk_models.clear();
@@ -78,7 +75,7 @@ void App::init_resources() {
 	if (!res.atlas) throw std::runtime_error("Atlas texture creation failed!");
 	res.map = lili::load_map("assets/maps/test_01.json", res.player);
 
-	for (const std::pair<const uint64_t, lili::Chunk> &pair : res.map.chunks) {
+	for (const auto &pair : res.map.chunks) {
 		update_chunk_mesh(pair.first);
 	}
 
@@ -195,12 +192,9 @@ void App::update(float dt) {
 }
 
 void App::render() {
-	core.renderer->begin_frame(res.camera);
+	if (!core.renderer->begin_frame(res.camera)) return;
 
-	for (
-		const std::pair<const uint64_t, ChunkRenderData> &data :
-		res.chunk_models
-	) {
+	for (const auto &data : res.chunk_models) {
 		core.renderer->submit(
 			*data.second.model,
 			data.second.transform,
@@ -240,10 +234,7 @@ void App::mainloop() {
 void App::cleanup_resources() {
 	if (res.crosshair_model) delete res.crosshair_model;
 	if (res.crosshair_texture) delete res.crosshair_texture;
-	for (
-		const std::pair<const uint64_t, ChunkRenderData> &data :
-		res.chunk_models
-	) {
+	for (const auto &data : res.chunk_models) {
 		delete data.second.model;
 	}
 	res.chunk_models.clear();
