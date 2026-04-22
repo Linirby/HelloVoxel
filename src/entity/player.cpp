@@ -4,7 +4,7 @@
 
 namespace lili {
 
-void Player::process_input(
+void Player::process_keys(
 	const bool *keys,
 	const Vec3 &cam_front, const Vec3 &cam_right, const Vec3 &cam_up,
 	float dt

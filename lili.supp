@@ -1,0 +1,21 @@
+{
+    Bad_Size_Nvidia
+    Memcheck:BadSize
+    fun:posix_memalign
+    obj:/usr/lib/libnvidia-glcore.so.595.58.03
+}
+{
+	Realloc_Zero_Nvidia
+    Memcheck:ReallocZero
+    fun:realloc
+	obj:/usr/lib/libnvidia-glcore.so.595.58.03
+}
+{
+   SDL_Vulkan_Internal_Leaks
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   ...
+   fun:VULKAN_INTERNAL_AllocateCommandBuffer
+   ...
+}

@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <iostream>
 
 #include "app.hpp"
 #include "map_loader.hpp"
@@ -155,22 +156,51 @@ void App::handle_events() {
 			if (event.key.key == SDLK_R) {
 				init_resources();
 			}
-			if (event.key.key == SDLK_G) {
-				static bool block_place = false;
-				if (block_place) {
-					res.map.set_block_global(0, 1, 2, -1);
-					block_place = false;
-				} else {
-					res.map.set_block_global(1, 1, 2, -1);
-					block_place = true;
-				}
-				update_chunk_mesh(res.map.get_chunk_key(
-					10 >> 4, 5 >> 4, -10 >> 4
-				));
-			}
 		}
 		if (event.type == SDL_EVENT_MOUSE_MOTION) {
 			res.camera.process_mouse(event.motion.xrel, event.motion.yrel);
+		}
+		if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+			lili::RaycastResult raycast_res = res.map.raycast(
+				res.camera.position, res.camera.front, 4.0f
+			);
+			uint8_t handed_block = lili::BLOCK_ID_DEBUG;
+			if (event.button.button == SDL_BUTTON_LEFT) {
+				uint8_t old_block = res.map.get_block_global(
+					raycast_res.hit_x, raycast_res.hit_y, raycast_res.hit_z
+				);
+				if (old_block == 0) return;
+				res.map.set_block_global(
+					0,
+					raycast_res.hit_x,
+					raycast_res.hit_y,
+					raycast_res.hit_z
+				);
+				update_chunk_mesh(res.map.get_chunk_key(
+					raycast_res.hit_x >> 4,
+					raycast_res.hit_y >> 4,
+					raycast_res.hit_z >> 4
+				));
+			}
+			if (event.button.button == SDL_BUTTON_RIGHT) {
+				uint8_t old_block = res.map.get_block_global(
+					raycast_res.adjacent_x,
+					raycast_res.adjacent_y,
+					raycast_res.adjacent_z
+				);
+				if (old_block == 1) return;
+				res.map.set_block_global(
+					handed_block,
+					raycast_res.adjacent_x,
+					raycast_res.adjacent_y,
+					raycast_res.adjacent_z
+				);
+				update_chunk_mesh(res.map.get_chunk_key(
+					raycast_res.adjacent_x >> 4,
+					raycast_res.adjacent_y >> 4,
+					raycast_res.adjacent_z >> 4
+				));
+			}
 		}
 	}
 }
@@ -178,7 +208,7 @@ void App::handle_events() {
 void App::update(float dt) {
 	const bool *keys = SDL_GetKeyboardState(NULL);
 
-	res.player.process_input(
+	res.player.process_keys(
 		keys, res.camera.front, res.camera.right, res.camera.up, dt
 	);
 	res.player.update_physics(dt, res.map);
