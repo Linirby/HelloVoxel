@@ -196,6 +196,4 @@ Right now it focuses on fundations for a voxel engine (multi-chunk map, textured
 
 ## Next milestones
 
-- Level editor in free cam.
 - Dynamic lighting and shading pipeline.
-- Chunk streaming optimization for large worlds.
