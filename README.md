@@ -4,6 +4,7 @@ HelloVoxel is a C++ voxel game engine with a Vulkan backend.
 This repository is a lightweight, custom voxel game engine demonstrating a complete, low-level graphics and gameplay pipeline built entirely on **SDL3 GPU**.
 
 <img width="400" height="225" alt="engine_demo" src="https://github.com/Linirby/HelloVoxel/blob/main/assets/demo/engine_demo.gif" />
+<img width="400" height="225" alt="engine_demo" src="https://github.com/Linirby/HelloVoxel/blob/main/assets/demo/demo_build.gif" />
 
 ## Table of Contents
 - [Why this project exists](#why-this-project-exists)
@@ -41,7 +42,9 @@ I built this engine to demonstrate practical, low-level graphics engineering, fo
 - Chunk mesher with hidden-face culling (only visible faces become triangles).
 - Indexed mesh rendering with depth buffer.
 - Texture atlas sampling with nearest-neighbor filtering.
-- Robust player physics including gravity, jumping, AABB voxel collision detection, and toggleable Physical/Spectator modes.
+- Robust player physics including gravity, jumping, AABB voxel collision detection, and toggleable Physical/Spectator/Builder modes.
+- Builder gameplay mode with voxel raycast interaction for block placing/removing.
+- Runtime map saving to JSON (`Ctrl+S`) so edited worlds can be persisted.
 - Custom math types (`Vec3`, `Mat4`) for transforms and view/projection.
 - Clean separation of the render pipeline (`Renderer`, `GPUMesh`, `Model`, `Texture`, `Shader`).
 - HUD rendering with a crosshair overlay.
@@ -51,7 +54,7 @@ I built this engine to demonstrate practical, low-level graphics engineering, fo
 | System | Responsibility | Main files |
 | --- | --- | --- |
 | App lifecycle | Init, main loop (events, updates, render), cleanup | `src/app.cpp`, `src/app.hpp`, `src/main.cpp` |
-| World & Data | Map loading, chunk storage, and block registry | `src/map.*`, `src/map_loader.*`, `src/geometry/chunk.*`, `src/geometry/block.*` |
+| World & Data | Map loading/saving, chunk storage, and block registry | `src/map.*`, `src/map_manager.*`, `src/geometry/chunk.*`, `src/geometry/block.*` |
 | Meshing | Convert voxels to renderable triangles | `src/geometry/mesher.*`, `src/geometry/voxel_data.hpp` |
 | Render pipeline | Encapsulates SDL3 GPU setup, pipelines, and draws | `src/render/renderer.*`, `src/render/gpu_mesh.*`, `src/render/model.*`, `src/render/texture.*`, `src/render/shader.*` |
 | Camera + player | Mouse orientation, physics, and AABB collision | `src/render/camera.*`, `src/entity/player.*` |
@@ -119,10 +122,14 @@ SPIR-V binaries (`*.spv`) are loaded at runtime from the `shader/` folder.
 | Mouse | Look around |
 | `W` / `S` | Move forward / backward |
 | `A` / `D` | Strafe left / right |
-| `Space` | Jump (Physical) / Move up (Spectator) |
-| `Left Shift` | Move down (Spectator) |
+| `Space` | Jump (Physical) / Move up (Spectator, Builder) |
+| `Left Shift` | Sprint while moving forward (Physical) / Move down (Spectator, Builder) |
 | `P` | Toggle Physical/Spectator mode |
 | `B` | Toggle Physical/Builder mode |
+| `Left Click` | Remove targeted block (Builder) |
+| `Right Click` | Place block on targeted surface (Builder) |
+| `Ctrl` + `S` | Save current map to `custom_map.json` |
+| `R` | Reload the current map/resources |
 | `Esc` | Exit |
 
 ## Build and run
@@ -151,6 +158,12 @@ cmake --build build
 
 ```bash
 ./build/HelloVoxel
+```
+
+Run with a specific map file:
+
+```bash
+./build/HelloVoxel assets/maps/test_01.json
 ```
 
 ### Clean

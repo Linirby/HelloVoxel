@@ -1,2 +1,0 @@
-Builder player mode that allow block placing and removing (Togglable with B key)
-A custom map saving (CTRL+S to save)
