@@ -20,6 +20,7 @@ add_library(LiliGeometry STATIC
 	src/geometry/chunk.cpp
 	src/geometry/mesher.cpp
 	src/geometry/primitives.cpp
+	src/geometry/quad.cpp
 )
 target_include_directories(LiliGeometry PUBLIC src)
 target_link_libraries(LiliGeometry PRIVATE LiliMath)
@@ -39,7 +40,6 @@ target_link_libraries(LiliRender PRIVATE LiliGeometry)
 # Lili Entity
 add_library(LiliEntity STATIC
 	src/entity/player.cpp
-	src/entity/playerv2.cpp
 )
 target_include_directories(LiliEntity PUBLIC src)
 target_link_libraries(LiliRender PRIVATE LiliMath)

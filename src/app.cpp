@@ -1,32 +1,8 @@
 #include <stdexcept>
-#include <iostream>
 
 #include "app.hpp"
 #include "map_loader.hpp"
-
 #include "geometry/block.hpp"
-#include "geometry/primitives.hpp"
-
-static lili::Chunk load_chunk() {
-	lili::Chunk chunk;
-
-	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
-		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
-			chunk.set_block(lili::BLOCK_ID_DEBUG, x, 0, z);
-		}
-	}
-	for (int y = 0; y < lili::Chunk::SIZE; ++y) {
-		chunk.set_block(lili::BLOCK_ID_DEBUG, 0, y, 7);
-		chunk.set_block(lili::BLOCK_ID_DEBUG, lili::Chunk::SIZE - 1, y, 8);
-	}
-	for (int x = 0; x < lili::Chunk::SIZE; ++x) {
-		for (int z = 0; z < lili::Chunk::SIZE; ++z) {
-			chunk.set_block(lili::BLOCK_ID_DEBUG, x, lili::Chunk::SIZE - 1, z);
-		}
-	}
-
-	return chunk;
-}
 
 void App::run() {
 	init_core();
@@ -36,93 +12,58 @@ void App::run() {
 }
 
 void App::init_core() {
-	if (!SDL_Init(SDL_INIT_VIDEO)) {
-		throw std::runtime_error(
-			"SDL_Init() failed!\n-> " +
-			std::string(SDL_GetError())
-		);
+	if (!SDL_Init(SDL_INIT_VIDEO)) throw std::runtime_error(SDL_GetError());
+
+	window = SDL_CreateWindow("HelloVoxel", win_w, win_h, 0);
+	if (!window) throw std::runtime_error(SDL_GetError());
+
+	if (!SDL_SetWindowRelativeMouseMode(window, true)) {
+		throw std::runtime_error(SDL_GetError());
 	}
-	core.window = SDL_CreateWindow(
-		"HelloVoxel", 1280, 720, 0
-	);
-	if (!core.window) {
-		throw std::runtime_error(
-			"core.window creation failed!\n-> " +
-			std::string(SDL_GetError())
-		);
-	}
-	SDL_SetWindowRelativeMouseMode(core.window, true);
-	core.renderer = new lili::Renderer(core.window);
+	renderer = new lili::Renderer(window);
+	if (!renderer) throw std::runtime_error("Renderer creation failed!");
 	is_running = true;
 }
 
 void App::init_resources() {
-	if (core.renderer) {
-		SDL_WaitForGPUIdle(core.renderer->get_device());
-	}
-
-	if (res.crosshair_model) delete res.crosshair_model;
-	if (res.crosshair_texture) delete res.crosshair_texture;
-	for (const auto &data : res.chunk_models) {
-		delete data.second.model;
-	}
-	res.chunk_models.clear();
-	if (res.atlas) delete res.atlas;
-
-	res.camera = lili::Camera(-90.0f, 0.0f);
-	res.atlas = new lili::Texture(
-		core.renderer->get_device(), "assets/cube_atlas.png"
-	);
-	if (!res.atlas) throw std::runtime_error("Atlas texture creation failed!");
-	res.map = lili::load_map("assets/maps/test_01.json", res.player);
-
-	for (const auto &pair : res.map.chunks) {
+	camera = lili::Camera(-90.0f, 0.0f, fov_y);
+	map = load_map("assets/maps/test_01.json", player);
+	atlas = new lili::Texture(renderer->get_device(), "assets/cube_atlas.png");
+	if (!atlas) throw std::runtime_error("Atlas texture creation failed!");
+	for (const auto &pair : map.chunks)
 		update_chunk_mesh(pair.first);
-	}
-
-	lili::MeshData quad_data = lili::create_unit_quad();
-	lili::GPUMesh *quad_mesh = new lili::GPUMesh(
-		core.renderer->get_device(), quad_data
-	);
-	if (!quad_mesh) throw std::runtime_error("GPU Mesh creation failed!");
-	res.crosshair_texture = new lili::Texture(
-		core.renderer->get_device(), "assets/crosshair.png"
-	);
-	if (!res.crosshair_texture)
-		throw std::runtime_error("Crosshair texture creation failed!");
-	res.crosshair_model = new lili::Model(quad_mesh, res.crosshair_texture);
+	crosshair = new lili::Quad(renderer->get_device(), "assets/crosshair.png");
 }
 
 void App::update_chunk_mesh(uint64_t key) {
-	auto chunk_it = res.chunk_models.find(key);
-	if (chunk_it != res.chunk_models.end()) {
+	auto chunk_it = chunk_models.find(key);
+	if (chunk_it != chunk_models.end()) {
 		if (chunk_it->second.model) {
 			delete chunk_it->second.model;
-			res.chunk_models.erase(chunk_it);
+			chunk_models.erase(chunk_it);
 		}
 	}
 
 	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(
-		res.map.chunks[key]
+		map.chunks[key]
 	);
 	if (chunk_data.vertices.empty()) {
-		auto model_it = res.chunk_models.find(key);
-		if (model_it != res.chunk_models.end()) {
+		auto model_it = chunk_models.find(key);
+		if (model_it != chunk_models.end()) {
 			delete model_it->second.model;
-			res.chunk_models.erase(model_it);
+			chunk_models.erase(model_it);
 		}
 		return;
 	}
 
-	auto model_it = res.chunk_models.find(key);
-	if (model_it != res.chunk_models.end()) {
+	auto model_it = chunk_models.find(key);
+	if (model_it != chunk_models.end())
 		if (model_it->second.model) delete model_it->second.model;
-	}
 
 	lili::GPUMesh *chunk_mesh = new lili::GPUMesh(
-		core.renderer->get_device(), chunk_data
+		renderer->get_device(), chunk_data
 	);
-	lili::Model *chunk_model = new lili::Model(chunk_mesh, res.atlas);
+	lili::Model *chunk_model = new lili::Model(chunk_mesh, atlas);
 
 	int chunk_x = static_cast<int16_t>(key >> 32);
 	int chunk_y = static_cast<int16_t>(key >> 16);
@@ -133,72 +74,67 @@ void App::update_chunk_mesh(uint64_t key) {
 		static_cast<float>(chunk_y * lili::Chunk::SIZE),
 		static_cast<float>(chunk_z * lili::Chunk::SIZE)
 	});
-	res.chunk_models[key] = ChunkRenderData{ chunk_model, transform };
+	chunk_models[key] = ChunkRenderData{ chunk_model, transform };
 }
 
 void App::handle_events() {
 	SDL_Event event;
 
 	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_EVENT_QUIT) {
-			is_running = false;
-		}
+		if (event.type == SDL_EVENT_QUIT) is_running = false;
 		if (event.type == SDL_EVENT_KEY_DOWN) {
-			if (event.key.key == SDLK_ESCAPE) {
-				is_running = false;
-			}
-			if (event.key.key == SDLK_P) {
-				res.player.toggle_spectator();
-			}
-			if (event.key.key == SDLK_B) {
-				res.player.toggle_builder();
-			}
+			if (event.key.key == SDLK_ESCAPE) is_running = false;
+
+			if (event.key.key == SDLK_P) player.toggle_spectator();
+			if (event.key.key == SDLK_B) player.toggle_builder();
+
 			if (event.key.key == SDLK_R) {
+				if (renderer) SDL_WaitForGPUIdle(renderer->get_device());
+				cleanup_resources();
 				init_resources();
 			}
 		}
-		if (event.type == SDL_EVENT_MOUSE_MOTION) {
-			res.camera.process_mouse(event.motion.xrel, event.motion.yrel);
-		}
+		if (event.type == SDL_EVENT_MOUSE_MOTION)
+			camera.process_mouse(event.motion.xrel, event.motion.yrel);
 		if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-			lili::RaycastResult raycast_res = res.map.raycast(
-				res.camera.position, res.camera.front, 4.0f
-			);
+			if (player.mode != lili::PlayerMode::Builder) return;
 			uint8_t handed_block = lili::BLOCK_ID_DEBUG;
 			if (event.button.button == SDL_BUTTON_LEFT) {
-				uint8_t old_block = res.map.get_block_global(
-					raycast_res.hit_x, raycast_res.hit_y, raycast_res.hit_z
+				uint8_t old_block = map.get_block_global(
+					player_raycast.hit_x,
+					player_raycast.hit_y,
+					player_raycast.hit_z
 				);
 				if (old_block == 0) return;
-				res.map.set_block_global(
-					0,
-					raycast_res.hit_x,
-					raycast_res.hit_y,
-					raycast_res.hit_z
+				map.set_block_global(
+					lili::BLOCK_ID_AIR,
+					player_raycast.hit_x,
+					player_raycast.hit_y,
+					player_raycast.hit_z
 				);
-				update_chunk_mesh(res.map.get_chunk_key(
-					raycast_res.hit_x >> 4,
-					raycast_res.hit_y >> 4,
-					raycast_res.hit_z >> 4
+				update_chunk_mesh(map.get_chunk_key(
+					player_raycast.hit_x >> 4,
+					player_raycast.hit_y >> 4,
+					player_raycast.hit_z >> 4
 				));
 			}
 			if (event.button.button == SDL_BUTTON_RIGHT) {
-				uint8_t old_block = res.map.get_block_global(
-					raycast_res.adjacent_x,
-					raycast_res.adjacent_y,
-					raycast_res.adjacent_z
+				uint8_t old_block = map.get_block_global(
+					player_raycast.adjacent_x,
+					player_raycast.adjacent_y,
+					player_raycast.adjacent_z
 				);
 				if (old_block == 1) return;
-				res.map.set_block_global(
+				map.set_block_global(
 					handed_block,
-					raycast_res.adjacent_x,
-					raycast_res.adjacent_y,
-					raycast_res.adjacent_z
+					player_raycast.adjacent_x,
+					player_raycast.adjacent_y,
+					player_raycast.adjacent_z
 				);
-				update_chunk_mesh(res.map.get_chunk_key(
-					raycast_res.adjacent_x >> 4,
-					raycast_res.adjacent_y >> 4,
-					raycast_res.adjacent_z >> 4
+				update_chunk_mesh(map.get_chunk_key(
+					player_raycast.adjacent_x >> 4,
+					player_raycast.adjacent_y >> 4,
+					player_raycast.adjacent_z >> 4
 				));
 			}
 		}
@@ -208,24 +144,22 @@ void App::handle_events() {
 void App::update(float dt) {
 	const bool *keys = SDL_GetKeyboardState(NULL);
 
-	res.player.process_keys(
-		keys, res.camera.front, res.camera.right, res.camera.up, dt
-	);
-	res.player.update_physics(dt, res.map);
-	res.camera.position = res.player.position;
-	if (res.player.mode != lili::PlayerMode::Spectator) {
-		res.camera.position.y += 1.6f;
-	}
-	// std::cout << "Player Position:" << '\n';
-	// std::cout << "  x: " << res.player.position.x << '\n';
-	// std::cout << "  z: " << res.player.position.z << '\n';
+	if (player.mode == lili::PlayerMode::Builder)
+		player_raycast = map.raycast(
+			camera.position, camera.front, player.build_range 
+		);
+	player.process_keys(keys, camera.front, camera.right, camera.up, dt);
+	player.update_physics(dt, map);
+
+	camera.position = player.position;
+	if (player.mode != lili::PlayerMode::Spectator) camera.position.y += 1.6f;
 }
 
 void App::render() {
-	if (!core.renderer->begin_frame(res.camera)) return;
+	if (!renderer->begin_frame(camera)) return;
 
-	for (const auto &data : res.chunk_models) {
-		core.renderer->submit(
+	for (const auto &data : chunk_models) {
+		renderer->submit(
 			*data.second.model,
 			data.second.transform,
 			lili::RenderLayer::World3D
@@ -234,17 +168,12 @@ void App::render() {
 
 	int win_w = 0;
 	int win_h = 0;
-	SDL_GetWindowSize(core.window, &win_w, &win_h);
-	lili::Mat4 translation = lili::Mat4::translate(
-		{ win_w / 2.0f, win_h / 2.0f, 0.0f }
-	);
-	lili::Mat4 scale = lili::Mat4::scale({ 18.0f, 18.0f, 1.0f });
-	lili::Mat4 transformation = translation * scale;
-	core.renderer->submit(
-		*res.crosshair_model, transformation, lili::RenderLayer::UI2D
-	);
+	SDL_GetWindowSize(window, &win_w, &win_h);
+	crosshair->position = { win_w / 2.0f, win_h / 2.0f, 0.0f };
+	crosshair->scale = { 18.0f, 18.0f, 1.0f };
+	crosshair->draw(renderer);
 
-	core.renderer->end_frame();
+	renderer->end_frame();
 }
 
 void App::mainloop() {
@@ -262,23 +191,22 @@ void App::mainloop() {
 }
 
 void App::cleanup_resources() {
-	if (res.crosshair_model) delete res.crosshair_model;
-	if (res.crosshair_texture) delete res.crosshair_texture;
-	for (const auto &data : res.chunk_models) {
-		delete data.second.model;
+	if (crosshair) delete crosshair;
+	for (const auto &data : chunk_models) {
+		if (data.second.model) delete data.second.model;
 	}
-	res.chunk_models.clear();
-	if (res.atlas) delete res.atlas;
+	chunk_models.clear();
+	if (atlas) delete atlas;
 }
 
 void App::cleanup_core() {
-	if (core.renderer) delete core.renderer;
-	if (core.window) SDL_DestroyWindow(core.window);
+	if (renderer) delete renderer;
+	if (window) SDL_DestroyWindow(window);
 }
 
 void App::cleanup() {
-	if (core.renderer) {
-		SDL_WaitForGPUIdle(core.renderer->get_device());
+	if (renderer) {
+		SDL_WaitForGPUIdle(renderer->get_device());
 	}
 
 	cleanup_resources();

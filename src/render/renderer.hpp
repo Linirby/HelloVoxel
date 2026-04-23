@@ -57,4 +57,4 @@ private:
 
 }  // namespace lili
 
-#endif
+#endif  // RENDER_RENDERER_HPP

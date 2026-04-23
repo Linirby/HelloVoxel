@@ -21,4 +21,4 @@ public:
 
 }  // namespace lili
 
-#endif
+#endif  // GEOMETRY_MESHER_HPP

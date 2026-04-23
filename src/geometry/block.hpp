@@ -34,4 +34,4 @@ private:
 
 }  // namespace lili
 
-#endif
+#endif  // GEOMETRY_BLOCK_HPP

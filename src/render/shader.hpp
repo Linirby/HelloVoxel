@@ -34,4 +34,4 @@ private:
 
 }  // namespace lili
 
-#endif
+#endif  // RENDER_SHADER_HPP

@@ -15,6 +15,8 @@ MeshData create_unit_quad() {
 		0, 1, 2,
 		2, 3, 0
 	};
+
+	
 	return quad;
 }
 

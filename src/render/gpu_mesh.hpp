@@ -1,5 +1,5 @@
-#ifndef RENDER_BUFFER_HPP
-# define RENDER_BUFFER_HPP
+#ifndef RENDER_GPU_MESH_HPP
+# define RENDER_GPU_MESH_HPP
 
 # include <SDL3/SDL_gpu.h>
 # include "geometry/mesher.hpp"
@@ -26,4 +26,4 @@ private:
 
 }  // namespace lili
 
-#endif
+#endif  // RENDER_GPU_MESH_HPP

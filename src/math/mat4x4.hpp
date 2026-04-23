@@ -1,5 +1,5 @@
-#ifndef MAT4X4_HPP
-# define MAT4X4_HPP
+#ifndef MATH_MAT4X4_HPP
+# define MATH_MAT4X4_HPP
 
 # include "math/vec3.hpp"
 
@@ -27,4 +27,4 @@ struct Mat4 {
 
 } // namespace lili
 
-#endif
+#endif  // MATH_MAT4X4_HPP

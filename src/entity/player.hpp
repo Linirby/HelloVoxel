@@ -32,6 +32,8 @@ public:
 	float width = 0.8f;
 	float height = 1.8f;
 
+	float build_range = 12.0f;
+
 	PlayerMode mode = PlayerMode::Physical;
 
 	void process_keys(
@@ -49,4 +51,4 @@ private:
 
 }  // namespace lili
 
-#endif
+#endif  // ENTITY_PLAYER_HPP

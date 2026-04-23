@@ -17,4 +17,4 @@ struct Model {
 
 }  // namespace lili
 
-#endif
+#endif  // RENDER_MODEL_HPP

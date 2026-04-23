@@ -12,4 +12,4 @@ Map load_map(const std::string &map_path, Player &player);
 
 }  // namespace lili
 
-#endif
+#endif  // MAP_LOADER_HPP

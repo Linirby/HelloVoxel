@@ -30,4 +30,4 @@ struct Map {
 
 }  // namespace lili
 
-#endif
+#endif  // MAP_HPP

@@ -7,7 +7,10 @@
 # include "render/camera.hpp"
 # include "render/model.hpp"
 
+# include "geometry/quad.hpp"
+
 # include "entity/player.hpp"
+
 
 struct ChunkRenderData {
 	lili::Model *model = nullptr;
@@ -19,21 +22,26 @@ public:
 	void run();
 
 private:
-	struct Core {
-		SDL_Window *window = nullptr;
-		lili::Renderer *renderer = nullptr;
-	} core;
-	struct Resources {
-		lili::Map map;
-		lili::Texture *atlas = nullptr;
-		std::unordered_map<uint64_t, ChunkRenderData> chunk_models;
+	// Core
+	SDL_Window *window = nullptr;
+	lili::Renderer *renderer = nullptr;
 
-		lili::Texture *crosshair_texture = nullptr;
-		lili::Model *crosshair_model = nullptr;
+	// Settings
+	int win_w = 1280;
+	int win_h = 720;
+	float fov_y = 90.0f;
+	
+	// Resources
+	lili::Map map;
+	lili::Texture *atlas = nullptr;
+	std::unordered_map<uint64_t, ChunkRenderData> chunk_models;
 
-		lili::Player player;
-		lili::Camera camera;
-	} res;
+	lili::Quad *crosshair = nullptr;
+
+	lili::Player player;
+	lili::RaycastResult player_raycast;
+	lili::Camera camera;
+	
 	bool is_running = false;
 
 	void init_core();
@@ -44,7 +52,6 @@ private:
 	void handle_events();
 	void update(float dt);
 	void render();
-	
 	void mainloop();
 
 	void cleanup_resources();
@@ -52,4 +59,4 @@ private:
 	void cleanup();
 };
 
-#endif
+#endif  // APP_HPP

@@ -24,4 +24,4 @@ private:
 
 }  // namespace lili
 
-#endif
+#endif  // RENDER_TEXTURE_HPP

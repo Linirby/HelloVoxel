@@ -32,4 +32,4 @@ inline int abs(int n) {
 
 }  // namespace lili
 
-#endif
+#endif  // MATH_UTILS_HPP

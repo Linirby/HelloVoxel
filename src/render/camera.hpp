@@ -17,7 +17,11 @@ public:
 	float pitch = 0.0f;
 	float mouse_sensitivity = 0.1f;
 
-	Camera(float yaw = -90.0f, float pitch = 0.0f);
+	float fov_y = 90.0f;
+	float near_dist = 0.3f;
+	float far_dist = 100.0f;
+
+	Camera(float yaw = -90.0f, float pitch = 0.0f, float fov_y = 90.0f);
 
 	void process_mouse(float offset_x, float offset_y);
 	Mat4 get_view_matrix() const;
@@ -28,4 +32,4 @@ private:
 
 }  // namespace lili
 
-#endif
+#endif  // RENDER_CAMERA_HPP

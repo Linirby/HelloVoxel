@@ -53,13 +53,9 @@ RaycastResult Map::raycast(
 	int y = lili::floor(origin.y);
 	int z = lili::floor(origin.z);
 
-	int step_x, step_y, step_z = 0;
-	if (direction.x > 0) step_x = 1;
-	else if (direction.x < 0) step_x = -1;
-	if (direction.y > 0) step_y = 1;
-	else if (direction.y < 0) step_y = -1;
-	if (direction.z > 0) step_z = 1;
-	else if (direction.z < 0) step_z = -1;
+	int step_x = (direction.x > 0) - (direction.x < 0);
+	int step_y = (direction.y > 0) - (direction.y < 0);
+	int step_z = (direction.z > 0) - (direction.z < 0);
 
 	Vec3 t_delta{ lili::F_INFINITY, lili::F_INFINITY, lili::F_INFINITY };
 	if (step_x != 0) t_delta.x = lili::abs(1.0f / direction.x);

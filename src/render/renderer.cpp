@@ -9,10 +9,6 @@
 
 namespace lili {
 
-//
-//  PUBLIC
-//
-
 Renderer::Renderer(SDL_Window *window) {
 	this->window = window;
 
@@ -89,16 +85,16 @@ bool Renderer::begin_frame(Camera camera) {
 
 	Mat4 view = camera.get_view_matrix();
 	Mat4 proj = Mat4::perspective(
-		deg_to_rad(90.0f),            // FOV Y (in rad)
-		(float)win_w / (float)win_h,  // aspect ratio
-		0.3f,                         // near distance unit
-		100.0f                        // far distance unit
+		deg_to_rad(camera.fov_y),
+		(float)win_w / (float)win_h,
+		camera.near_dist,
+		camera.far_dist
 	);
 	projection_view_3d = proj * view;
 	projection_2d = Mat4::orthographic(
-		0.0f, static_cast<float>(win_w),  // left - right
-		static_cast<float>(win_h), 0.0f,  // bottom - top
-		-1.0f, 1.0f                       // near - far
+		0.0f, static_cast<float>(win_w),
+		static_cast<float>(win_h), 0.0f,
+		-1.0f, 1.0f
 	);
 	return true;
 }
@@ -203,18 +199,11 @@ SDL_GPUDevice *Renderer::get_device() const {
 	return device;
 }
 
-//
-//  PRIVATE
-//
-
 void Renderer::init_device() {
-	device = SDL_CreateGPUDevice(
-		SDL_GPU_SHADERFORMAT_SPIRV, true, nullptr
-	);
+	device = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, nullptr);
 	if (!device) {
 		throw std::runtime_error(
-			"Device creation failed!\n-> " +
-			std::string(SDL_GetError())
+			"Device creation failed!\n-> " + std::string(SDL_GetError())
 		);
 	}
 	if (!SDL_ClaimWindowForGPUDevice(device, this->window)) {
@@ -242,8 +231,7 @@ void Renderer::init_depth_texture() {
 	depth_texture = SDL_CreateGPUTexture(device, &depth_info);
 	if (!depth_texture) {
 		throw std::runtime_error(
-			"Depth texture creation failed!\n-> " +
-			std::string(SDL_GetError())
+			"Depth texture creation failed!\n-> " + std::string(SDL_GetError())
 		);
 	}
 }

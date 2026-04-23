@@ -15,4 +15,4 @@ struct Chunk {
 
 }  // namespace lili
 
-#endif
+#endif  // GEOMETRY_CHUNK_HPP

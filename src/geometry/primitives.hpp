@@ -9,4 +9,4 @@ MeshData create_unit_quad();
 
 }  // namespace lili
 
-#endif
+#endif  // GEOMETRY_PRIMITIVE_HPP

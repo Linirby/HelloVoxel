@@ -66,4 +66,4 @@ inline constexpr float face_vertices[6][4][3]{
 
 }  // namespace lili
 
-#endif
+#endif  // GEOMETRY_VOXEL_DATA_HPP
