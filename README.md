@@ -14,6 +14,7 @@ This repository is a lightweight, custom voxel game engine demonstrating a compl
 ## Table of Contents
 - [Why this project exists](#why-this-project-exists)
 - [Current capabilities](#current-capabilities)
+- [Build and run](#build-and-run)
 - [Architecture (big picture)](#architecture-big-picture)
 - [Rendering flow (from startup to frame)](#rendering-flow-from-startup-to-frame)
   - [1. Initialization](#1-initialization)
@@ -22,7 +23,6 @@ This repository is a lightweight, custom voxel game engine demonstrating a compl
 - [Voxel meshing explained](#voxel-meshing-explained-non-graphics-friendly)
 - [Shader pipeline](#shader-pipeline)
 - [Controls](#controls)
-- [Build and run](#build-and-run)
 - [Project status](#project-status)
 - [Next milestones](#next-milestones)
 
@@ -53,6 +53,58 @@ I built this engine to demonstrate practical, low-level graphics engineering, fo
 - Custom math types (`Vec3`, `Mat4`) for transforms and view/projection.
 - Clean separation of the render pipeline (`Renderer`, `GPUMesh`, `Model`, `Texture`, `Shader`).
 - HUD rendering with a crosshair overlay.
+
+## Build and run
+
+### Requirements
+
+- CMake 3.16+
+- C++ toolchain compatible with your local SDL3 packages
+- SDL3 (CMake package: `SDL3::SDL3`)
+- SDL3_image (CMake package: `SDL3_image::SDL3_image`)
+
+### Build
+
+```bash
+sh build.sh
+```
+
+or manually:
+
+```bash
+cmake -B build
+cmake --build build
+```
+
+### Run
+
+```bash
+./build/HelloVoxel
+```
+
+Run with a specific map file:
+
+```bash
+./build/HelloVoxel assets/maps/test_01.json
+```
+
+### Clean
+
+```bash
+sh clean.sh
+```
+
+### Rebuild
+
+```bash
+sh rebuild.sh
+```
+
+or:
+
+```bash
+sh clean.sh && sh build.sh
+```
 
 ## Architecture (big picture)
 
@@ -136,58 +188,6 @@ SPIR-V binaries (`*.spv`) are loaded at runtime from the `shader/` folder.
 | `Ctrl` + `S` | Save current map to `custom_map.json` |
 | `R` | Reload the current map/resources |
 | `Esc` | Exit |
-
-## Build and run
-
-### Requirements
-
-- CMake 3.16+
-- C++ toolchain compatible with your local SDL3 packages
-- SDL3 (CMake package: `SDL3::SDL3`)
-- SDL3_image (CMake package: `SDL3_image::SDL3_image`)
-
-### Build
-
-```bash
-sh build.sh
-```
-
-or manually:
-
-```bash
-cmake -B build
-cmake --build build
-```
-
-### Run
-
-```bash
-./build/HelloVoxel
-```
-
-Run with a specific map file:
-
-```bash
-./build/HelloVoxel assets/maps/test_01.json
-```
-
-### Clean
-
-```bash
-sh clean.sh
-```
-
-### Rebuild
-
-```bash
-sh rebuild.sh
-```
-
-or:
-
-```bash
-sh clean.sh && sh build.sh
-```
 
 ## Project status
 
