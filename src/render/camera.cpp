@@ -11,6 +11,12 @@ Camera::Camera(float yaw, float pitch, float fov_y) {
 	update_vectors();
 }
 
+void Camera::set_rotation(float new_yaw, float new_pitch) {
+	yaw = new_yaw;
+	pitch = new_pitch;
+	update_vectors();
+}
+
 void Camera::process_mouse(float x_offset, float y_offset) {
 	yaw += x_offset * mouse_sensitivity;
 	pitch -= y_offset * mouse_sensitivity;

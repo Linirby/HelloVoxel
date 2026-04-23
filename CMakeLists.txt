@@ -49,7 +49,7 @@ add_executable(${PROJECT_NAME}
 	src/main.cpp
 	src/app.cpp
 	src/map.cpp
-	src/map_loader.cpp
+	src/map_manager.cpp
 )
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 target_link_libraries(${PROJECT_NAME} PRIVATE

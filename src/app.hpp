@@ -6,11 +6,8 @@
 # include "render/renderer.hpp"
 # include "render/camera.hpp"
 # include "render/model.hpp"
-
 # include "geometry/quad.hpp"
-
 # include "entity/player.hpp"
-
 
 struct ChunkRenderData {
 	lili::Model *model = nullptr;
@@ -19,9 +16,11 @@ struct ChunkRenderData {
 
 class App {
 public:
-	void run();
+	void run(const std::string &map_path = "assets/maps/test_01.json");
 
 private:
+	std::string map_path = "assets/maps/test_01.json";
+
 	// Core
 	SDL_Window *window = nullptr;
 	lili::Renderer *renderer = nullptr;

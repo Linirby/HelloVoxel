@@ -1,10 +1,12 @@
 #include <stdexcept>
+#include <iostream>
 
 #include "app.hpp"
-#include "map_loader.hpp"
+#include "map_manager.hpp"
 #include "geometry/block.hpp"
 
-void App::run() {
+void App::run(const std::string &map_path) {
+	this->map_path = map_path;
 	init_core();
 	init_resources();
 	mainloop();
@@ -27,7 +29,10 @@ void App::init_core() {
 
 void App::init_resources() {
 	camera = lili::Camera(-90.0f, 0.0f, fov_y);
-	map = load_map("assets/maps/test_01.json", player);
+	map = load_map(map_path, player, camera);
+
+	std::cout << map_path << '\n';
+
 	atlas = new lili::Texture(renderer->get_device(), "assets/cube_atlas.png");
 	if (!atlas) throw std::runtime_error("Atlas texture creation failed!");
 	for (const auto &pair : map.chunks)
@@ -144,6 +149,10 @@ void App::handle_events() {
 void App::update(float dt) {
 	const bool *keys = SDL_GetKeyboardState(NULL);
 
+	if (keys[SDL_SCANCODE_LCTRL] && keys[SDL_SCANCODE_S]) {
+		lili::save_map("custom_map.json", map, player, camera);
+		return;
+	}
 	if (player.mode == lili::PlayerMode::Builder)
 		player_raycast = map.raycast(
 			camera.position, camera.front, player.build_range 

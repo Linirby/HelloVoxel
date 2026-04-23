@@ -23,6 +23,7 @@ public:
 
 	Camera(float yaw = -90.0f, float pitch = 0.0f, float fov_y = 90.0f);
 
+	void set_rotation(float new_yaw, float new_pitch);
 	void process_mouse(float offset_x, float offset_y);
 	Mat4 get_view_matrix() const;
 
