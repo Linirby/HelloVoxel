@@ -164,6 +164,29 @@ void App::update(float dt) {
 	if (player.mode != lili::PlayerMode::Spectator) camera.position.y += 1.6f;
 }
 
+void App::fixed_update(float dt) {
+    const bool *keys = SDL_GetKeyboardState(NULL);
+
+    if (keys[SDL_SCANCODE_LCTRL] && keys[SDL_SCANCODE_S]) {
+        lili::save_map("custom_map.json", map, player, camera);
+        return;
+    }
+    
+    if (player.mode == lili::PlayerMode::Builder) {
+        player_raycast = map.raycast(
+            camera.position, camera.front, player.build_range 
+        );
+    }
+        
+    player.process_keys(keys, camera.front, camera.right, camera.up, dt);
+    player.update_physics(dt, map);
+
+    camera.position = player.position;
+    if (player.mode != lili::PlayerMode::Spectator) {
+        camera.position.y += 1.6f;
+    }
+}
+
 void App::render() {
 	if (!renderer->begin_frame(camera)) return;
 
@@ -186,17 +209,27 @@ void App::render() {
 }
 
 void App::mainloop() {
-	Uint64 last = SDL_GetTicks();
+    Uint64 last = SDL_GetTicks();
+    
+    const float fixed_dt = 1.0f / 60.0f; 
+    float accumulator = 0.0f;
 
-	while (is_running) {
-		Uint64 now = SDL_GetTicks();
-		float dt = (now - last) / 1000.0f;
-		last = now;
-		
-		handle_events();
-		update(dt);
-		render();
-	}
+    while (is_running) {
+        Uint64 now = SDL_GetTicks();
+        float frame_time = (now - last) / 1000.0f;
+        last = now;
+
+        if (frame_time > 0.25f) {
+            frame_time = 0.25f;
+        }
+        accumulator += frame_time;
+        handle_events(); 
+        while (accumulator >= fixed_dt) {
+            fixed_update(fixed_dt); 
+            accumulator -= fixed_dt;
+        }
+        render();
+    }
 }
 
 void App::cleanup_resources() {

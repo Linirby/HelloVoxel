@@ -212,6 +212,19 @@ void Renderer::init_device() {
 			std::string(SDL_GetError())
 		);
 	}
+	if (!SDL_SetGPUSwapchainParameters(
+        device, 
+        this->window, 
+        SDL_GPU_SWAPCHAINCOMPOSITION_SDR, 
+        SDL_GPU_PRESENTMODE_MAILBOX
+    )) {
+		SDL_SetGPUSwapchainParameters(
+			device, 
+			this->window, 
+			SDL_GPU_SWAPCHAINCOMPOSITION_SDR, 
+			SDL_GPU_PRESENTMODE_IMMEDIATE
+		);
+	}
 }
 
 void Renderer::init_depth_texture() {

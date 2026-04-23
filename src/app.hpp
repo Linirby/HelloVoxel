@@ -50,6 +50,7 @@ private:
 
 	void handle_events();
 	void update(float dt);
+	void fixed_update(float dt);
 	void render();
 	void mainloop();
 
