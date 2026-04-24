@@ -3,6 +3,7 @@
 
 #include "map_manager.hpp"
 #include "map.hpp"
+#include "math/utils.hpp"
 
 namespace lili {
 
@@ -14,10 +15,12 @@ void save_map(
 ) {
     nlohmann::json map_data;
 
-    map_data["spawn"]["x"] = player.position.x;
-    map_data["spawn"]["y"] = player.position.y;
-    map_data["spawn"]["z"] = player.position.z;
-    map_data["spawn"]["rotation"] = { camera.yaw, camera.pitch }; 
+    map_data["spawn"]["x"] = lili::floor(player.position.x) + 0.5;
+    map_data["spawn"]["y"] = lili::floor(player.position.y);
+    map_data["spawn"]["z"] = lili::floor(player.position.z) + 0.5;
+    map_data["spawn"]["rotation"] = {
+		lili::floor(camera.yaw), lili::floor(camera.pitch)
+	}; 
 
     map_data["blocks"] = nlohmann::json::array();
 

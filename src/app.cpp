@@ -31,8 +31,6 @@ void App::init_resources() {
 	camera = lili::Camera(-90.0f, 0.0f, fov_y);
 	map = load_map(map_path, player, camera);
 
-	std::cout << map_path << '\n';
-
 	atlas = new lili::Texture(renderer->get_device(), "assets/cube_atlas.png");
 	if (!atlas) throw std::runtime_error("Atlas texture creation failed!");
 	for (const auto &pair : map.chunks)
@@ -84,7 +82,16 @@ void App::update_chunk_mesh(uint64_t key) {
 
 void App::handle_events() {
 	SDL_Event event;
+	bool can_save = true;
 
+	if (keys[SDL_SCANCODE_LCTRL] && keys[SDL_SCANCODE_S] && can_save) {
+		can_save = false;
+		lili::save_map("custom_map.json", map, player, camera);
+		std::cout << "Map saved at: custom_map.json" << '\n';
+	}
+	if (!(keys[SDL_SCANCODE_LCTRL] && keys[SDL_SCANCODE_S])) {
+		can_save = true;
+	}
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_EVENT_QUIT) is_running = false;
 		if (event.type == SDL_EVENT_KEY_DOWN) {
@@ -147,40 +154,17 @@ void App::handle_events() {
 }
 
 void App::update(float dt) {
-	const bool *keys = SDL_GetKeyboardState(NULL);
-
-	if (keys[SDL_SCANCODE_LCTRL] && keys[SDL_SCANCODE_S]) {
-		lili::save_map("custom_map.json", map, player, camera);
-		return;
-	}
-	if (player.mode == lili::PlayerMode::Builder)
-		player_raycast = map.raycast(
-			camera.position, camera.front, player.build_range 
-		);
-	player.process_keys(keys, camera.front, camera.right, camera.up, dt);
-	player.update_physics(dt, map);
-
-	camera.position = player.position;
-	if (player.mode != lili::PlayerMode::Spectator) camera.position.y += 1.6f;
 }
 
 void App::fixed_update(float dt) {
-    const bool *keys = SDL_GetKeyboardState(NULL);
-
-    if (keys[SDL_SCANCODE_LCTRL] && keys[SDL_SCANCODE_S]) {
-        lili::save_map("custom_map.json", map, player, camera);
-        return;
-    }
-    
     if (player.mode == lili::PlayerMode::Builder) {
         player_raycast = map.raycast(
             camera.position, camera.front, player.build_range 
         );
     }
-        
-    player.process_keys(keys, camera.front, camera.right, camera.up, dt);
+    if (!keys[SDL_SCANCODE_LCTRL])
+		player.process_keys(keys, camera.front, camera.right, camera.up, dt);
     player.update_physics(dt, map);
-
     camera.position = player.position;
     if (player.mode != lili::PlayerMode::Spectator) {
         camera.position.y += 1.6f;
@@ -219,6 +203,8 @@ void App::mainloop() {
         float frame_time = (now - last) / 1000.0f;
         last = now;
 
+		keys = SDL_GetKeyboardState(nullptr);
+
         if (frame_time > 0.25f) {
             frame_time = 0.25f;
         }
@@ -229,6 +215,8 @@ void App::mainloop() {
             accumulator -= fixed_dt;
         }
         render();
+
+		last_keys = SDL_GetKeyboardState(nullptr);
     }
 }
 

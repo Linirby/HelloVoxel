@@ -40,7 +40,9 @@ private:
 	lili::Player player;
 	lili::RaycastResult player_raycast;
 	lili::Camera camera;
-	
+
+	const bool *keys = nullptr;
+	const bool *last_keys = nullptr;
 	bool is_running = false;
 
 	void init_core();
