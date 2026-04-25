@@ -5,11 +5,12 @@ namespace lili {
 MeshData create_unit_quad() {
 	MeshData quad;
 
+	// A vertex is [ (Position) (Normal) (UV) ]
 	quad.vertices = {
-		(Vertex){ -0.5f, -0.5f, 0.0f,  0.0f, 0.0f },  // top-left
-		(Vertex){  0.5f, -0.5f, 0.0f,  1.0f, 0.0f },  // top-right
-		(Vertex){  0.5f,  0.5f, 0.0f,  1.0f, 1.0f },  // bottom-right
-		(Vertex){ -0.5f,  0.5f, 0.0f,  0.0f, 1.0f }   // bottom-left
+		(Vertex){ -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f },
+		(Vertex){  0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 0.0f,   1.0f, 0.0f },
+		(Vertex){  0.5f,  0.5f, 0.0f,   0.0f, 0.0f, 0.0f,   1.0f, 1.0f },
+		(Vertex){ -0.5f,  0.5f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 1.0f }
 	};
 	quad.indices = {
 		0, 1, 2,

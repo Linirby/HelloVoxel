@@ -28,9 +28,9 @@ MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
 				float pz = static_cast<float>(z);
 
 				for (int face = 0; face < 6; ++face) {
-					int check_x = x + face_checks[face][0];
-					int check_y = y + face_checks[face][1];
-					int check_z = z + face_checks[face][2];
+					int check_x = x + face_normals[face][0];
+					int check_y = y + face_normals[face][1];
+					int check_z = z + face_normals[face][2];
 					if (
 						check_x < 0 || check_x >= Chunk::SIZE ||
 						check_y < 0 || check_y >= Chunk::SIZE ||
@@ -56,6 +56,10 @@ MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
 							(static_cast<int>(tex_idx / ATLAS_COLS)) * UV_H
 						);
 
+						float nx = face_normals[face][0];
+						float ny = face_normals[face][1];
+						float nz = face_normals[face][2];
+
 						for (int v = 0; v < 4; ++v) {
 							float final_u = u_offset + (face_uvs[v][0] * UV_W);
 							float final_v = v_offset + (face_uvs[v][1] * UV_H);
@@ -64,6 +68,7 @@ MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
 								px + face_vertices[face][v][0],
 								py + face_vertices[face][v][1],
 								pz + face_vertices[face][v][2],
+								nx, ny, nz,
 								final_u, final_v
 							});
 						}

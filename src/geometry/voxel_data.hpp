@@ -12,6 +12,15 @@ inline constexpr int face_checks[6][3]{
 	{  0,  0, -1 }   // Back
 };
 
+inline constexpr float face_normals[6][3]{
+	{  0.0f,  1.0f,  0.0f },  // Top
+	{  0.0f, -1.0f,  0.0f },  // Bottom
+	{  1.0f,  0.0f,  0.0f },  // Right
+	{ -1.0f,  0.0f,  0.0f },  // Left
+	{  0.0f,  0.0f,  1.0f },  // Front
+	{  0.0f,  0.0f, -1.0f },  // Back
+};
+
 inline constexpr float face_uvs[4][2]{
 	{ 0.0f, 0.0f },  // Top-left
 	{ 1.0f, 0.0f },  // Top-right

@@ -34,7 +34,8 @@ public:
 private:
 	SDL_Window *window = nullptr;
 	SDL_GPUDevice *device = nullptr;
-	Shader *shader = nullptr;
+	Shader *world_shader = nullptr;
+	Shader *ui_shader = nullptr;
 	SDL_GPUGraphicsPipeline *world_pipeline = nullptr;
 	SDL_GPUTexture *depth_texture = nullptr;
 	SDL_GPUGraphicsPipeline *ui_pipeline = nullptr;

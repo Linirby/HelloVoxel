@@ -9,9 +9,7 @@ Shader::Shader(
 	const std::string &frag_path
 ) {
 	this->device = device;
-	CodeInfo vertex_code_info = get_code_info(
-		"shader/triangle.vert.spv"
-	);
+	CodeInfo vertex_code_info = get_code_info(vert_path);
 	SDL_GPUShaderCreateInfo vertex_create_info{
 		.code_size = vertex_code_info.size,
 		.code = reinterpret_cast<uint8_t *>(vertex_code_info.buffer.data()),
@@ -32,9 +30,7 @@ Shader::Shader(
 		);
 	}
 
-	CodeInfo fragment_code_info = get_code_info(
-		"shader/triangle.frag.spv"
-	);
+	CodeInfo fragment_code_info = get_code_info(frag_path);
 	SDL_GPUShaderCreateInfo fragment_create_info{
 		.code_size = fragment_code_info.size,
 		.code = reinterpret_cast<uint8_t *>(fragment_code_info.buffer.data()),

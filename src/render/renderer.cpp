@@ -14,12 +14,16 @@ Renderer::Renderer(SDL_Window *window) {
 
 	init_device();
 	init_depth_texture();
-	shader = new Shader(
-		device, "shader/triangle.vert.spv", "shader/triangle.frag.spv"
+	world_shader = new Shader(
+		device, "shader/world.vert.spv", "shader/world.frag.spv"
 	);
-	if (!shader) {
-		throw std::runtime_error("Shader creation failed!");
-	}
+	if (!world_shader)
+		throw std::runtime_error("World shader creation failed!");
+	ui_shader = new Shader(
+		device, "shader/ui.vert.spv", "shader/ui.frag.spv"
+	);
+	if (!world_shader)
+		throw std::runtime_error("UI shader creation failed!");
 	init_world_pipeline();
 	init_ui_pipeline();
 }
@@ -27,7 +31,8 @@ Renderer::Renderer(SDL_Window *window) {
 Renderer::~Renderer() {
 	if (ui_pipeline) SDL_ReleaseGPUGraphicsPipeline(device, ui_pipeline);
 	if (world_pipeline) SDL_ReleaseGPUGraphicsPipeline(device, world_pipeline);
-	if (shader) delete shader;
+	if (ui_shader) delete ui_shader;
+	if (world_shader) delete world_shader;
 	if (depth_texture) SDL_ReleaseGPUTexture(device, depth_texture);
 	if (device) SDL_DestroyGPUDevice(device);
 }
@@ -250,13 +255,15 @@ void Renderer::init_depth_texture() {
 }
 
 void Renderer::init_world_pipeline() {
+	const int N_VERTEX_ATTRBS = 3;
+
 	SDL_GPUVertexBufferDescription vertex_buffer_desc{
 		.slot = 0,
-		.pitch = sizeof(float) * 5,
+		.pitch = sizeof(float) * 8,
 		.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
 		.instance_step_rate = 0
 	};
-	SDL_GPUVertexAttribute vertex_attributes[2] = {
+	SDL_GPUVertexAttribute vertex_attributes[N_VERTEX_ATTRBS] = {
 		(SDL_GPUVertexAttribute){
 			.location = 0,
 			.buffer_slot = 0,
@@ -266,8 +273,14 @@ void Renderer::init_world_pipeline() {
 		(SDL_GPUVertexAttribute){
 			.location = 1,
 			.buffer_slot = 0,
-			.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+			.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
 			.offset = sizeof(float) * 3
+		},
+		(SDL_GPUVertexAttribute){
+			.location = 2,
+			.buffer_slot = 0,
+			.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+			.offset = sizeof(float) * 6
 		}
 	};
 	SDL_GPUColorTargetDescription color_target_desc{
@@ -288,13 +301,13 @@ void Renderer::init_world_pipeline() {
 		}
 	};
 	SDL_GPUGraphicsPipelineCreateInfo create_info{
-		.vertex_shader = shader->get_vertex(),
-		.fragment_shader = shader->get_fragment(),
+		.vertex_shader = world_shader->get_vertex(),
+		.fragment_shader = world_shader->get_fragment(),
 		.vertex_input_state = {
 			.vertex_buffer_descriptions = &vertex_buffer_desc,
 			.num_vertex_buffers = 1,
 			.vertex_attributes = vertex_attributes,
-			.num_vertex_attributes = 2
+			.num_vertex_attributes = N_VERTEX_ATTRBS
 		},
 		.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
 		.rasterizer_state = {
@@ -333,13 +346,15 @@ void Renderer::init_world_pipeline() {
 }
 
 void Renderer::init_ui_pipeline() {
+	const int N_VERTEX_ATTRBS = 2;
+
 	SDL_GPUVertexBufferDescription vertex_buffer_desc{
 		.slot = 0,
-		.pitch = sizeof(float) * 5,
+		.pitch = sizeof(float) * 8,
 		.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
 		.instance_step_rate = 0
 	};
-	SDL_GPUVertexAttribute vertex_attributes[2] = {
+	SDL_GPUVertexAttribute vertex_attributes[N_VERTEX_ATTRBS] = {
 		(SDL_GPUVertexAttribute){
 			.location = 0,
 			.buffer_slot = 0,
@@ -347,10 +362,10 @@ void Renderer::init_ui_pipeline() {
 			.offset = 0
 		},
 		(SDL_GPUVertexAttribute){
-			.location = 1,
+			.location = 2,
 			.buffer_slot = 0,
 			.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-			.offset = sizeof(float) * 3
+			.offset = sizeof(float) * 6
 		}
 	};
 	SDL_GPUColorTargetDescription color_target_desc{
@@ -371,13 +386,13 @@ void Renderer::init_ui_pipeline() {
 		}
 	};
 	SDL_GPUGraphicsPipelineCreateInfo create_info{
-		.vertex_shader = shader->get_vertex(),
-		.fragment_shader = shader->get_fragment(),
+		.vertex_shader = ui_shader->get_vertex(),
+		.fragment_shader = ui_shader->get_fragment(),
 		.vertex_input_state = {
 			.vertex_buffer_descriptions = &vertex_buffer_desc,
 			.num_vertex_buffers = 1,
 			.vertex_attributes = vertex_attributes,
-			.num_vertex_attributes = 2
+			.num_vertex_attributes = N_VERTEX_ATTRBS
 		},
 		.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
 		.rasterizer_state = {
