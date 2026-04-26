@@ -9,46 +9,50 @@ Shader::Shader(
 	const std::string &frag_path
 ) {
 	this->device = device;
-	CodeInfo vertex_code_info = get_code_info(vert_path);
-	SDL_GPUShaderCreateInfo vertex_create_info{
-		.code_size = vertex_code_info.size,
-		.code = reinterpret_cast<uint8_t *>(vertex_code_info.buffer.data()),
-		.entrypoint = "main",
-		.format = SDL_GPU_SHADERFORMAT_SPIRV,
-		.stage = SDL_GPU_SHADERSTAGE_VERTEX,
-		.num_samplers = 0,
-		.num_storage_textures = 0,
-		.num_storage_buffers = 0,
-		.num_uniform_buffers = 1,
-		.props = 0
-	};
-	vertex_shader = SDL_CreateGPUShader(this->device, &vertex_create_info);
-	if (!vertex_shader) {
-		throw std::runtime_error(
-			"vertex_shader creation failed!\n-> " +
-			std::string(SDL_GetError())
-		);
+	if (!vert_path.empty()) {
+		CodeInfo vertex_code_info = get_code_info(vert_path);
+		SDL_GPUShaderCreateInfo vertex_create_info{
+			.code_size = vertex_code_info.size,
+			.code = reinterpret_cast<uint8_t *>(vertex_code_info.buffer.data()),
+			.entrypoint = "main",
+			.format = SDL_GPU_SHADERFORMAT_SPIRV,
+			.stage = SDL_GPU_SHADERSTAGE_VERTEX,
+			.num_samplers = 0,
+			.num_storage_textures = 0,
+			.num_storage_buffers = 0,
+			.num_uniform_buffers = 1,
+			.props = 0
+		};
+		vertex_shader = SDL_CreateGPUShader(this->device, &vertex_create_info);
+		if (!vertex_shader) {
+			throw std::runtime_error(
+				"vertex_shader creation failed!\n-> " +
+				std::string(SDL_GetError())
+			);
+		}
 	}
 
-	CodeInfo fragment_code_info = get_code_info(frag_path);
-	SDL_GPUShaderCreateInfo fragment_create_info{
-		.code_size = fragment_code_info.size,
-		.code = reinterpret_cast<uint8_t *>(fragment_code_info.buffer.data()),
-		.entrypoint = "main",
-		.format = SDL_GPU_SHADERFORMAT_SPIRV,
-		.stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-		.num_samplers = 1,
-		.num_storage_textures = 0,
-		.num_storage_buffers = 0,
-		.num_uniform_buffers = 0,
-		.props = 0
-	};
-	fragment_shader = SDL_CreateGPUShader(this->device, &fragment_create_info);
-	if (!fragment_shader) {
-		throw std::runtime_error(
-			"fragment_shader creation failed!\n-> " +
-			std::string(SDL_GetError())
-		);
+	if (frag_path.empty()) {
+		CodeInfo fragment_code_info = get_code_info(frag_path);
+		SDL_GPUShaderCreateInfo fragment_create_info{
+			.code_size = fragment_code_info.size,
+			.code = reinterpret_cast<uint8_t *>(fragment_code_info.buffer.data()),
+			.entrypoint = "main",
+			.format = SDL_GPU_SHADERFORMAT_SPIRV,
+			.stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+			.num_samplers = 1,
+			.num_storage_textures = 0,
+			.num_storage_buffers = 0,
+			.num_uniform_buffers = 0,
+			.props = 0
+		};
+		fragment_shader = SDL_CreateGPUShader(this->device, &fragment_create_info);
+		if (!fragment_shader) {
+			throw std::runtime_error(
+				"fragment_shader creation failed!\n-> " +
+				std::string(SDL_GetError())
+			);
+		}
 	}
 }
 
