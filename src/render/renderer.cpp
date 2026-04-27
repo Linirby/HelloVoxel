@@ -13,8 +13,17 @@ Renderer::Renderer(SDL_Window *window) {
 	this->window = window;
 
 	init_device();
-	init_depth_textures();
-	init_shaders();
+	init_depth_texture();
+	world_shader = new Shader(
+		device, "shader/world.vert.spv", "shader/world.frag.spv"
+	);
+	if (!world_shader)
+		throw std::runtime_error("World shader creation failed!");
+	ui_shader = new Shader(
+		device, "shader/ui.vert.spv", "shader/ui.frag.spv"
+	);
+	if (!world_shader)
+		throw std::runtime_error("UI shader creation failed!");
 	init_world_pipeline();
 	init_ui_pipeline();
 }
@@ -223,7 +232,7 @@ void Renderer::init_device() {
 	}
 }
 
-void Renderer::init_depth_textures() {
+void Renderer::init_depth_texture() {
 	int win_w, win_h;
 	SDL_GetWindowSize(window, &win_w, &win_h);
 	SDL_GPUTextureCreateInfo depth_info{
@@ -243,56 +252,6 @@ void Renderer::init_depth_textures() {
 			"Depth texture creation failed!\n-> " + std::string(SDL_GetError())
 		);
 	}
-
-	SDL_GPUTextureCreateInfo shadow_tex_info = {
-		.type = SDL_GPU_TEXTURETYPE_2D,
-		.format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
-		.usage = (
-			SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET |
-			SDL_GPU_TEXTUREUSAGE_SAMPLER
-		),
-		.width = SHADOW_MAP_SIZE,
-		.height = SHADOW_MAP_SIZE,
-		.layer_count_or_depth = 1,
-		.num_levels = 1,
-		.sample_count = SDL_GPU_SAMPLECOUNT_1,
-		.props = 0
-	};
-	shadow_texture = SDL_CreateGPUTexture(device, &shadow_tex_info);
-	if (!shadow_texture) {
-		throw std::runtime_error(
-			"Shadow depth texture creation failed!\n-> " +
-			std::string(SDL_GetError())
-		);
-	}
-	SDL_GPUSamplerCreateInfo sampler_info = {
-		.min_filter = SDL_GPU_FILTER_LINEAR,
-		.mag_filter = SDL_GPU_FILTER_LINEAR,
-		.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-		.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-		.compare_op = SDL_GPU_COMPAREOP_LESS,
-		.enable_compare = true
-	};
-	shadow_sampler = SDL_CreateGPUSampler(device, &sampler_info);
-	if (!shadow_sampler) {
-		throw std::runtime_error(
-			"Shadow sampler creation failed\n-> " + std::string(SDL_GetError())
-		);
-	}
-}
-
-void Renderer::init_shaders() {
-	world_shader = new Shader(
-		device, "shader/world.vert.spv", "shader/world.frag.spv"
-	);
-	if (!world_shader)
-		throw std::runtime_error("World shader creation failed!");
-	ui_shader = new Shader(
-		device, "shader/ui.vert.spv", "shader/ui.frag.spv"
-	);
-	if (!world_shader)
-		throw std::runtime_error("UI shader creation failed!");
 }
 
 void Renderer::init_world_pipeline() {
@@ -380,53 +339,7 @@ void Renderer::init_world_pipeline() {
 	world_pipeline = SDL_CreateGPUGraphicsPipeline(device, &create_info);
 	if (!world_pipeline) {
 		throw std::runtime_error(
-			"World graphics pipeline creation failed!\n-> " +
-			std::string(SDL_GetError())
-		);
-	}
-}
-
-void Renderer::init_shadow_pipeline() {
-	SDL_GPUVertexBufferDescription vertex_buffer_desc{
-		.slot = 0,
-		.pitch = sizeof(float) * 8,
-		.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
-		.instance_step_rate = 0
-	};
-	SDL_GPUVertexAttribute vertex_attribute{
-		.location = 0,
-		.buffer_slot = 0,
-		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-		.offset = 0
-	};
-	SDL_GPUGraphicsPipelineCreateInfo create_info{
-		.vertex_shader = shadow_shader->get_vertex(),
-		.fragment_shader = nullptr,
-		.vertex_input_state = {
-			.vertex_buffer_descriptions = &vertex_buffer_desc,
-			.num_vertex_buffers = 1,
-			.vertex_attributes = &vertex_attribute,
-			.num_vertex_attributes = 1
-		},
-		.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-		.rasterizer_state = {
-			.cull_mode = SDL_GPU_CULLMODE_FRONT
-		},
-		.depth_stencil_state = {
-			.compare_op = SDL_GPU_COMPAREOP_LESS,
-			.enable_depth_test = true,
-			.enable_depth_write = true
-		},
-		.target_info = {
-			.num_color_targets = 0,
-			.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
-			.has_depth_stencil_target = true
-		}
-	};
-	shadow_pipeline = SDL_CreateGPUGraphicsPipeline(device, &create_info);
-	if (!world_pipeline) {
-		throw std::runtime_error(
-			"Shadow graphics pipeline creation failed!\n-> " +
+			"Chunk graphics pipeline creation failed!\n-> " +
 			std::string(SDL_GetError())
 		);
 	}
@@ -441,7 +354,7 @@ void Renderer::init_ui_pipeline() {
 		.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
 		.instance_step_rate = 0
 	};
-	SDL_GPUVertexAttribute vertex_attributes[N_VERTEX_ATTRBS]{
+	SDL_GPUVertexAttribute vertex_attributes[N_VERTEX_ATTRBS] = {
 		(SDL_GPUVertexAttribute){
 			.location = 0,
 			.buffer_slot = 0,

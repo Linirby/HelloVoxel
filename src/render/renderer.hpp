@@ -32,21 +32,12 @@ public:
 	SDL_GPUDevice *get_device() const;
 
 private:
-	const uint32_t SHADOW_MAP_SIZE = 2048;
-
 	SDL_Window *window = nullptr;
 	SDL_GPUDevice *device = nullptr;
-
-	SDL_GPUTexture *depth_texture = nullptr;
-	SDL_GPUTexture *shadow_texture = nullptr;
-	SDL_GPUSampler *shadow_sampler = nullptr;
-
 	Shader *world_shader = nullptr;
-	Shader *shadow_shader = nullptr;
 	Shader *ui_shader = nullptr;
-
 	SDL_GPUGraphicsPipeline *world_pipeline = nullptr;
-	SDL_GPUGraphicsPipeline *shadow_pipeline = nullptr;
+	SDL_GPUTexture *depth_texture = nullptr;
 	SDL_GPUGraphicsPipeline *ui_pipeline = nullptr;
 
 	SDL_GPUCommandBuffer *current_cmd_buffer = nullptr;
@@ -59,11 +50,9 @@ private:
 	Mat4 projection_2d;
 
 	void init_device();
-	void init_depth_textures();
-	void init_shaders();
+	void init_depth_texture();
 
 	void init_world_pipeline();
-	void init_shadow_pipeline();
 	void init_ui_pipeline();
 };
 
