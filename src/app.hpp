@@ -3,6 +3,8 @@
 
 # include <SDL3/SDL.h>
 
+# include "core/window.hpp"
+
 # include "render/passes/renderer.hpp"
 # include "render/scene/camera.hpp"
 # include "render/scene/model.hpp"
@@ -21,7 +23,7 @@ private:
 	std::string map_path = "assets/maps/test_01.json";
 
 	// Core
-	SDL_Window *window = nullptr;
+	lili::Window *window = nullptr;
 	lili::Renderer *renderer = nullptr;
 
 	// Settings

@@ -3,6 +3,8 @@
 
 #include "app.hpp"
 
+#include "core/window.hpp"
+
 #include "world/map_manager.hpp"
 #include "world/block.hpp"
 
@@ -17,7 +19,6 @@ void App::run(const std::string &map_path) {
 }
 
 void App::init_core() {
-	if (!SDL_Init(SDL_INIT_VIDEO)) throw std::runtime_error(SDL_GetError());
 
 	window = SDL_CreateWindow("HelloVoxel", win_w, win_h, 0);
 	if (!window) throw std::runtime_error(SDL_GetError());
