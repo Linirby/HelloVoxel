@@ -2,8 +2,11 @@
 #include <iostream>
 
 #include "app.hpp"
-#include "map_manager.hpp"
-#include "geometry/block.hpp"
+
+#include "world/map_manager.hpp"
+#include "world/block.hpp"
+
+#include "meshing/mesher.hpp"
 
 void App::run(const std::string &map_path) {
 	this->map_path = map_path;
@@ -28,8 +31,11 @@ void App::init_core() {
 }
 
 void App::init_resources() {
+	player = lili::Player({
+		.position = { 0.5f, 3.0, 0.5f },
+	});
 	camera = lili::Camera(-90.0f, 0.0f, fov_y);
-	map = load_map(map_path, player, camera);
+	map = lili::load_map(map_path);
 
 	std::cout << map_path << '\n';
 
@@ -37,7 +43,18 @@ void App::init_resources() {
 	if (!atlas) throw std::runtime_error("Atlas texture creation failed!");
 	for (const auto &pair : map.chunks)
 		update_chunk_mesh(pair.first);
-	crosshair = new lili::Quad(renderer->get_device(), "assets/crosshair.png");
+	crosshair_texture = new lili::Texture(
+		renderer->get_device(), "assets/crosshair.png"
+	);
+	if (!crosshair_texture)
+		throw std::runtime_error("Crosshair texture creation failed!");
+	lili::MeshData crosshair_mesh_data = lili::create_unit_quad();
+	crosshair_mesh = new lili::GPUMesh(
+		renderer->get_device(), crosshair_mesh_data
+	);
+	if (!crosshair_mesh)
+		throw std::runtime_error("Crosshair mesh creation failed!");
+	crosshair = new lili::Model(crosshair_mesh, crosshair_texture);
 }
 
 void App::update_chunk_mesh(uint64_t key) {
@@ -150,7 +167,7 @@ void App::update(float dt) {
 	const bool *keys = SDL_GetKeyboardState(NULL);
 
 	if (keys[SDL_SCANCODE_LCTRL] && keys[SDL_SCANCODE_S]) {
-		lili::save_map("custom_map.json", map, player, camera);
+		lili::save_map("custom_map.json", map);
 		return;
 	}
 	if (player.mode == lili::PlayerMode::Builder)
@@ -168,16 +185,16 @@ void App::fixed_update(float dt) {
     const bool *keys = SDL_GetKeyboardState(NULL);
 
     if (keys[SDL_SCANCODE_LCTRL] && keys[SDL_SCANCODE_S]) {
-        lili::save_map("custom_map.json", map, player, camera);
+        lili::save_map("custom_map.json", map);
         return;
     }
-    
+
     if (player.mode == lili::PlayerMode::Builder) {
         player_raycast = map.raycast(
             camera.position, camera.front, player.build_range 
         );
     }
-        
+
     player.process_keys(keys, camera.front, camera.right, camera.up, dt);
     player.update_physics(dt, map);
 
@@ -201,16 +218,19 @@ void App::render() {
 	int win_w = 0;
 	int win_h = 0;
 	SDL_GetWindowSize(window, &win_w, &win_h);
-	crosshair->position = { win_w / 2.0f, win_h / 2.0f, 0.0f };
-	crosshair->scale = { 18.0f, 18.0f, 1.0f };
-	crosshair->draw(renderer);
+	lili::Vec3 crosshair_position = { win_w / 2.0f, win_h / 2.0f, 0.0f };
+	lili::Vec3 crosshair_scale = { 18.0f, 18.0f, 1.0f };
+	lili::Mat4 mat_translation = lili::Mat4::translate(crosshair_position);
+	lili::Mat4 mat_scale = lili::Mat4::scale(crosshair_scale);
+	lili::Mat4 transformation = mat_translation * mat_scale;
+	renderer->submit(*crosshair, transformation, lili::RenderLayer::UI2D);
 
 	renderer->end_frame();
 }
 
 void App::mainloop() {
     Uint64 last = SDL_GetTicks();
-    
+
     const float fixed_dt = 1.0f / 60.0f; 
     float accumulator = 0.0f;
 
@@ -234,6 +254,7 @@ void App::mainloop() {
 
 void App::cleanup_resources() {
 	if (crosshair) delete crosshair;
+	if (crosshair_texture) delete crosshair_texture;
 	for (const auto &data : chunk_models) {
 		if (data.second.model) delete data.second.model;
 	}

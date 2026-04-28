@@ -3,10 +3,9 @@
 
 # include <SDL3/SDL.h>
 
-# include "render/renderer.hpp"
-# include "render/camera.hpp"
-# include "render/model.hpp"
-# include "geometry/quad.hpp"
+# include "render/passes/renderer.hpp"
+# include "render/scene/camera.hpp"
+# include "render/scene/model.hpp"
 # include "entity/player.hpp"
 
 struct ChunkRenderData {
@@ -35,11 +34,13 @@ private:
 	lili::Texture *atlas = nullptr;
 	std::unordered_map<uint64_t, ChunkRenderData> chunk_models;
 
-	lili::Quad *crosshair = nullptr;
-
 	lili::Player player;
 	lili::RaycastResult player_raycast;
 	lili::Camera camera;
+
+	lili::Texture *crosshair_texture = nullptr;
+	lili::GPUMesh *crosshair_mesh = nullptr;
+	lili::Model *crosshair = nullptr;
 	
 	bool is_running = false;
 
