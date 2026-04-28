@@ -18,7 +18,7 @@ struct WindowParameters {
 class Window {
 public:
 	Window(const std::string &title, int width, int height);
-	~Window() = default;
+	~Window();
 
 	void set_title(const std::string &title);
 	void set_size(int width, int height);
@@ -33,6 +33,8 @@ public:
 	bool is_borderless();
 	bool is_fullscreen();
 	bool is_relative_mouse_mode();
+
+	SDL_Window *get_sdl_window();
 
 private:
 	SDL_Window *window = nullptr;

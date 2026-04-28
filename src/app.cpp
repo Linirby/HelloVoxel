@@ -19,15 +19,9 @@ void App::run(const std::string &map_path) {
 }
 
 void App::init_core() {
-
-	window = SDL_CreateWindow("HelloVoxel", win_w, win_h, 0);
-	if (!window) throw std::runtime_error(SDL_GetError());
-
-	if (!SDL_SetWindowRelativeMouseMode(window, true)) {
-		throw std::runtime_error(SDL_GetError());
-	}
-	renderer = new lili::Renderer(window);
-	if (!renderer) throw std::runtime_error("Renderer creation failed!");
+	sdl_sys = std::make_unique<lili::SDLSystem>();
+	window = std::make_unique<lili::Window>("HelloVoxel", win_w, win_h);
+	renderer = std::make_unique<lili::Renderer>(window.get());
 	is_running = true;
 }
 
@@ -216,10 +210,10 @@ void App::render() {
 		);
 	}
 
-	int win_w = 0;
-	int win_h = 0;
-	SDL_GetWindowSize(window, &win_w, &win_h);
-	lili::Vec3 crosshair_position = { win_w / 2.0f, win_h / 2.0f, 0.0f };
+	std::array<int, 2> win_size = window->get_size();
+	lili::Vec3 crosshair_position = {
+		win_size[0] / 2.0f, win_size[1] / 2.0f, 0.0f
+	};
 	lili::Vec3 crosshair_scale = { 18.0f, 18.0f, 1.0f };
 	lili::Mat4 mat_translation = lili::Mat4::translate(crosshair_position);
 	lili::Mat4 mat_scale = lili::Mat4::scale(crosshair_scale);
@@ -263,18 +257,6 @@ void App::cleanup_resources() {
 	if (atlas) delete atlas;
 }
 
-void App::cleanup_core() {
-	if (renderer) delete renderer;
-	if (window) SDL_DestroyWindow(window);
-}
-
 void App::cleanup() {
-	if (renderer) {
-		SDL_WaitForGPUIdle(renderer->get_device());
-	}
-
 	cleanup_resources();
-	cleanup_core();
-	SDL_QuitSubSystem(SDL_INIT_VIDEO);
-	SDL_Quit();
 }

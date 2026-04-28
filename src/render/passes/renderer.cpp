@@ -9,8 +9,8 @@
 
 namespace lili {
 
-Renderer::Renderer(SDL_Window *window) {
-	this->window = window;
+Renderer::Renderer(Window *window) {
+	this->window = window->get_sdl_window();
 
 	init_device();
 	init_depth_texture();
@@ -29,6 +29,8 @@ Renderer::Renderer(SDL_Window *window) {
 }
 
 Renderer::~Renderer() {
+	SDL_WaitForGPUIdle(device);
+
 	if (ui_pipeline) SDL_ReleaseGPUGraphicsPipeline(device, ui_pipeline);
 	if (world_pipeline) SDL_ReleaseGPUGraphicsPipeline(device, world_pipeline);
 	if (ui_shader) delete ui_shader;

@@ -13,6 +13,7 @@ find_package(SDL3_image REQUIRED CONFIG)
 
 # Lili Core
 add_library(LiliCore STATIC
+	src/core/sdl_system.cpp
 	src/core/window.cpp
 	src/core/input.cpp
 )
@@ -96,10 +97,11 @@ add_executable(${PROJECT_NAME}
 )
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 target_link_libraries(${PROJECT_NAME} PRIVATE
-	LiliRender
-	LiliEntity
+	LiliCore
 	LiliWorld
 	LiliMeshing
+	LiliEntity
+	LiliRender
 	SDL3::SDL3
 	SDL3_image::SDL3_image
 )

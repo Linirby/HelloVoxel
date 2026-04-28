@@ -3,8 +3,10 @@
 
 # include <SDL3/SDL.h>
 
-# include "render/scene/camera.hpp"
+# include "core/window.hpp"
+
 # include "render/core/shader.hpp"
+# include "render/scene/camera.hpp"
 # include "render/scene/model.hpp"
 
 namespace lili {
@@ -21,7 +23,7 @@ struct DrawCommand {
 
 class Renderer {
 public:
-	Renderer(SDL_Window *window);
+	Renderer(Window *window);
 	~Renderer();
 
 	// Holy trinity of rendering, The TRIFORCE!

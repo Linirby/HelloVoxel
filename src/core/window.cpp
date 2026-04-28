@@ -12,6 +12,10 @@ Window::Window(const std::string &title, int width, int height) {
 		);
 }
 
+Window::~Window() {
+	if (window) SDL_DestroyWindow(window);
+}
+
 void Window::set_title(const std::string &title) {
 	if (!SDL_SetWindowTitle(window, title.c_str()))
 		throw std::runtime_error(
@@ -82,6 +86,10 @@ bool Window::is_fullscreen() {
 
 bool Window::is_relative_mouse_mode() {
 	return SDL_GetWindowRelativeMouseMode(window);
+}
+
+SDL_Window *Window::get_sdl_window() {
+	return window;
 }
 
 }  // namespace lili

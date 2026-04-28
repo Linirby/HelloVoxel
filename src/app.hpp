@@ -1,8 +1,10 @@
 #ifndef APP_HPP
 # define APP_HPP
 
+# include <memory>
 # include <SDL3/SDL.h>
 
+# include "core/sdl_system.hpp"
 # include "core/window.hpp"
 
 # include "render/passes/renderer.hpp"
@@ -22,9 +24,11 @@ public:
 private:
 	std::string map_path = "assets/maps/test_01.json";
 
+
 	// Core
-	lili::Window *window = nullptr;
-	lili::Renderer *renderer = nullptr;
+	std::unique_ptr<lili::SDLSystem> sdl_sys = nullptr;
+	std::unique_ptr<lili::Window> window = nullptr;
+	std::unique_ptr<lili::Renderer> renderer = nullptr;
 
 	// Settings
 	int win_w = 1280;
