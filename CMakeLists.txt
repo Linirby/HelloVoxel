@@ -84,7 +84,11 @@ add_library(LiliRender STATIC
 	src/render/scene/model.cpp
 )
 target_include_directories(LiliRender PUBLIC src)
-target_link_libraries(LiliRender PRIVATE LiliMath LiliMeshing)
+target_link_libraries(LiliRender PRIVATE
+	LiliMath
+	LiliMeshing
+	SDL3_image::SDL3_image
+)
 
 # ==============================================================================
 #  > TIER 5
@@ -103,5 +107,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	LiliEntity
 	LiliRender
 	SDL3::SDL3
-	SDL3_image::SDL3_image
 )

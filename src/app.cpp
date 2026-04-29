@@ -21,6 +21,7 @@ void App::run(const std::string &map_path) {
 void App::init_core() {
 	sdl_sys = std::make_unique<lili::SDLSystem>();
 	window = std::make_unique<lili::Window>("HelloVoxel", win_w, win_h);
+	window->set_relative_mouse_mode(true);
 	renderer = std::make_unique<lili::Renderer>(window.get());
 	is_running = true;
 }
@@ -101,6 +102,10 @@ void App::handle_events() {
 		if (event.type == SDL_EVENT_QUIT) is_running = false;
 		if (event.type == SDL_EVENT_KEY_DOWN) {
 			if (event.key.key == SDLK_ESCAPE) is_running = false;
+			if (event.key.key == SDLK_TAB) {
+				bool is_relative = window->is_relative_mouse_mode();
+				window->set_relative_mouse_mode(!is_relative);
+			}
 
 			if (event.key.key == SDLK_P) player.toggle_spectator();
 			if (event.key.key == SDLK_B) player.toggle_builder();
@@ -112,7 +117,8 @@ void App::handle_events() {
 			}
 		}
 		if (event.type == SDL_EVENT_MOUSE_MOTION)
-			camera.process_mouse(event.motion.xrel, event.motion.yrel);
+			if (window->is_relative_mouse_mode())
+				camera.process_mouse(event.motion.xrel, event.motion.yrel);
 		if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
 			if (player.mode != lili::PlayerMode::Builder) return;
 			uint8_t handed_block = lili::BLOCK_ID_DEBUG;

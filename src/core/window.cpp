@@ -57,7 +57,13 @@ void Window::set_fullscreen(bool activate) {
 	fullscreen = activate;
 }
 
-void set_relative_mouse_mode(bool activate);
+void Window::set_relative_mouse_mode(bool activate) {
+	if (!SDL_SetWindowRelativeMouseMode(window, activate))
+		throw std::runtime_error(
+			"Failed to change window to relative mouse mode: " +
+			std::string(SDL_GetError())
+		);
+}
 
 const std::string Window::get_title() {
 	return std::string(SDL_GetWindowTitle(window));
