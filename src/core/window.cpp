@@ -4,8 +4,7 @@
 namespace lili {
 
 Window::Window(const std::string &title, int width, int height) {
-	if (!SDL_Init(SDL_INIT_VIDEO)) throw std::runtime_error(SDL_GetError());
-	window = SDL_CreateWindow(title.c_str(), width, height, SDL_WINDOW_VULKAN);
+	window = SDL_CreateWindow(title.c_str(), width, height, 0);
 	if (!window)
 		throw std::runtime_error(
 			"Failed to create Window: " + std::string(SDL_GetError())

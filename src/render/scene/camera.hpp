@@ -1,8 +1,8 @@
 #ifndef RENDER_SCENE_CAMERA_HPP
 # define RENDER_SCENE_CAMERA_HPP
 
-# include "math/vec3.hpp"
-# include "math/mat4x4.hpp"
+# include "geometry/vec3.hpp"
+# include "geometry/mat4x4.hpp"
 
 namespace lili {
 

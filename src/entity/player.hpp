@@ -1,7 +1,7 @@
 #ifndef ENTITY_PLAYER_HPP
 # define ENTITY_PLAYER_HPP
 
-# include "math/vec3.hpp"
+# include "geometry/vec3.hpp"
 # include "world/map.hpp"
 
 namespace lili {

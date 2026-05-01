@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(HelloVoxel)
 
-set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(SDL3 REQUIRED CONFIG)
@@ -19,12 +19,12 @@ add_library(LiliCore STATIC
 target_include_directories(LiliCore PUBLIC src)
 target_link_libraries(LiliCore PRIVATE SDL3::SDL3)
 
-# Lili Math
-add_library(LiliMath STATIC
-	src/math/mat4x4.cpp
-	src/math/vec3.cpp
+# Lili Geometry
+add_library(LiliGeometry STATIC
+	src/geometry/mat4x4.cpp
+	src/geometry/vec3.cpp
 )
-target_include_directories(LiliMath PUBLIC src)
+target_include_directories(LiliGeometry PUBLIC src)
 
 # ==============================================================================
 #  > TIER 2
@@ -35,7 +35,7 @@ add_library(LiliPhysics STATIC
 	src/physics/collision.cpp
 )
 target_include_directories(LiliPhysics PUBLIC src)
-target_link_libraries(LiliPhysics PRIVATE LiliMath)
+target_link_libraries(LiliPhysics PRIVATE LiliGeometry)
 
 # Lili World
 add_library(LiliWorld STATIC
@@ -45,7 +45,7 @@ add_library(LiliWorld STATIC
 	src/world/map_manager.cpp
 )
 target_include_directories(LiliWorld PUBLIC src)
-target_link_libraries(LiliWorld PRIVATE LiliMath)
+target_link_libraries(LiliWorld PRIVATE LiliGeometry)
 
 # ==============================================================================
 #  > TIER 3
@@ -64,7 +64,7 @@ add_library(LiliEntity STATIC
 	src/entity/player.cpp
 )
 target_include_directories(LiliEntity PUBLIC src)
-target_link_libraries(LiliEntity PRIVATE LiliMath LiliPhysics LiliWorld)
+target_link_libraries(LiliEntity PRIVATE LiliGeometry LiliPhysics LiliWorld)
 
 # ==============================================================================
 #  > TIER 4
@@ -84,8 +84,9 @@ add_library(LiliRender STATIC
 )
 target_include_directories(LiliRender PUBLIC src)
 target_link_libraries(LiliRender PRIVATE
-	LiliMath
+	LiliGeometry
 	LiliMeshing
+	SDL3::SDL3
 	SDL3_image::SDL3_image
 )
 

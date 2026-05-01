@@ -1,5 +1,5 @@
 #include <cmath>
-#include "math/mat4x4.hpp"
+#include "geometry/mat4x4.hpp"
 
 namespace lili {
 

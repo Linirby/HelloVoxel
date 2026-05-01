@@ -40,7 +40,7 @@ private:
 	// Resources
 	std::string map_path = "assets/maps/test_01.json";
 	lili::Map map;
-	lili::Texture *atlas = nullptr;
+	std::unique_ptr<lili::Texture> atlas = nullptr;
 	std::unordered_map<uint64_t, ChunkRenderData> chunk_models;
 
 	lili::Player player;
@@ -61,10 +61,6 @@ private:
 	void fixed_update(float dt);
 	void render();
 	void mainloop();
-
-	void cleanup_resources();
-	void cleanup_core();
-	void cleanup();
 };
 
 #endif  // APP_HPP

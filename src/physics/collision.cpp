@@ -1,7 +1,7 @@
 #include "physics/collision.hpp"
 
+#include <cmath>
 #include "physics/world_interface.hpp"
-#include "math/utils.hpp"
 
 namespace lili {
 
@@ -16,14 +16,14 @@ bool AABB::intersect(const AABB &other) const {
 bool check_voxel_collision(const AABB &box, const IVoxelWorld &world) {
 	float eps = 0.01f;
 
-	int x = lili::floor(box.min.x + eps);
-	for (; x <= lili::floor(box.max.x - eps); ++x) {
+	int x = std::floor(box.min.x + eps);
+	for (; x <= std::floor(box.max.x - eps); ++x) {
 
-		int y = lili::floor(box.min.y + eps);
-		for (; y <= lili::floor(box.max.y - eps); ++y) {
+		int y = std::floor(box.min.y + eps);
+		for (; y <= std::floor(box.max.y - eps); ++y) {
 
-			int z = lili::floor(box.min.z + eps);
-			for (; z <= lili::floor(box.max.z - eps); ++z) {
+			int z = std::floor(box.min.z + eps);
+			for (; z <= std::floor(box.max.z - eps); ++z) {
 				if (world.is_solid_at(x, y, z)) return true;
 			}
 		}
@@ -39,18 +39,22 @@ RaycastResult raycast_voxel(
 ) {
 	RaycastResult result;
 
-	int x = lili::floor(origin.x);
-	int y = lili::floor(origin.y);
-	int z = lili::floor(origin.z);
+	int x = std::floor(origin.x);
+	int y = std::floor(origin.y);
+	int z = std::floor(origin.z);
 
 	int step_x = (dir.x > 0) - (dir.x < 0);
 	int step_y = (dir.y > 0) - (dir.y < 0);
 	int step_z = (dir.z > 0) - (dir.z < 0);
 
-	Vec3 t_delta{ lili::F_INFINITY, lili::F_INFINITY, lili::F_INFINITY };
-	if (step_x != 0) t_delta.x = lili::abs(1.0f / dir.x);
-	if (step_y != 0) t_delta.y = lili::abs(1.0f / dir.y);
-	if (step_z != 0) t_delta.z = lili::abs(1.0f / dir.z);
+	Vec3 t_delta{
+		std::numeric_limits<float>::infinity(),
+		std::numeric_limits<float>::infinity(),
+		std::numeric_limits<float>::infinity()
+	};
+	if (step_x != 0) t_delta.x = std::abs(1.0f / dir.x);
+	if (step_y != 0) t_delta.y = std::abs(1.0f / dir.y);
+	if (step_z != 0) t_delta.z = std::abs(1.0f / dir.z);
 
 	Vec3 t_max{
 		(origin.x - x) * t_delta.x,

@@ -37,7 +37,7 @@ MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
 						check_z < 0 || check_z >= Chunk::SIZE ||
 						chunk.get_block(check_x, check_y, check_z) == 0
 					) {
-						uint16_t start_idx = static_cast<uint16_t>(
+						uint32_t start_idx = static_cast<uint32_t>(
 							mesh.vertices.size()
 						);
 						uint8_t tex_idx;

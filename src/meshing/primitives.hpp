@@ -14,7 +14,7 @@ struct Vertex {
 
 struct MeshData {
 	std::vector<Vertex> vertices;
-	std::vector<uint16_t> indices;
+	std::vector<uint32_t> indices;
 };
 
 MeshData create_unit_quad();

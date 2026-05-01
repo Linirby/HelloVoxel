@@ -34,7 +34,7 @@ public:
 	SDL_GPUDevice *get_device() const;
 
 private:
-	SDL_Window *window = nullptr;
+	Window *window = nullptr;
 	SDL_GPUDevice *device = nullptr;
 	Shader *world_shader = nullptr;
 	Shader *ui_shader = nullptr;

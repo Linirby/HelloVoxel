@@ -2,16 +2,15 @@
 # define MATH_VEC3_HPP
 
 # include <cstdint>
+# include <bit>
 
 namespace lili {
 
 inline float rsqrt(float number) {
 	float x2 = number * 0.5f;
-	float y = number;
-	uint32_t i = *(uint32_t *)&y;
-
+	uint32_t i = std::bit_cast<uint32_t>(number);
 	i = 0x5f3759df - (i >> 1);
-	y = *(float*)&i;
+	float y = std::bit_cast<float>(i);
 	y = y * (1.5f - (x2 * y * y));
 	return y;
 }

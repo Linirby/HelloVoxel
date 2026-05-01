@@ -1,4 +1,4 @@
-#include "math/vec3.hpp"
+#include "geometry/vec3.hpp"
 #include <math.h>
 
 namespace lili {

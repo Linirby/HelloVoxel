@@ -1,12 +1,11 @@
 #include <stdexcept>
+#include <iostream>
 
 #include "app.hpp"
 
 #include "core/window.hpp"
-
 #include "world/map_manager.hpp"
 #include "world/block.hpp"
-
 #include "meshing/mesher.hpp"
 
 void App::run(const std::string &map_path) {
@@ -14,7 +13,6 @@ void App::run(const std::string &map_path) {
 	init_core();
 	init_resources();
 	mainloop();
-	cleanup();
 }
 
 void App::init_core() {
@@ -32,7 +30,7 @@ void App::init_resources() {
 	camera = lili::Camera(-90.0f, 0.0f, fov_y);
 	map = lili::load_map(map_path);
 
-	atlas = new lili::Texture(renderer->get_device(), "assets/cube_atlas.png");
+	atlas = std::make_unique<lili::Texture>(renderer->get_device(), "assets/cube_atlas.png");
 	if (!atlas) throw std::runtime_error("Atlas texture creation failed!");
 	for (const auto &pair : map.chunks)
 		update_chunk_mesh(pair.first);
@@ -55,7 +53,9 @@ void App::update_chunk_mesh(uint64_t key) {
 	auto chunk_mesh = std::make_unique<lili::GPUMesh>(
 		renderer->get_device(), chunk_data
 	);
-	auto chunk_model = std::make_unique<lili::Model>(chunk_mesh.get(), atlas);
+	auto chunk_model = std::make_unique<lili::Model>(
+		chunk_mesh.get(), atlas.get()
+	);
 
 	int chunk_x = static_cast<int16_t>(key >> 32);
 	int chunk_y = static_cast<int16_t>(key >> 16);
@@ -84,14 +84,18 @@ void App::handle_events() {
 			}
 
 			if (event.key.key == SDLK_P) player.toggle_spectator();
-
-
 			if (event.key.key == SDLK_B) player.toggle_builder();
 
 			if (event.key.key == SDLK_R) {
 				if (renderer) SDL_WaitForGPUIdle(renderer->get_device());
-				cleanup_resources();
 				init_resources();
+			}
+
+			const bool *keys = SDL_GetKeyboardState(NULL);
+			if (keys[SDL_SCANCODE_LCTRL] && keys[SDL_SCANCODE_S]) {
+				lili::save_map("custom_map.json", map);
+				std::cout << "Map saved at custom_map.json" << '\n';
+				return;
 			}
 		}
 		if (event.type == SDL_EVENT_MOUSE_MOTION)
@@ -143,24 +147,12 @@ void App::handle_events() {
 }
 
 void App::update(float dt) {
-	const bool *keys = SDL_GetKeyboardState(NULL);
-
-	if (keys[SDL_SCANCODE_LCTRL] && keys[SDL_SCANCODE_S]) {
-		lili::save_map("custom_map.json", map);
-		return;
-	}
-
 	camera.position = player.position;
 	if (player.mode != lili::PlayerMode::Spectator) camera.position.y += 1.6f;
 }
 
 void App::fixed_update(float dt) {
     const bool *keys = SDL_GetKeyboardState(NULL);
-
-    if (keys[SDL_SCANCODE_LCTRL] && keys[SDL_SCANCODE_S]) {
-        lili::save_map("custom_map.json", map);
-        return;
-    }
 
     if (player.mode == lili::PlayerMode::Builder) {
         player_raycast = lili::raycast_voxel(
@@ -214,13 +206,4 @@ void App::mainloop() {
 		update(frame_time);
         render();
     }
-}
-
-void App::cleanup_resources() {
-	chunk_models.clear();
-	if (atlas) delete atlas;
-}
-
-void App::cleanup() {
-	cleanup_resources();
 }

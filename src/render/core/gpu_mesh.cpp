@@ -28,7 +28,7 @@ GPUMesh::GPUMesh(SDL_GPUDevice *device, MeshData &mesh) {
 	}
 	transfer_to_gpu(mesh.vertices.data(), vertex_buffer, vertices_buffer_size);
 
-	uint32_t indices_buffer_size = mesh.indices.size() * sizeof(uint16_t);
+	uint32_t indices_buffer_size = mesh.indices.size() * sizeof(uint32_t);
 	SDL_GPUBufferCreateInfo indices_buffer_create_info{
 		.usage = SDL_GPU_BUFFERUSAGE_INDEX,
 		.size = indices_buffer_size,

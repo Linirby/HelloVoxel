@@ -1,7 +1,7 @@
 #ifndef MATH_MAT4X4_HPP
 # define MATH_MAT4X4_HPP
 
-# include "math/vec3.hpp"
+# include "geometry/vec3.hpp"
 
 namespace lili {
 

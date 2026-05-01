@@ -4,13 +4,13 @@
 #include "render/passes/renderer.hpp"
 #include "render/scene/model.hpp"
 
-#include "math/mat4x4.hpp"
-#include "math/utils.hpp"
+#include "geometry/mat4x4.hpp"
+#include "geometry/utils.hpp"
 
 namespace lili {
 
 Renderer::Renderer(Window *window) {
-	this->window = window->get_sdl_window();
+	this->window = window;
 
 	init_device();
 	init_depth_texture();
@@ -49,7 +49,7 @@ bool Renderer::begin_frame(Camera camera) {
 	uint32_t height = 0;
 	bool success = SDL_WaitAndAcquireGPUSwapchainTexture(
 		current_cmd_buffer,
-		window,
+		window->get_sdl_window(),
 		&swapchain_texture,
 		&width,
 		&height
@@ -87,7 +87,7 @@ bool Renderer::begin_frame(Camera camera) {
 	);
 
 	int win_w, win_h;
-	SDL_GetWindowSize(window, &win_w, &win_h);
+	SDL_GetWindowSize(window->get_sdl_window(), &win_w, &win_h);
 	float aspect = static_cast<float>(win_w) / static_cast<float>(win_h);
 
 	Mat4 view = camera.get_view_matrix();
@@ -138,7 +138,7 @@ void Renderer::end_frame() {
 			SDL_BindGPUIndexBuffer(
 				current_render_pass,
 				&index_binding,
-				SDL_GPU_INDEXELEMENTSIZE_16BIT
+				SDL_GPU_INDEXELEMENTSIZE_32BIT
 			);
 			SDL_GPUTextureSamplerBinding atlas_texture_sampler_binding{
 				.texture = cmd.model.texture->get_texture(),
@@ -178,7 +178,7 @@ void Renderer::end_frame() {
 			SDL_BindGPUIndexBuffer(
 				current_render_pass,
 				&index_binding,
-				SDL_GPU_INDEXELEMENTSIZE_16BIT
+				SDL_GPU_INDEXELEMENTSIZE_32BIT
 			);
 			SDL_GPUTextureSamplerBinding atlas_texture_sampler_binding{
 				.texture = cmd.model.texture->get_texture(),
@@ -213,7 +213,7 @@ void Renderer::init_device() {
 			"Device creation failed!\n-> " + std::string(SDL_GetError())
 		);
 	}
-	if (!SDL_ClaimWindowForGPUDevice(device, this->window)) {
+	if (!SDL_ClaimWindowForGPUDevice(device, window->get_sdl_window())) {
 		throw std::runtime_error(
 			"SDL_ClaimWindowForGPUDevice() failed!\n-> " +
 			std::string(SDL_GetError())
@@ -221,13 +221,13 @@ void Renderer::init_device() {
 	}
 	if (!SDL_SetGPUSwapchainParameters(
         device, 
-        this->window, 
+        window->get_sdl_window(), 
         SDL_GPU_SWAPCHAINCOMPOSITION_SDR, 
         SDL_GPU_PRESENTMODE_MAILBOX
     )) {
 		SDL_SetGPUSwapchainParameters(
 			device, 
-			this->window, 
+			window->get_sdl_window(), 
 			SDL_GPU_SWAPCHAINCOMPOSITION_SDR, 
 			SDL_GPU_PRESENTMODE_IMMEDIATE
 		);
@@ -236,7 +236,7 @@ void Renderer::init_device() {
 
 void Renderer::init_depth_texture() {
 	int win_w, win_h;
-	SDL_GetWindowSize(window, &win_w, &win_h);
+	SDL_GetWindowSize(window->get_sdl_window(), &win_w, &win_h);
 	SDL_GPUTextureCreateInfo depth_info{
 		.type = SDL_GPU_TEXTURETYPE_2D,
 		.format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
@@ -286,7 +286,9 @@ void Renderer::init_world_pipeline() {
 		}
 	};
 	SDL_GPUColorTargetDescription color_target_desc{
-		.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+		.format = SDL_GetGPUSwapchainTextureFormat(
+			device, window->get_sdl_window()
+		),
 		.blend_state = {
 			.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_COLOR,
 			.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_DST_COLOR,
@@ -371,7 +373,9 @@ void Renderer::init_ui_pipeline() {
 		}
 	};
 	SDL_GPUColorTargetDescription color_target_desc{
-		.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+		.format = SDL_GetGPUSwapchainTextureFormat(
+			device, window->get_sdl_window()
+		),
 		.blend_state = {
 			.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
 			.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,

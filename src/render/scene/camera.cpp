@@ -1,6 +1,6 @@
 #include <cmath>
 #include "render/scene/camera.hpp"
-#include "math/utils.hpp"
+#include "geometry/utils.hpp"
 
 namespace lili {
 

@@ -1,6 +1,7 @@
-#include <SDL3/SDL.h>
 #include "entity/player.hpp"
-#include "math/utils.hpp"
+
+#include <SDL3/SDL.h>
+#include <cmath>
 
 namespace lili {
 
@@ -93,7 +94,7 @@ void Player::update_physics(float dt, Map &map) {
 	} else {
 		if (velocity.y < 0.0f) {
 			is_grounded = true;
-			position.y = lili::floor(position.y);
+			position.y = std::floor(position.y);
 		}
 		velocity.y = 0.0f;
 	}
@@ -140,9 +141,9 @@ bool Player::check_collision(const Vec3 &test_pos, Map &map) const {
 		test_pos.z + (width / 2.0f) - pad
 	};
 
-	for (int x = lili::floor(min.x); x <= lili::floor(max.x); ++x) {
-		for (int y = lili::floor(min.y); y <= lili::floor(max.y); ++y) {
-			for (int z = lili::floor(min.z); z <= lili::floor(max.z); ++z) {
+	for (int x = std::floor(min.x); x <= std::floor(max.x); ++x) {
+		for (int y = std::floor(min.y); y <= std::floor(max.y); ++y) {
+			for (int z = std::floor(min.z); z <= std::floor(max.z); ++z) {
 				if (map.get_block_global(x, y, z) != 0) {
 					return true;
 				}
