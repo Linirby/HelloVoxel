@@ -1,5 +1,5 @@
-#ifndef RENDER_GPU_MESH_HPP
-# define RENDER_GPU_MESH_HPP
+#ifndef RENDER_CORE_GPU_MESH_HPP
+# define RENDER_CORE_GPU_MESH_HPP
 
 # include <SDL3/SDL_gpu.h>
 
@@ -27,4 +27,4 @@ private:
 
 }  // namespace lili
 
-#endif  // RENDER_GPU_MESH_HPP
+#endif  // RENDER_CORE_GPU_MESH_HPP

@@ -10,10 +10,13 @@
 # include "render/passes/renderer.hpp"
 # include "render/scene/camera.hpp"
 # include "render/scene/model.hpp"
+# include "render/scene/sprite.hpp"
+
 # include "entity/player.hpp"
 
 struct ChunkRenderData {
-	lili::Model *model = nullptr;
+	std::unique_ptr<lili::GPUMesh> mesh = nullptr;
+	std::unique_ptr<lili::Model> model = nullptr;
 	lili::Mat4 transform;
 };
 
@@ -22,9 +25,6 @@ public:
 	void run(const std::string &map_path = "assets/maps/test_01.json");
 
 private:
-	std::string map_path = "assets/maps/test_01.json";
-
-
 	// Core
 	std::unique_ptr<lili::SDLSystem> sdl_sys = nullptr;
 	std::unique_ptr<lili::Window> window = nullptr;
@@ -36,6 +36,7 @@ private:
 	float fov_y = 90.0f;
 	
 	// Resources
+	std::string map_path = "assets/maps/test_01.json";
 	lili::Map map;
 	lili::Texture *atlas = nullptr;
 	std::unordered_map<uint64_t, ChunkRenderData> chunk_models;
@@ -44,9 +45,7 @@ private:
 	lili::RaycastResult player_raycast;
 	lili::Camera camera;
 
-	lili::Texture *crosshair_texture = nullptr;
-	lili::GPUMesh *crosshair_mesh = nullptr;
-	lili::Model *crosshair = nullptr;
+	std::unique_ptr<lili::Sprite> crosshair = nullptr;
 	
 	bool is_running = false;
 

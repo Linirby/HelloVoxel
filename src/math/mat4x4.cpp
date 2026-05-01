@@ -93,10 +93,10 @@ Mat4 Mat4::translate(const Vec3 &pos) {
 	return result;
 }
 
-Mat4 Mat4::rotation_x(float radians) {
+Mat4 Mat4::rotation_x(float radian) {
 	Mat4 result = identity();
-	float c = std::cos(radians);
-	float s = std::sin(radians);
+	float c = std::cos(radian);
+	float s = std::sin(radian);
 
 	result.m[5] = c;
 	result.m[6] = s;
@@ -105,10 +105,10 @@ Mat4 Mat4::rotation_x(float radians) {
 	return result;
 }
 
-Mat4 Mat4::rotation_y(float radians) {
+Mat4 Mat4::rotation_y(float radian) {
 	Mat4 result = identity();
-	float c = std::cos(radians);
-	float s = std::sin(radians);
+	float c = std::cos(radian);
+	float s = std::sin(radian);
 
 	result.m[0] = c;
 	result.m[2] = -s;
@@ -117,10 +117,10 @@ Mat4 Mat4::rotation_y(float radians) {
 	return result;
 }
 
-Mat4 Mat4::rotation_z(float radians) {
+Mat4 Mat4::rotation_z(float radian) {
 	Mat4 result = identity();
-	float c = std::cos(radians);
-	float s = std::sin(radians);
+	float c = std::cos(radian);
+	float s = std::sin(radian);
 
 	result = Mat4::identity();
 	result.m[0] = c;
@@ -128,6 +128,12 @@ Mat4 Mat4::rotation_z(float radians) {
 	result.m[4] = -s;
 	result.m[5] = c;
 	return result;
+}
+
+Mat4 Mat4::rotation_xyz(Vec3 radians) {
+	return (
+		rotation_x(radians.x) * rotation_y(radians.y) * rotation_z(radians.z)
+	);
 }
 
 Mat4 Mat4::scale(const Vec3 &v) {

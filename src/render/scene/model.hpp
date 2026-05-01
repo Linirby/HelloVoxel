@@ -1,5 +1,5 @@
-#ifndef RENDER_MODEL_HPP
-# define RENDER_MODEL_HPP
+#ifndef RENDER_SCENE_MODEL_HPP
+# define RENDER_SCENE_MODEL_HPP
 
 # include "render/core/gpu_mesh.hpp"
 # include "render/core/texture.hpp"
@@ -12,9 +12,8 @@ struct Model {
 
 	Model() = default;
 	Model(GPUMesh *mesh, Texture *texture);
-	~Model();
 };
 
 }  // namespace lili
 
-#endif  // RENDER_MODEL_HPP
+#endif  // RENDER_SCENE_MODEL_HPP

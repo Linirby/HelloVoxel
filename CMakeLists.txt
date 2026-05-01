@@ -15,7 +15,7 @@ find_package(SDL3_image REQUIRED CONFIG)
 add_library(LiliCore STATIC
 	src/core/sdl_system.cpp
 	src/core/window.cpp
-	src/core/input.cpp
+	src/core/event.cpp
 )
 target_include_directories(LiliCore PUBLIC src)
 target_link_libraries(LiliCore PRIVATE SDL3::SDL3)
@@ -82,6 +82,7 @@ add_library(LiliRender STATIC
 	src/render/passes/forward_pass.cpp
 	src/render/scene/camera.cpp
 	src/render/scene/model.cpp
+	src/render/scene/sprite.cpp
 )
 target_include_directories(LiliRender PUBLIC src)
 target_link_libraries(LiliRender PRIVATE

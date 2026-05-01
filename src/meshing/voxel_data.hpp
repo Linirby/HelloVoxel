@@ -1,5 +1,5 @@
-#ifndef GEOMETRY_VOXEL_DATA_HPP
-# define GEOMETRY_VOXEL_DATA_HPP
+#ifndef MESHING_VOXEL_DATA_HPP
+# define MESHING_VOXEL_DATA_HPP
 
 namespace lili {
 
@@ -75,4 +75,4 @@ inline constexpr float face_vertices[6][4][3]{
 
 }  // namespace lili
 
-#endif  // GEOMETRY_VOXEL_DATA_HPP
+#endif  // MESHING_VOXEL_DATA_HPP

@@ -19,9 +19,10 @@ struct Mat4 {
 		float left, float right, float bottom, float top, float near, float far
 	);
 	static Mat4 translate(const Vec3 &pos);
-	static Mat4 rotation_x(float radians);
-	static Mat4 rotation_y(float radians);
-	static Mat4 rotation_z(float radians);
+	static Mat4 rotation_x(float radian);
+	static Mat4 rotation_y(float radian);
+	static Mat4 rotation_z(float radian);
+	static Mat4 rotation_xyz(Vec3 radians);
 	static Mat4 scale(const Vec3 &v);
 };
 

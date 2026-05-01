@@ -1,5 +1,5 @@
-#ifndef RENDER_CAMERA_HPP
-# define RENDER_CAMERA_HPP
+#ifndef RENDER_SCENE_CAMERA_HPP
+# define RENDER_SCENE_CAMERA_HPP
 
 # include "math/vec3.hpp"
 # include "math/mat4x4.hpp"
@@ -33,4 +33,4 @@ private:
 
 }  // namespace lili
 
-#endif  // RENDER_CAMERA_HPP
+#endif  // RENDER_SCENE_CAMERA_HPP

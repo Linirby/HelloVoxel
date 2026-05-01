@@ -1,5 +1,4 @@
 #include <stdexcept>
-#include <iostream>
 
 #include "app.hpp"
 
@@ -33,55 +32,30 @@ void App::init_resources() {
 	camera = lili::Camera(-90.0f, 0.0f, fov_y);
 	map = lili::load_map(map_path);
 
-	std::cout << map_path << '\n';
-
 	atlas = new lili::Texture(renderer->get_device(), "assets/cube_atlas.png");
 	if (!atlas) throw std::runtime_error("Atlas texture creation failed!");
 	for (const auto &pair : map.chunks)
 		update_chunk_mesh(pair.first);
-	crosshair_texture = new lili::Texture(
-		renderer->get_device(), "assets/crosshair.png"
+	
+	std::array<int, 2> win_size = window->get_size();
+	crosshair = std::make_unique<lili::Sprite>(
+		renderer->get_device(),
+		"assets/crosshair.png",
+		(lili::Vec3){ win_size[0] / 2.0f, win_size[1] / 2.0f, 0.0f },
+		(lili::Vec3){ 18.0f, 18.0f, 1.0f },
+		(lili::Vec3){ 0.0f, 0.0f, 0.0f }
 	);
-	if (!crosshair_texture)
-		throw std::runtime_error("Crosshair texture creation failed!");
-	lili::MeshData crosshair_mesh_data = lili::create_unit_quad();
-	crosshair_mesh = new lili::GPUMesh(
-		renderer->get_device(), crosshair_mesh_data
-	);
-	if (!crosshair_mesh)
-		throw std::runtime_error("Crosshair mesh creation failed!");
-	crosshair = new lili::Model(crosshair_mesh, crosshair_texture);
 }
 
 void App::update_chunk_mesh(uint64_t key) {
-	auto chunk_it = chunk_models.find(key);
-	if (chunk_it != chunk_models.end()) {
-		if (chunk_it->second.model) {
-			delete chunk_it->second.model;
-			chunk_models.erase(chunk_it);
-		}
-	}
-
 	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(
 		map.chunks[key]
 	);
-	if (chunk_data.vertices.empty()) {
-		auto model_it = chunk_models.find(key);
-		if (model_it != chunk_models.end()) {
-			delete model_it->second.model;
-			chunk_models.erase(model_it);
-		}
-		return;
-	}
-
-	auto model_it = chunk_models.find(key);
-	if (model_it != chunk_models.end())
-		if (model_it->second.model) delete model_it->second.model;
-
-	lili::GPUMesh *chunk_mesh = new lili::GPUMesh(
+	if (chunk_data.vertices.empty()) return;
+	auto chunk_mesh = std::make_unique<lili::GPUMesh>(
 		renderer->get_device(), chunk_data
 	);
-	lili::Model *chunk_model = new lili::Model(chunk_mesh, atlas);
+	auto chunk_model = std::make_unique<lili::Model>(chunk_mesh.get(), atlas);
 
 	int chunk_x = static_cast<int16_t>(key >> 32);
 	int chunk_y = static_cast<int16_t>(key >> 16);
@@ -92,7 +66,9 @@ void App::update_chunk_mesh(uint64_t key) {
 		static_cast<float>(chunk_y * lili::Chunk::SIZE),
 		static_cast<float>(chunk_z * lili::Chunk::SIZE)
 	});
-	chunk_models[key] = ChunkRenderData{ chunk_model, transform };
+	chunk_models[key] = ChunkRenderData{
+		std::move(chunk_mesh), std::move(chunk_model), transform
+	};
 }
 
 void App::handle_events() {
@@ -120,7 +96,7 @@ void App::handle_events() {
 			if (window->is_relative_mouse_mode())
 				camera.process_mouse(event.motion.xrel, event.motion.yrel);
 		if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-			if (player.mode != lili::PlayerMode::Builder) return;
+			if (player.mode != lili::PlayerMode::Builder) continue;
 			uint8_t handed_block = lili::BLOCK_ID_DEBUG;
 			if (event.button.button == SDL_BUTTON_LEFT) {
 				uint8_t old_block = map.get_block_global(
@@ -128,7 +104,7 @@ void App::handle_events() {
 					player_raycast.hit_y,
 					player_raycast.hit_z
 				);
-				if (old_block == 0) return;
+				if (old_block == 0) continue;
 				map.set_block_global(
 					lili::BLOCK_ID_AIR,
 					player_raycast.hit_x,
@@ -147,7 +123,7 @@ void App::handle_events() {
 					player_raycast.adjacent_y,
 					player_raycast.adjacent_z
 				);
-				if (old_block == 1) return;
+				if (old_block == 1) continue;
 				map.set_block_global(
 					handed_block,
 					player_raycast.adjacent_x,
@@ -171,12 +147,6 @@ void App::update(float dt) {
 		lili::save_map("custom_map.json", map);
 		return;
 	}
-	if (player.mode == lili::PlayerMode::Builder)
-		player_raycast = map.raycast(
-			camera.position, camera.front, player.build_range 
-		);
-	player.process_keys(keys, camera.front, camera.right, camera.up, dt);
-	player.update_physics(dt, map);
 
 	camera.position = player.position;
 	if (player.mode != lili::PlayerMode::Spectator) camera.position.y += 1.6f;
@@ -195,7 +165,6 @@ void App::fixed_update(float dt) {
             camera.position, camera.front, player.build_range 
         );
     }
-
     player.process_keys(keys, camera.front, camera.right, camera.up, dt);
     player.update_physics(dt, map);
 
@@ -215,16 +184,7 @@ void App::render() {
 			lili::RenderLayer::World3D
 		);
 	}
-
-	std::array<int, 2> win_size = window->get_size();
-	lili::Vec3 crosshair_position = {
-		win_size[0] / 2.0f, win_size[1] / 2.0f, 0.0f
-	};
-	lili::Vec3 crosshair_scale = { 18.0f, 18.0f, 1.0f };
-	lili::Mat4 mat_translation = lili::Mat4::translate(crosshair_position);
-	lili::Mat4 mat_scale = lili::Mat4::scale(crosshair_scale);
-	lili::Mat4 transformation = mat_translation * mat_scale;
-	renderer->submit(*crosshair, transformation, lili::RenderLayer::UI2D);
+	crosshair->draw(renderer.get());
 
 	renderer->end_frame();
 }
@@ -249,16 +209,12 @@ void App::mainloop() {
             fixed_update(fixed_dt); 
             accumulator -= fixed_dt;
         }
+		update(frame_time);
         render();
     }
 }
 
 void App::cleanup_resources() {
-	if (crosshair) delete crosshair;
-	if (crosshair_texture) delete crosshair_texture;
-	for (const auto &data : chunk_models) {
-		if (data.second.model) delete data.second.model;
-	}
 	chunk_models.clear();
 	if (atlas) delete atlas;
 }
