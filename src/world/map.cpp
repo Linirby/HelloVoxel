@@ -1,5 +1,4 @@
 #include "world/map.hpp"
-#include "math/utils.hpp"
 
 namespace lili {
 
@@ -44,83 +43,8 @@ uint64_t Map::get_chunk_key(int x, int y, int z) const {
 	);
 }
 
-RaycastResult Map::raycast(
-	const Vec3 &origin, const Vec3 &direction, float max_distance
-) {
-	RaycastResult result;
-
-	int x = lili::floor(origin.x);
-	int y = lili::floor(origin.y);
-	int z = lili::floor(origin.z);
-
-	int step_x = (direction.x > 0) - (direction.x < 0);
-	int step_y = (direction.y > 0) - (direction.y < 0);
-	int step_z = (direction.z > 0) - (direction.z < 0);
-
-	Vec3 t_delta{ lili::F_INFINITY, lili::F_INFINITY, lili::F_INFINITY };
-	if (step_x != 0) t_delta.x = lili::abs(1.0f / direction.x);
-	if (step_y != 0) t_delta.y = lili::abs(1.0f / direction.y);
-	if (step_z != 0) t_delta.z = lili::abs(1.0f / direction.z);
-
-	Vec3 t_max{
-		(origin.x - x) * t_delta.x,
-		(origin.y - y) * t_delta.y,
-		(origin.z - z) * t_delta.z
-	};
-	if (step_x > 0) t_max.x = (x + 1.0f - origin.x) * t_delta.x;
-	if (step_y > 0) t_max.y = (y + 1.0f - origin.y) * t_delta.y;
-	if (step_z > 0) t_max.z = (z + 1.0f - origin.z) * t_delta.z;
-
-	float distance = 0.0f;
-	int last_step = 0;  // X: 0 | Y: 1 | Z: 2
-
-	while (distance <= max_distance) {
-		if (get_block_global(x, y, z)) {
-			result.hit = true;
-
-			result.hit_x = x;
-			result.hit_y = y;
-			result.hit_z = z;
-
-			result.adjacent_x = x;
-			result.adjacent_y = y;
-			result.adjacent_z = z;
-
-			if (last_step == 0) result.adjacent_x -= step_x;
-			else if (last_step == 1) result.adjacent_y -= step_y;
-			else if (last_step == 2) result.adjacent_z -= step_z;
-
-			return result;
-		}
-
-		if (t_max.x < t_max.y) {
-			if (t_max.x < t_max.z) {
-				x += step_x;
-				distance = t_max.x;
-				t_max.x += t_delta.x;
-				last_step = 0;
-			} else {
-				z += step_z;
-				distance = t_max.z;
-				t_max.z += t_delta.z;
-				last_step = 2;
-			}
-		} else {
-			if (t_max.y < t_max.z) {
-				y += step_y;
-				distance = t_max.y;
-				t_max.y += t_delta.y;
-				last_step = 1;
-			} else {
-				z += step_z;
-				distance = t_max.z;
-				t_max.z += t_delta.z;
-				last_step = 2;
-			}
-		}
-	}
-
-	return result;
+bool Map::is_solid_at(int x, int y, int z) const {
+	return get_block_global(x, y, z) != 0;
 }
 
 }  // namespace lili

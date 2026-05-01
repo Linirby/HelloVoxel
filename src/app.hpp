@@ -7,6 +7,8 @@
 # include "core/sdl_system.hpp"
 # include "core/window.hpp"
 
+# include "physics/collision.hpp"
+
 # include "render/passes/renderer.hpp"
 # include "render/scene/camera.hpp"
 # include "render/scene/model.hpp"

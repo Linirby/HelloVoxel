@@ -84,6 +84,8 @@ void App::handle_events() {
 			}
 
 			if (event.key.key == SDLK_P) player.toggle_spectator();
+
+
 			if (event.key.key == SDLK_B) player.toggle_builder();
 
 			if (event.key.key == SDLK_R) {
@@ -119,21 +121,21 @@ void App::handle_events() {
 			}
 			if (event.button.button == SDL_BUTTON_RIGHT) {
 				uint8_t old_block = map.get_block_global(
-					player_raycast.adjacent_x,
-					player_raycast.adjacent_y,
-					player_raycast.adjacent_z
+					player_raycast.adj_x,
+					player_raycast.adj_y,
+					player_raycast.adj_z
 				);
 				if (old_block == 1) continue;
 				map.set_block_global(
 					handed_block,
-					player_raycast.adjacent_x,
-					player_raycast.adjacent_y,
-					player_raycast.adjacent_z
+					player_raycast.adj_x,
+					player_raycast.adj_y,
+					player_raycast.adj_z
 				);
 				update_chunk_mesh(map.get_chunk_key(
-					player_raycast.adjacent_x >> 4,
-					player_raycast.adjacent_y >> 4,
-					player_raycast.adjacent_z >> 4
+					player_raycast.adj_x >> 4,
+					player_raycast.adj_y >> 4,
+					player_raycast.adj_z >> 4
 				));
 			}
 		}
@@ -161,8 +163,8 @@ void App::fixed_update(float dt) {
     }
 
     if (player.mode == lili::PlayerMode::Builder) {
-        player_raycast = map.raycast(
-            camera.position, camera.front, player.build_range 
+        player_raycast = lili::raycast_voxel(
+            camera.position, camera.front, player.build_range, map 
         );
     }
     player.process_keys(keys, camera.front, camera.right, camera.up, dt);

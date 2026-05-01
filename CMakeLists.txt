@@ -15,7 +15,6 @@ find_package(SDL3_image REQUIRED CONFIG)
 add_library(LiliCore STATIC
 	src/core/sdl_system.cpp
 	src/core/window.cpp
-	src/core/event.cpp
 )
 target_include_directories(LiliCore PUBLIC src)
 target_link_libraries(LiliCore PRIVATE SDL3::SDL3)
@@ -33,8 +32,7 @@ target_include_directories(LiliMath PUBLIC src)
 
 # Lili Physics
 add_library(LiliPhysics STATIC
-	src/physics/aabb.cpp
-	src/physics/raycast.cpp
+	src/physics/collision.cpp
 )
 target_include_directories(LiliPhysics PUBLIC src)
 target_link_libraries(LiliPhysics PRIVATE LiliMath)
