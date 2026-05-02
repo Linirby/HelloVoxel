@@ -72,12 +72,19 @@ target_link_libraries(LiliEntity PRIVATE LiliGeometry LiliPhysics LiliWorld)
 
 # Lili Render
 add_library(LiliRender STATIC
+	src/render/renderer.cpp
+
 	src/render/core/gpu_mesh.cpp
 	src/render/core/shader.cpp
 	src/render/core/texture.cpp
-	src/render/passes/renderer.cpp
+
+	src/render/passes/world_pass.cpp
+	src/render/passes/ui_pass.cpp
 	src/render/passes/shadow_pass.cpp
-	src/render/passes/forward_pass.cpp
+
+	src/render/pipelines/ui_pipeline.cpp
+	src/render/pipelines/world_pipeline.cpp
+
 	src/render/scene/camera.cpp
 	src/render/scene/model.cpp
 	src/render/scene/sprite.cpp

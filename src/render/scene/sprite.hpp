@@ -1,11 +1,10 @@
-#ifndef RENDER_SCENE_SPRITE_HPP
-# define RENDER_SCENE_SPRITE_HPP
+#pragma once
 
-# include <SDL3/SDL_gpu.h>
-# include <string>
-# include <memory>
+#include <SDL3/SDL_gpu.h>
+#include <string>
+#include <memory>
 
-# include "render/passes/renderer.hpp"
+#include "render/renderer.hpp"
 
 namespace lili {
 
@@ -32,5 +31,3 @@ private:
 };
 
 }  // namespace lili
-
-#endif  // RENDER_SCENE_SPRITE_HPP

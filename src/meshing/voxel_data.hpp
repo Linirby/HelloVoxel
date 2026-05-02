@@ -1,5 +1,4 @@
-#ifndef MESHING_VOXEL_DATA_HPP
-# define MESHING_VOXEL_DATA_HPP
+#pragma once
 
 namespace lili {
 
@@ -74,5 +73,3 @@ inline constexpr float face_vertices[6][4][3]{
 };
 
 }  // namespace lili
-
-#endif  // MESHING_VOXEL_DATA_HPP

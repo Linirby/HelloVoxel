@@ -1,8 +1,7 @@
-#ifndef RENDER_SCENE_CAMERA_HPP
-# define RENDER_SCENE_CAMERA_HPP
+#pragma once
 
-# include "geometry/vec3.hpp"
-# include "geometry/mat4x4.hpp"
+#include "geometry/vec3.hpp"
+#include "geometry/mat4x4.hpp"
 
 namespace lili {
 
@@ -32,5 +31,3 @@ private:
 };
 
 }  // namespace lili
-
-#endif  // RENDER_SCENE_CAMERA_HPP

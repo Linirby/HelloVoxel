@@ -1,19 +1,10 @@
-#ifndef CORE_WINDOW_HPP
-# define CORE_WINDOW_HPP
+#pragma once
 
-# include <string>
-# include <array>
-# include <SDL3/SDL.h>
+#include <string>
+#include <array>
+#include <SDL3/SDL.h>
 
 namespace lili {
-
-struct WindowParameters {
-	std::string &title;
-	int width, height;
-	bool resizable;
-	bool borderless;
-	bool fullscreen;
-};
 
 class Window {
 public:
@@ -42,5 +33,3 @@ private:
 };
 
 }  // namespace lili
-
-#endif  // CORE_WINDOW_HPP

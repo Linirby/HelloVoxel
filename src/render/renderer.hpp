@@ -1,25 +1,22 @@
-#ifndef RENDER_PASSES_RENDERER_HPP
-# define RENDER_PASSES_RENDERER_HPP
+#pragma once
 
-# include <SDL3/SDL.h>
+#include <SDL3/SDL.h>
 
-# include "core/window.hpp"
+#include "core/window.hpp"
 
-# include "render/core/shader.hpp"
-# include "render/scene/camera.hpp"
-# include "render/scene/model.hpp"
+#include "render/core/shader.hpp"
+
+#include "render/scene/camera.hpp"
+#include "render/scene/model.hpp"
+
+#include "render/passes/pass_types.hpp"
+#include "render/passes/world_pass.hpp"
+#include "render/passes/ui_pass.hpp"
+
+#include "render/pipelines/world_pipeline.hpp"
+#include "render/pipelines/ui_pipeline.hpp"
 
 namespace lili {
-
-enum class RenderLayer {
-	World3D,
-	UI2D
-};
-
-struct DrawCommand {
-	const Model &model;
-	Mat4 transform;
-};
 
 class Renderer {
 public:
@@ -36,14 +33,20 @@ public:
 private:
 	Window *window = nullptr;
 	SDL_GPUDevice *device = nullptr;
+
+	SDL_GPUTexture *depth_texture = nullptr;
+
 	Shader *world_shader = nullptr;
 	Shader *ui_shader = nullptr;
-	SDL_GPUGraphicsPipeline *world_pipeline = nullptr;
-	SDL_GPUTexture *depth_texture = nullptr;
-	SDL_GPUGraphicsPipeline *ui_pipeline = nullptr;
+
+	WorldPipeline *world_pipeline = nullptr;
+	UIPipeline *ui_pipeline = nullptr;
 
 	SDL_GPUCommandBuffer *current_cmd_buffer = nullptr;
 	SDL_GPURenderPass *current_render_pass = nullptr;
+
+	WorldPass *world_pass = nullptr;
+	UIPass *ui_pass = nullptr;
 
 	std::vector<DrawCommand> world_queue;
 	std::vector<DrawCommand> ui_queue;
@@ -53,11 +56,9 @@ private:
 
 	void init_device();
 	void init_depth_texture();
-
-	void init_world_pipeline();
-	void init_ui_pipeline();
+	void init_shaders();
+	void init_pipelines();
+	void init_passes();
 };
 
 }  // namespace lili
-
-#endif  // RENDER_PASSES_RENDERER_HPP

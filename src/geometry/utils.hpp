@@ -1,5 +1,4 @@
-#ifndef MATH_UTILS_HPP
-# define MATH_UTILS_HPP
+#pragma once
 
 namespace lili {
 
@@ -8,5 +7,3 @@ inline float deg_to_rad(float degrees) {
 }
 
 }  // namespace lili
-
-#endif  // MATH_UTILS_HPP

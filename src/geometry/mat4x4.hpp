@@ -1,7 +1,6 @@
-#ifndef MATH_MAT4X4_HPP
-# define MATH_MAT4X4_HPP
+#pragma once
 
-# include "geometry/vec3.hpp"
+#include "geometry/vec3.hpp"
 
 namespace lili {
 
@@ -26,6 +25,4 @@ struct Mat4 {
 	static Mat4 scale(const Vec3 &v);
 };
 
-} // namespace lili
-
-#endif  // MATH_MAT4X4_HPP
+}  // namespace lili

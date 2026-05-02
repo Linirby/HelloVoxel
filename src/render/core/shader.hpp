@@ -1,9 +1,8 @@
-#ifndef RENDER_CORE_SHADER_HPP
-# define RENDER_CORE_SHADER_HPP
+#pragma once
 
-# include <SDL3/SDL_gpu.h>
-# include <vector>
-# include <string>
+#include <SDL3/SDL_gpu.h>
+#include <vector>
+#include <string>
 
 namespace lili {
 
@@ -33,5 +32,3 @@ private:
 };
 
 }  // namespace lili
-
-#endif  // RENDER_CORE_SHADER_HPP

@@ -1,20 +1,19 @@
-#ifndef APP_HPP
-# define APP_HPP
+#pragma once
 
-# include <memory>
-# include <SDL3/SDL.h>
+#include <memory>
+#include <SDL3/SDL.h>
 
-# include "core/sdl_system.hpp"
-# include "core/window.hpp"
+#include "core/sdl_system.hpp"
+#include "core/window.hpp"
 
-# include "physics/collision.hpp"
+#include "physics/collision.hpp"
 
-# include "render/passes/renderer.hpp"
-# include "render/scene/camera.hpp"
-# include "render/scene/model.hpp"
-# include "render/scene/sprite.hpp"
+#include "render/renderer.hpp"
+#include "render/scene/camera.hpp"
+#include "render/scene/model.hpp"
+#include "render/scene/sprite.hpp"
 
-# include "entity/player.hpp"
+#include "entity/player.hpp"
 
 struct ChunkRenderData {
 	std::unique_ptr<lili::GPUMesh> mesh = nullptr;
@@ -62,5 +61,3 @@ private:
 	void render();
 	void mainloop();
 };
-
-#endif  // APP_HPP

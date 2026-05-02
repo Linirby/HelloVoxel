@@ -1,7 +1,6 @@
-#ifndef WORLD_CHUNK_HPP
-# define WORLD_CHUNK_HPP
+#pragma once
 
-# include <cstdint>
+#include <cstdint>
 
 namespace lili {
 
@@ -14,5 +13,3 @@ struct Chunk {
 };
 
 }  // namespace lili
-
-#endif  // WORLD_CHUNK_HPP
