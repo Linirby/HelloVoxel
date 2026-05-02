@@ -1,140 +1,116 @@
 # HelloVoxel
 
-HelloVoxel is a C++ voxel game engine with a Vulkan backend.  
-This repository is a lightweight, custom voxel game engine demonstrating a complete, low-level graphics and gameplay pipeline built entirely on **SDL3 GPU**.
+HelloVoxel is a modular **C++ voxel engine** built with **SDL3 GPU + Vulkan/SPIR-V**, focused on two outcomes:
 
-**Physics Demo**
+1. a clean engine foundation for building voxel games in C++
+2. an evolving level-editor workflow inspired by Minecraft Creative mode
 
 <img width="400" height="225" alt="engine_demo" src="https://github.com/Linirby/HelloVoxel/blob/main/assets/demo/engine_demo.gif" />
 
-**Build Demo**
-
-<img width="400" height="225" alt="demo_build" src="https://github.com/Linirby/HelloVoxel/blob/dev/assets/demo/demo_build.gif" />
-
-## Table of Contents
-- [Why this project exists](#why-this-project-exists)
-- [Current capabilities](#current-capabilities)
-- [Architecture (big picture)](#architecture-big-picture)
-- [Rendering flow (from startup to frame)](#rendering-flow-from-startup-to-frame)
-  - [1. Initialization](#1-initialization)
-  - [2. Per-frame loop](#2-per-frame-loop)
-  - [3. Shutdown](#3-shutdown)
-- [Voxel meshing explained](#voxel-meshing-explained-non-graphics-friendly)
-- [Shader pipeline](#shader-pipeline)
-- [Controls](#controls)
-- [Build and run](#build-and-run)
-- [Project status](#project-status)
-- [Next milestones](#next-milestones)
-
 ## Why this project exists
 
-I built this engine to demonstrate practical, low-level graphics engineering, focusing on core implementation details:
+HelloVoxel is designed as both:
 
-- low-level GPU resource lifecycle
-- mesh generation from voxel data
-- texture atlas mapping
-- camera movement and matrix math
-- render pass and pipeline setup
-- clean architectural abstraction between logic and rendering
+- a usable base for voxel gameplay prototypes
+- a reviewable engineering project with clear architecture boundaries
 
-## Current capabilities
+It prioritizes explicit systems (world, meshing, render, physics, input) over engine magic.
 
-- SDL3 window creation and GPU device setup.
-- Vulkan-backed rendering via SDL GPU API.
-- 16x16x16 chunk data model (`Chunk`) with block IDs.
-- Multi-chunk `Map` support, with levels and spawn points loaded from JSON (`nlohmann/json`).
-- Block registry with per-face texture selection (`BlockDefinition`).
-- Chunk mesher with hidden-face culling (only visible faces become triangles).
-- Indexed mesh rendering with depth buffer.
-- Texture atlas sampling with nearest-neighbor filtering.
-- Robust player physics including gravity, jumping, AABB voxel collision detection, and toggleable Physical/Spectator/Builder modes.
-- Builder gameplay mode with voxel raycast interaction for block placing/removing.
-- Runtime map saving to JSON (`Ctrl+S`) so edited worlds can be persisted.
-- Custom math types (`Vec3`, `Mat4`) for transforms and view/projection.
-- Clean separation of the render pipeline (`Renderer`, `GPUMesh`, `Model`, `Texture`, `Shader`).
-- HUD rendering with a crosshair overlay.
+## Who this README is for
 
-## Architecture (big picture)
+| Audience | What to look at first |
+| --- | --- |
+| Users trying the project | [Build and run](#build-and-run), [Controls](#controls) |
+| Reviewers evaluating architecture | [Architecture](#architecture), [Rendering flow](#rendering-flow) |
+| Contributors extending systems | [Project status](#project-status), [Next milestones](#next-milestones) |
 
-| System | Responsibility | Main files |
-| --- | --- | --- |
-| App lifecycle | Init, main loop (events, updates, render), cleanup | `src/app.cpp`, `src/app.hpp`, `src/main.cpp` |
-| World & Data | Map loading/saving, chunk storage, and block registry | `src/map.*`, `src/map_manager.*`, `src/geometry/chunk.*`, `src/geometry/block.*` |
-| Meshing | Convert voxels to renderable triangles | `src/geometry/mesher.*`, `src/geometry/voxel_data.hpp` |
-| Render pipeline | Encapsulates SDL3 GPU setup, pipelines, and draws | `src/render/renderer.*`, `src/render/gpu_mesh.*`, `src/render/model.*`, `src/render/texture.*`, `src/render/shader.*` |
-| Camera + player | Mouse orientation, physics, and AABB collision | `src/render/camera.*`, `src/entity/player.*` |
-| Math | Vector and matrix operations | `src/math/vec3.*`, `src/math/mat4x4.*` |
-| Shaders | Vertex transform + atlas sampling | `shader/triangle.vert`, `shader/triangle.frag` |
+## Current feature set
 
-## Rendering flow (from startup to frame)
+### Implemented
 
-### 1. Initialization
+- SDL3 window + GPU device lifecycle with dedicated core wrappers (`src/core/*`)
+- Chunked voxel world model (`16x16x16` chunks) with global block addressing
+- Block registry with per-face texture atlas mapping
+- Hidden-face-culling chunk mesher
+- Player controller with three modes:
+  - **Physical**: gravity, collision, jump, sprint
+  - **Spectator**: free-fly
+  - **Builder**: creative movement + voxel raycast placement/removal
+- Runtime world persistence:
+  - save edited map (`Ctrl+S` -> `custom_map.json`)
+  - reload current resources/map (`R`)
+- Split rendering path:
+  - world queue/pass for 3D voxel geometry
+  - UI queue/pass for sprites/HUD (crosshair)
+- Directional lighting in world shading (normal-based)
+- Fixed timestep simulation loop (`1/60`) with decoupled frame rendering
 
-`App::run()` executes this sequence:
+### In progress / scaffolded
 
-1. `init_window()` -> creates SDL window and enables relative mouse mode.
-2. Creates `Renderer` instance -> claims the window, initializes SDL GPU device, depth buffer, pipelines (including HUD), and shaders.
-3. Loads a `Map` from JSON and iterates over chunks to generate `MeshData` using `ChunkMesher::generate_mesh()`.
-4. Creates `GPUMesh` objects -> uploads vertices and indices to GPU buffers for each chunk.
-5. Loads a `Texture` from `assets/cube_atlas.png` -> creates sampler.
-6. Assembles `Model` objects linking the `GPUMesh`es and `Texture`.
+- `src/render/passes/shadow_pass.*`
+- `src/world/material.*`
 
-### 2. Per-frame loop
+These files are scaffolding and are not yet exposed as completed user-facing features.
 
-In each frame:
+## Architecture
 
-1. Poll SDL events (quit, escape, mouse motion).
-2. Update player position, handle physics/collisions, and process keyboard input.
-3. Sync camera position with player.
-4. `Renderer::begin_frame(camera)` -> Acquires swapchain texture, builds projection/view matrices, and begins the main render pass.
-5. `Renderer::draw(model, transform)` -> Binds pipeline, vertex/index buffers, texture sampler, and draws the geometry for all active chunks in the map.
-6. `Renderer::end_frame()` -> Draws the HUD/crosshair, ends the render pass, and submits the GPU command buffer.
+The codebase is organized as layered static libraries in `CMakeLists.txt`:
 
-### 3. Shutdown
+| Tier | Library | Responsibility | Main paths |
+| --- | --- | --- | --- |
+| 1 | `LiliCore` | SDL init + window ownership | `src/core/*` |
+| 1 | `LiliGeometry` | Math primitives (`Vec3`, `Mat4`) | `src/geometry/*` |
+| 2 | `LiliPhysics` | Voxel collision + raycast interfaces | `src/physics/*` |
+| 2 | `LiliWorld` | Blocks, chunks, map storage + map I/O | `src/world/*` |
+| 3 | `LiliMeshing` | Voxel meshing + mesh primitives | `src/meshing/*` |
+| 3 | `LiliEntity` | Player behavior and movement modes | `src/entity/*` |
+| 4 | `LiliRender` | GPU resources, pipelines, passes, scene | `src/render/*` |
+| 5 | `HelloVoxel` | App lifecycle and main loop wiring | `src/app.*`, `src/main.cpp` |
 
-`cleanup()` releases the renderer, window, and SDL subsystems in order. The `Renderer` destructor handles releasing pipelines, shaders, buffers, textures, and the GPU device.
+### Render module layout
 
-## Voxel meshing explained (non-graphics friendly)
+```text
+src/render/
+├── core/        # gpu_mesh, texture, shader
+├── pipelines/   # world_pipeline, ui_pipeline
+├── passes/      # world_pass, ui_pass, shadow_pass (scaffold)
+├── scene/       # camera, model, sprite
+├── renderer.cpp
+└── renderer.hpp
+```
 
-**Meshing** means converting a 3D grid of blocks into triangles the GPU can draw.
+## Rendering flow
 
-In this project:
+1. **Initialization**
+   - Create SDL system and window
+   - Create renderer, GPU device, shaders, pipelines, and render passes
+   - Load map, build chunk meshes, upload GPU buffers, create models/textures
+   - Create UI sprite(s), including crosshair
 
-- The world is organized into chunks of `16 x 16 x 16` blocks.
-- Each non-air block checks 6 neighbors (top, bottom, right, left, front, back).
-- If a neighbor is empty or outside the chunk, that face is visible and gets emitted.
-- Each emitted face adds:
-  - 4 vertices (position + UV)
-  - 6 indices (2 triangles)
-- UVs are computed from a texture atlas index stored in `BlockDefinition`.
-
-Result: internal faces are skipped, so the mesh is much smaller than "draw every cube face".
-
-## Shader pipeline
-
-- **Vertex shader** takes position and UV, applies MVP transform.
-- **Fragment shader** samples the atlas texture using UV.
-- Vertex format is:
-  - `location 0`: `vec3` position
-  - `location 1`: `vec2` UV
-
-SPIR-V binaries (`*.spv`) are loaded at runtime from the `shader/` folder.
+2. **Per-frame**
+   - Poll input/events
+   - Run fixed-step player/physics update
+   - `begin_frame(camera)`
+   - Submit world draw commands to `RenderLayer::World3D`
+   - Submit UI draw commands to `RenderLayer::UI2D`
+   - `end_frame()` executes world pass then UI pass and submits the command buffer
 
 ## Controls
 
 | Input | Action |
 | --- | --- |
 | Mouse | Look around |
+| `Tab` | Toggle relative mouse mode |
 | `W` / `S` | Move forward / backward |
 | `A` / `D` | Strafe left / right |
 | `Space` | Jump (Physical) / Move up (Spectator, Builder) |
-| `Left Shift` | Sprint while moving forward (Physical) / Move down (Spectator, Builder) |
-| `P` | Toggle Physical/Spectator mode |
-| `B` | Toggle Physical/Builder mode |
+| `Left Shift` | Sprint forward (Physical) / Move down (Spectator, Builder) |
+| `P` | Toggle Spectator mode |
+| `B` | Toggle Builder mode |
 | `Left Click` | Remove targeted block (Builder) |
 | `Right Click` | Place block on targeted surface (Builder) |
-| `Ctrl` + `S` | Save current map to `custom_map.json` |
-| `R` | Reload the current map/resources |
+| `Ctrl` + `S` | Save map to `custom_map.json` |
+| `R` | Reload current map/resources |
 | `Esc` | Exit |
 
 ## Build and run
@@ -142,21 +118,21 @@ SPIR-V binaries (`*.spv`) are loaded at runtime from the `shader/` folder.
 ### Requirements
 
 - CMake 3.16+
-- C++ toolchain compatible with your local SDL3 packages
-- SDL3 (CMake package: `SDL3::SDL3`)
-- SDL3_image (CMake package: `SDL3_image::SDL3_image`)
+- C++23-capable compiler
+- SDL3 (`SDL3::SDL3`)
+- SDL3_image (`SDL3_image::SDL3_image`)
+- `glslc` (for shader compilation in `shader/`)
 
-### Build
+### Build engine binaries
 
 ```bash
 sh build.sh
 ```
 
-or manually:
+### Build shaders (required)
 
 ```bash
-cmake -B build
-cmake --build build
+make -C shader
 ```
 
 ### Run
@@ -165,37 +141,28 @@ cmake --build build
 ./build/HelloVoxel
 ```
 
-Run with a specific map file:
+Run with a specific map:
 
 ```bash
 ./build/HelloVoxel assets/maps/test_01.json
 ```
 
-### Clean
+### Clean / rebuild
 
 ```bash
 sh clean.sh
-```
-
-### Rebuild
-
-```bash
 sh rebuild.sh
-```
-
-or:
-
-```bash
-sh clean.sh && sh build.sh
 ```
 
 ## Project status
 
-This is an actively growing foundation.  
-Right now it focuses on fundations for a voxel engine (multi-chunk map, textured faces, active physics and collision, camera + controls).
+HelloVoxel is currently a clean, modular voxel-engine foundation with working world interaction and rendering loops.
+
+It is suitable for experimentation and architecture review, and is actively evolving toward stronger editor tooling and larger-world support.
 
 ## Next milestones
 
-- Level editor in free cam.
-- Dynamic lighting and shading pipeline.
-- Chunk streaming optimization for large worlds.
+- Deliver a first practical in-engine level editor workflow (creative-inspired UX)
+- Integrate material and shadow systems into the active render path
+- Improve large-world handling (chunk streaming and related optimizations)
+- Expand gameplay-oriented engine APIs for faster voxel game prototyping
