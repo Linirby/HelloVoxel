@@ -1,5 +1,4 @@
-#ifndef CORE_SDL_SYSTEM
-# define CORE_SDL_SYSTEM
+#pragma once
 
 namespace lili {
 
@@ -9,5 +8,3 @@ struct SDLSystem {
 };
 
 }  // namespace lili
-
-#endif  // CORE_SDL_SYSTEM

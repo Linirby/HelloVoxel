@@ -1,5 +1,4 @@
-#ifndef ENTITY_PLAYER_HPP
-# define ENTITY_PLAYER_HPP
+#pragma once
 
 # include "geometry/vec3.hpp"
 # include "world/map.hpp"
@@ -50,5 +49,3 @@ private:
 };
 
 }  // namespace lili
-
-#endif  // ENTITY_PLAYER_HPP

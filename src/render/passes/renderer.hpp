@@ -1,5 +1,4 @@
-#ifndef RENDER_PASSES_RENDERER_HPP
-# define RENDER_PASSES_RENDERER_HPP
+#pragma once
 
 # include <SDL3/SDL.h>
 
@@ -59,5 +58,3 @@ private:
 };
 
 }  // namespace lili
-
-#endif  // RENDER_PASSES_RENDERER_HPP

@@ -1,5 +1,4 @@
-#ifndef RENDER_CORE_TEXTURE_HPP
-# define RENDER_CORE_TEXTURE_HPP
+#pragma once
 
 # include <SDL3/SDL_gpu.h>
 # include <string>
@@ -23,5 +22,3 @@ private:
 };
 
 }  // namespace lili
-
-#endif  // RENDER_CORE_TEXTURE_HPP

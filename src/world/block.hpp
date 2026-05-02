@@ -1,5 +1,4 @@
-#ifndef WORLD_BLOCK_HPP
-# define WORLD_BLOCK_HPP
+#pragma once
 
 # include <cstdint>
 # include <vector>
@@ -33,5 +32,3 @@ private:
 };
 
 }  // namespace lili
-
-#endif  // WORLD_BLOCK_HPP

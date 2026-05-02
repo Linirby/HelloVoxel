@@ -1,5 +1,4 @@
-#ifndef APP_HPP
-# define APP_HPP
+#pragma once
 
 # include <memory>
 # include <SDL3/SDL.h>
@@ -62,5 +61,3 @@ private:
 	void render();
 	void mainloop();
 };
-
-#endif  // APP_HPP
