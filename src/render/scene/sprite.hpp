@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RENDER_SCENE_SPRITE_HPP
+# define RENDER_SCENE_SPRITE_HPP
 
 # include <SDL3/SDL_gpu.h>
 # include <string>
@@ -31,3 +32,5 @@ private:
 };
 
 }  // namespace lili
+
+#endif  // RENDER_SCENE_SPRITE_HPP

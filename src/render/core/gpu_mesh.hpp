@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RENDER_CORE_GPU_MESH_HPP
+# define RENDER_CORE_GPU_MESH_HPP
 
 # include <SDL3/SDL_gpu.h>
 
@@ -25,3 +26,5 @@ private:
 };
 
 }  // namespace lili
+
+#endif  // RENDER_CORE_GPU_MESH_HPP

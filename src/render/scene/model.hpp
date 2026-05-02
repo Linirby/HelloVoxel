@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RENDER_SCENE_MODEL_HPP
+# define RENDER_SCENE_MODEL_HPP
 
 # include "render/core/gpu_mesh.hpp"
 # include "render/core/texture.hpp"
@@ -14,3 +15,5 @@ struct Model {
 };
 
 }  // namespace lili
+
+#endif  // RENDER_SCENE_MODEL_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MESHING_PRIMITIVE_HPP
+# define MESHING_PRIMITIVE_HPP
 
 # include <vector>
 # include <cstdint>
@@ -19,3 +20,5 @@ struct MeshData {
 MeshData create_unit_quad();
 
 }  // namespace lili
+
+#endif  // MESHING_PRIMITIVE_HPP

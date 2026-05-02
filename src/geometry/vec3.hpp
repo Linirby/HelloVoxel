@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MATH_VEC3_HPP
+# define MATH_VEC3_HPP
 
 # include <cstdint>
 # include <bit>
@@ -31,3 +32,5 @@ struct Vec3 {
 };
 
 } // namespace lili
+
+#endif  // MATH_VEC3_HPP

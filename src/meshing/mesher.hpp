@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MESHING_MESHER_HPP
+# define MESHING_MESHER_HPP
 
 # include "meshing/primitives.hpp"
 # include "world/chunk.hpp"
@@ -11,3 +12,5 @@ public:
 };
 
 }  // namespace lili
+
+#endif  // MESHING_MESHER_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CORE_WINDOW_HPP
+# define CORE_WINDOW_HPP
 
 # include <string>
 # include <array>
@@ -41,3 +42,5 @@ private:
 };
 
 }  // namespace lili
+
+#endif  // CORE_WINDOW_HPP
