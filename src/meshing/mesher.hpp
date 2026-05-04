@@ -5,8 +5,7 @@
 
 namespace lili {
 
-class ChunkMesher {
-public:
+struct ChunkMesher {
 	static MeshData generate_mesh(const Chunk &chunk);
 };
 
