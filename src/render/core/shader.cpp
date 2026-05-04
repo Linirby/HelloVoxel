@@ -41,7 +41,7 @@ Shader::Shader(
 		.num_samplers = 1,
 		.num_storage_textures = 0,
 		.num_storage_buffers = 0,
-		.num_uniform_buffers = 0,
+		.num_uniform_buffers = 1,
 		.props = 0
 	};
 	fragment_shader = SDL_CreateGPUShader(this->device, &fragment_create_info);

@@ -5,6 +5,8 @@
 #include <memory>
 
 #include "render/renderer.hpp"
+#include "render/core/texture.hpp"
+#include "world/material.hpp"
 
 namespace lili {
 
@@ -25,8 +27,9 @@ public:
 	void draw(Renderer *renderer);
 
 private:
-	std::unique_ptr<Texture> texture;
-	std::unique_ptr<GPUMesh> mesh;
+	std::unique_ptr<Texture> texture = nullptr;
+	std::unique_ptr<Material> material = nullptr;
+	std::unique_ptr<GPUMesh> mesh = nullptr;
 	Model model;
 };
 

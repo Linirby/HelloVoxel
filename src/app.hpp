@@ -40,6 +40,7 @@ private:
 	std::string map_path = "assets/maps/test_01.json";
 	lili::Map map;
 	std::unique_ptr<lili::Texture> atlas = nullptr;
+	std::unique_ptr<lili::Material> world_material = nullptr;
 	std::unordered_map<uint64_t, ChunkRenderData> chunk_models;
 
 	lili::Player player;

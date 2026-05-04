@@ -23,6 +23,7 @@ target_link_libraries(LiliCore PRIVATE SDL3::SDL3)
 add_library(LiliGeometry STATIC
 	src/geometry/mat4x4.cpp
 	src/geometry/vec3.cpp
+	src/geometry/vec4.cpp
 )
 target_include_directories(LiliGeometry PUBLIC src)
 
@@ -43,6 +44,7 @@ add_library(LiliWorld STATIC
 	src/world/chunk.cpp
 	src/world/map.cpp
 	src/world/map_manager.cpp
+	src/world/material.cpp
 )
 target_include_directories(LiliWorld PUBLIC src)
 target_link_libraries(LiliWorld PRIVATE LiliGeometry)

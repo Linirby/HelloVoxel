@@ -2,9 +2,9 @@
 
 namespace lili {
 
-Model::Model(GPUMesh *mesh, Texture *texture) {
+Model::Model(GPUMesh *mesh, Material *material) {
 	this->mesh = mesh;
-	this->texture = texture;
+	this->material = material;
 }
 
 }  // namespace lili

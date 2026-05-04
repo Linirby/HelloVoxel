@@ -23,14 +23,12 @@ void WorldPass::render(
 	SDL_BindGPUGraphicsPipeline(current_render_pass, pipeline);
 	for (const DrawCommand &cmd : queue) {
 		Mat4 mvp = proj_view * cmd.transform;
-		SDL_PushGPUVertexUniformData(current_cmd_buffer, 0, &mvp, sizeof(Mat4));
 
 		SDL_GPUBufferBinding vertex_binding{
 			.buffer = cmd.model.mesh->get_vertex(),
 			.offset = 0
 		};
 		SDL_BindGPUVertexBuffers(current_render_pass, 0, &vertex_binding, 1);
-
 		SDL_GPUBufferBinding index_binding{
 			.buffer = cmd.model.mesh->get_index(),
 			.offset = 0
@@ -39,12 +37,20 @@ void WorldPass::render(
 			current_render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT
 		);
 
-		SDL_GPUTextureSamplerBinding atlas_texture_sampler_binding{
-			.texture = cmd.model.texture->get_texture(),
-			.sampler = cmd.model.texture->get_sampler()
+		SDL_GPUTextureSamplerBinding texture_sampler_binding{
+			.texture = cmd.model.material->albedo_map->get_texture(),
+			.sampler = cmd.model.material->albedo_map->get_sampler()
 		};
 		SDL_BindGPUFragmentSamplers(
-			current_render_pass, 0, &atlas_texture_sampler_binding, 1
+			current_render_pass, 0, &texture_sampler_binding, 1
+		);
+
+		SDL_PushGPUVertexUniformData(current_cmd_buffer, 0, &mvp, sizeof(Mat4));
+		SDL_PushGPUFragmentUniformData(
+			current_cmd_buffer,
+			0,
+			&cmd.model.material->properties,
+			sizeof(MaterialProps)
 		);
 
 		SDL_DrawGPUIndexedPrimitives(

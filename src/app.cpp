@@ -1,4 +1,3 @@
-#include <stdexcept>
 #include <iostream>
 
 #include "app.hpp"
@@ -30,8 +29,13 @@ void App::init_resources() {
 	camera = lili::Camera(-90.0f, 0.0f, fov_y);
 	map = lili::load_map(map_path);
 
-	atlas = std::make_unique<lili::Texture>(renderer->get_device(), "assets/cube_atlas.png");
-	if (!atlas) throw std::runtime_error("Atlas texture creation failed!");
+	atlas = std::make_unique<lili::Texture>(
+		renderer->get_device(), "assets/cube_atlas.png"
+	);
+	world_material = std::make_unique<lili::Material>(atlas.get());
+	world_material->properties.color_tint = { 1.0f, 0.9f, 0.8f, 1.0f };
+	world_material->properties.roughness = 0.8f;
+
 	for (const auto &pair : map.chunks)
 		update_chunk_mesh(pair.first);
 	
@@ -54,7 +58,7 @@ void App::update_chunk_mesh(uint64_t key) {
 		renderer->get_device(), chunk_data
 	);
 	auto chunk_model = std::make_unique<lili::Model>(
-		chunk_mesh.get(), atlas.get()
+		chunk_mesh.get(), world_material.get()
 	);
 
 	int chunk_x = static_cast<int16_t>(key >> 32);

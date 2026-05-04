@@ -1,16 +1,16 @@
 #pragma once
 
 #include "render/core/gpu_mesh.hpp"
-#include "render/core/texture.hpp"
+#include "world/material.hpp"
 
 namespace lili {
 
 struct Model {
 	GPUMesh *mesh = nullptr;
-	Texture *texture = nullptr;
+	Material *material = nullptr;
 
 	Model() = default;
-	Model(GPUMesh *mesh, Texture *texture);
+	Model(GPUMesh *mesh, Material *material);
 };
 
 }  // namespace lili
