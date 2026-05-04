@@ -147,6 +147,11 @@ void App::handle_events() {
 				));
 			}
 		}
+		if (event.type == SDL_EVENT_WINDOW_RESIZED) {
+			std::array<int, 2> win_size = window->get_size();
+			renderer->on_window_resized(win_size[0], win_size[1]);
+			crosshair->position = { win_size[0] / 2.0f, win_size[1] / 2.0f, 0 };
+		}
 	}
 }
 

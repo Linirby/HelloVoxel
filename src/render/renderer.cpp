@@ -119,6 +119,23 @@ void Renderer::end_frame() {
 	SDL_SubmitGPUCommandBuffer(current_cmd_buffer);
 }
 
+void Renderer::on_window_resized(int new_width, int new_height) {
+	SDL_ReleaseGPUTexture(device, depth_texture);
+
+	SDL_GPUTextureCreateInfo depth_info{
+		.type = SDL_GPU_TEXTURETYPE_2D,
+		.format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
+		.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
+		.width = static_cast<uint32_t>(new_width),
+		.height = static_cast<uint32_t>(new_height),
+		.layer_count_or_depth = 1,
+		.num_levels = 1
+	};
+	depth_texture = SDL_CreateGPUTexture(device, &depth_info);
+	if (!depth_texture)
+		throw std::runtime_error("Failed to create depth texture");
+}
+
 SDL_GPUDevice *Renderer::get_device() const {
 	return device;
 }
@@ -156,7 +173,7 @@ void Renderer::init_depth_texture() {
 	SDL_GetWindowSize(window->get_sdl_window(), &win_w, &win_h);
 	SDL_GPUTextureCreateInfo depth_info{
 		.type = SDL_GPU_TEXTURETYPE_2D,
-		.format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+		.format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
 		.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
 		.width = static_cast<uint32_t>(win_w),
 		.height = static_cast<uint32_t>(win_h),

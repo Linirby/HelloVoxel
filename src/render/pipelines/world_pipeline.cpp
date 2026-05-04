@@ -90,7 +90,7 @@ WorldPipeline::WorldPipeline(
 		.target_info = {
 			.color_target_descriptions = &color_target_desc,
 			.num_color_targets = 1,
-			.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+			.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
 			.has_depth_stencil_target = true
 		},
 		.props = 0

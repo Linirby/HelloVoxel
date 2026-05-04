@@ -28,6 +28,8 @@ public:
 	void submit(const Model &model, Mat4 transform, RenderLayer layer);
 	void end_frame();
 
+	void on_window_resized(int new_width, int new_height);
+
 	SDL_GPUDevice *get_device() const;
 
 private:

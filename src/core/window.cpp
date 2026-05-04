@@ -4,7 +4,9 @@
 namespace lili {
 
 Window::Window(const std::string &title, int width, int height) {
-	window = SDL_CreateWindow(title.c_str(), width, height, 0);
+	window = SDL_CreateWindow(
+		title.c_str(), width, height, SDL_WINDOW_RESIZABLE
+	);
 	if (!window)
 		throw std::runtime_error(
 			"Failed to create Window: " + std::string(SDL_GetError())
