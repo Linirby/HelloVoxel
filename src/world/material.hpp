@@ -38,6 +38,9 @@ public:
 	const Material &get_material(uint16_t material_id) const;
 	const Material &get_material(uint8_t material_id) const;
 
+	size_t material_count() const;
+	const Material *material_data() const;
+
 private:
 	std::unordered_map<std::string, uint16_t> key_to_id;
 	std::vector<Material> id_to_material;

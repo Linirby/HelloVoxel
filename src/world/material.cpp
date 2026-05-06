@@ -66,4 +66,12 @@ MaterialRegistry::MaterialRegistry() {
 	register_material("core:log_tint", log_tint);
 }
 
+size_t MaterialRegistry::material_count() const {
+	return id_to_material.size();
+}
+
+const Material *MaterialRegistry::material_data() const {
+	return id_to_material.data();
+}
+
 }  // namespace lili

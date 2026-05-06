@@ -10,6 +10,7 @@ public:
 	UIPass(
 		SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline, Shader *shader
 	);
+	~UIPass();
 
 	void render(
 		SDL_GPURenderPass *current_render_pass,
@@ -22,6 +23,7 @@ private:
 	SDL_GPUDevice *device = nullptr;
 	SDL_GPUGraphicsPipeline *pipeline = nullptr;
 	Shader *shader = nullptr;
+	SDL_GPUBuffer *materials_buffer = nullptr;
 };
 
 }  // namespace lili

@@ -27,6 +27,8 @@ MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
 				float py = static_cast<float>(y);
 				float pz = static_cast<float>(z);
 
+				float material_id = static_cast<float>(block_def.material_id);
+
 				for (int face = 0; face < 6; ++face) {
 					int check_x = x + face_normals[face][0];
 					int check_y = y + face_normals[face][1];
@@ -64,12 +66,13 @@ MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
 							float final_u = u_offset + (face_uvs[v][0] * UV_W);
 							float final_v = v_offset + (face_uvs[v][1] * UV_H);
 
-							mesh.vertices.push_back({
+							mesh.vertices.push_back((Vertex){
 								px + face_vertices[face][v][0],
 								py + face_vertices[face][v][1],
 								pz + face_vertices[face][v][2],
 								nx, ny, nz,
-								final_u, final_v
+								final_u, final_v,
+								material_id
 							});
 						}
 
