@@ -17,7 +17,7 @@ MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
 			for (int z = 0; z < Chunk::SIZE; ++z) {
 
 				uint8_t block_id = chunk.get_block(x, y, z);
-				if (block_id == 0) continue; // Skip air
+				if (block_id == 0) continue;
 
 				const BlockDefinition &block_def = (
 					BlockRegistry::get().get_block(block_id)
@@ -40,7 +40,7 @@ MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
 						uint32_t start_idx = static_cast<uint32_t>(
 							mesh.vertices.size()
 						);
-						uint8_t tex_idx;
+						uint16_t tex_idx;
 						switch (face) {
 							case 0: tex_idx = block_def.top_texture; break;
 							case 1: tex_idx = block_def.bottom_texture; break;

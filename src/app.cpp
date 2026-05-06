@@ -107,7 +107,7 @@ void App::handle_events() {
 				camera.process_mouse(event.motion.xrel, event.motion.yrel);
 		if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
 			if (player.mode != lili::PlayerMode::Builder) continue;
-			uint8_t handed_block = lili::BLOCK_ID_DEBUG;
+			uint8_t handed_block = lili::BLOCK_ID_LOG;
 			if (event.button.button == SDL_BUTTON_LEFT) {
 				uint8_t old_block = map.get_block_global(
 					player_raycast.hit_x,

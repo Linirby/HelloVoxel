@@ -45,6 +45,7 @@ add_library(LiliWorld STATIC
 	src/world/map.cpp
 	src/world/map_manager.cpp
 	src/world/material.cpp
+	src/world/texture_registry.cpp
 )
 target_include_directories(LiliWorld PUBLIC src)
 target_link_libraries(LiliWorld PRIVATE LiliGeometry)
