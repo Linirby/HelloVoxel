@@ -8,6 +8,7 @@ layout(location = 3) in float in_material_id;
 layout(location = 0) out vec2 v_uv;
 layout(location = 1) out vec3 v_normal;
 layout(location = 2) flat out uint v_material_id;
+layout(location = 3) out vec3 v_world_pos;
 
 layout(set = 1, binding = 0) uniform UniformBlock {
 	mat4 matrix;
@@ -15,7 +16,9 @@ layout(set = 1, binding = 0) uniform UniformBlock {
 
 void main() {
 	gl_Position = ubo.matrix * vec4(in_pos, 1.0);
+
 	v_uv = in_uv;
 	v_normal = in_normal;
 	v_material_id = uint(in_material_id + 0.5);
+	v_world_pos = in_pos;
 }

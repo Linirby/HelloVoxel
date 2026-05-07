@@ -5,6 +5,12 @@
 
 namespace lili {
 
+struct LightData {
+	Vec4 direction;
+	Vec4 color;
+	Vec4 ambient;
+};
+
 class WorldPass {
 public:
 	WorldPass(
@@ -24,6 +30,7 @@ private:
 	SDL_GPUGraphicsPipeline *pipeline = nullptr;
 	Shader *shader = nullptr;
 	SDL_GPUBuffer *materials_buffer = nullptr;
+	LightData light;
 };
 
 }  // namespace lili

@@ -79,7 +79,7 @@ BlockRegistry::BlockRegistry() {
 		.right_texture = 12,
 		.back_texture = 12,
 		.left_texture = 12,
-		.material_id = MaterialRegistry::get().get_material_id("core:log_tint")
+		.material_id = MaterialRegistry::get().get_material_id("core:log_mat")
 	});
 }
 

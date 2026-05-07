@@ -126,7 +126,12 @@ WorldPass::WorldPass(
 	this->device = device;
 	this->pipeline = pipeline;
 	this->shader = shader;
-	this->materials_buffer = create_materials_buffer(device);
+	materials_buffer = create_materials_buffer(device);
+	light = {
+		.direction = (Vec4){ -0.5f, -1.0f, -0.3f, 0.0f }.normalized(),
+		.color = (Vec4){ 1.0f, 1.0f, 0.9f, 0.75f },
+		.ambient = (Vec4){ 0.15f, 0.15f, 0.2f, 0.0f },
+	};
 }
 
 WorldPass::~WorldPass() {
@@ -171,12 +176,9 @@ void WorldPass::render(
 		);
 
 		SDL_PushGPUVertexUniformData(current_cmd_buffer, 0, &mvp, sizeof(Mat4));
-		// SDL_PushGPUFragmentUniformData(
-		// 	current_cmd_buffer,
-		// 	0,
-		// 	&cmd.model.material->properties,
-		// 	sizeof(MaterialProps)
-		// );
+		SDL_PushGPUFragmentUniformData(
+			current_cmd_buffer, 0, &light, sizeof(LightData)
+		);
 
 		SDL_DrawGPUIndexedPrimitives(
 			current_render_pass,

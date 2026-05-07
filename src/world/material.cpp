@@ -61,9 +61,9 @@ const Material &MaterialRegistry::get_material(uint8_t material_id) const {
 MaterialRegistry::MaterialRegistry() {
 	register_material("core:missing", Material());
 
-	Material log_tint;
-	log_tint.properties.color_tint = { 1.0f, 0.9f, 0.4f, 1.0f };
-	register_material("core:log_tint", log_tint);
+	Material log_mat;
+	log_mat.properties.color_tint = { 1.0f, 0.9f, 0.4f, 1.0f };
+	register_material("core:log_mat", log_mat);
 }
 
 size_t MaterialRegistry::material_count() const {
