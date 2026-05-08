@@ -33,7 +33,12 @@ SDL_GPUBuffer *create_materials_buffer(SDL_GPUDevice *device) {
 			static_cast<uint16_t>(i)
 		).properties;
 		gpu_materials.push_back({
-			{ props.color_tint.x, props.color_tint.y, props.color_tint.z, props.color_tint.w },
+			{
+				props.color_tint.x,
+				props.color_tint.y,
+				props.color_tint.z,
+				props.color_tint.w
+			},
 			props.roughness,
 			props.metallic,
 			props.emission,
@@ -116,11 +121,10 @@ SDL_GPUBuffer *create_materials_buffer(SDL_GPUDevice *device) {
 }  // namespace
 
 UIPass::UIPass(
-	SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline, Shader *shader
+	SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline
 ) {
 	this->device = device;
 	this->pipeline = pipeline;
-	this->shader = shader;
 	this->materials_buffer = create_materials_buffer(device);
 }
 
@@ -131,54 +135,42 @@ UIPass::~UIPass() {
 }
 
 void UIPass::render(
-	SDL_GPURenderPass *current_render_pass,
-	SDL_GPUCommandBuffer *current_cmd_buffer,
+	SDL_GPURenderPass *pass,
+	SDL_GPUCommandBuffer *cmd,
 	const Mat4 &proj_view,
 	const std::vector<DrawCommand> &queue
 ) {
 	if (queue.empty()) return;
 
-	SDL_BindGPUGraphicsPipeline(current_render_pass, pipeline);
-	SDL_BindGPUFragmentStorageBuffers(current_render_pass, 0, &materials_buffer, 1);
+	SDL_BindGPUGraphicsPipeline(pass, pipeline);
+	SDL_BindGPUFragmentStorageBuffers(pass, 0, &materials_buffer, 1);
 
-	for (const DrawCommand &cmd : queue) {
-		Mat4 mvp = proj_view * cmd.transform;
+	for (const DrawCommand &draw_cmd : queue) {
+		Mat4 mvp = proj_view * draw_cmd.transform;
+		SDL_PushGPUVertexUniformData(cmd, 0, &mvp, sizeof(Mat4));
 
 		SDL_GPUBufferBinding vertex_binding{
-			.buffer = cmd.model.mesh->get_vertex(),
+			.buffer = draw_cmd.model.mesh->get_vertex(),
 			.offset = 0
 		};
-		SDL_BindGPUVertexBuffers(current_render_pass, 0, &vertex_binding, 1);
+		SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
+
 		SDL_GPUBufferBinding index_binding{
-			.buffer = cmd.model.mesh->get_index(),
+			.buffer = draw_cmd.model.mesh->get_index(),
 			.offset = 0
 		};
 		SDL_BindGPUIndexBuffer(
-			current_render_pass,
-			&index_binding,
-			SDL_GPU_INDEXELEMENTSIZE_32BIT
+			pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT
 		);
 
 		SDL_GPUTextureSamplerBinding texture_sampler_binding{
-			.texture = cmd.model.material->albedo_map->get_texture(),
-			.sampler = cmd.model.material->albedo_map->get_sampler()
+			.texture = draw_cmd.model.material->albedo_map->get_texture(),
+			.sampler = draw_cmd.model.material->albedo_map->get_sampler()
 		};
-		SDL_BindGPUFragmentSamplers(
-			current_render_pass, 0, &texture_sampler_binding, 1
-		);
-
-		SDL_PushGPUVertexUniformData(current_cmd_buffer, 0, &mvp, sizeof(Mat4));
-		// SDL_PushGPUFragmentUniformData(
-		// 	current_cmd_buffer,
-		// 	0,
-		// 	&cmd.model.material->properties,
-		// 	sizeof(MaterialProps)
-		// );
+		SDL_BindGPUFragmentSamplers(pass, 0, &texture_sampler_binding, 1);
 
 		SDL_DrawGPUIndexedPrimitives(
-			current_render_pass,
-			cmd.model.mesh->get_index_count(),
-			1, 0, 0, 0
+			pass, draw_cmd.model.mesh->get_index_count(), 1, 0, 0, 0
 		);
 	}
 }

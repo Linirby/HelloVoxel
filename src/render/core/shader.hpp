@@ -11,12 +11,21 @@ struct CodeInfo {
 	std::vector<char> buffer;
 };
 
+struct ShaderInfo {
+	uint32_t num_samplers = 0;
+	uint32_t num_storage_textures = 0;
+	uint32_t num_storage_buffers = 0;
+	uint32_t num_uniform_buffers = 0;
+};
+
 class Shader {
 public:
 	Shader(
 		SDL_GPUDevice *device,
 		const std::string &vert_path,
-		const std::string &frag_path
+		const std::string &frag_path,
+		ShaderInfo vert_infos = {},
+		ShaderInfo frag_infos = {}
 	);
 	~Shader();
 

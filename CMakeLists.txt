@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(HelloVoxel)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(SDL3 REQUIRED CONFIG)
@@ -87,6 +87,7 @@ add_library(LiliRender STATIC
 
 	src/render/pipelines/ui_pipeline.cpp
 	src/render/pipelines/world_pipeline.cpp
+	src/render/pipelines/shadow_pipeline.cpp
 
 	src/render/scene/camera.cpp
 	src/render/scene/model.cpp

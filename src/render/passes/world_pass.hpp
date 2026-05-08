@@ -1,7 +1,6 @@
 #pragma once
 
 #include "render/passes/pass_types.hpp"
-#include "render/core/shader.hpp"
 
 namespace lili {
 
@@ -13,22 +12,22 @@ struct LightData {
 
 class WorldPass {
 public:
-	WorldPass(
-		SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline, Shader *shader
-	);
+	WorldPass(SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline);
 	~WorldPass();
 
 	void render(
-		SDL_GPURenderPass *current_render_pass,
-		SDL_GPUCommandBuffer *current_cmd_buffer,
-		const Mat4 &proj_view,
+		SDL_GPURenderPass *pass,
+		SDL_GPUCommandBuffer *cmd,
+		const Mat4 &cam_proj_view,
+		const Mat4 &light_proj_view,
+		SDL_GPUTexture *shadow_map,
+		SDL_GPUSampler *shadow_sampler,
 		const std::vector<DrawCommand> &queue
 	);
 
 private:
 	SDL_GPUDevice *device = nullptr;
 	SDL_GPUGraphicsPipeline *pipeline = nullptr;
-	Shader *shader = nullptr;
 	SDL_GPUBuffer *materials_buffer = nullptr;
 	LightData light;
 };

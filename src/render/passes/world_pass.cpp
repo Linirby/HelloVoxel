@@ -121,11 +121,10 @@ SDL_GPUBuffer *create_materials_buffer(SDL_GPUDevice *device) {
 }  // namespace
 
 WorldPass::WorldPass(
-	SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline, Shader *shader
+	SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline
 ) {
 	this->device = device;
 	this->pipeline = pipeline;
-	this->shader = shader;
 	materials_buffer = create_materials_buffer(device);
 	light = {
 		.direction = (Vec4){ -0.5f, -1.0f, -0.3f, 0.0f }.normalized(),
@@ -141,49 +140,53 @@ WorldPass::~WorldPass() {
 }
 
 void WorldPass::render(
-	SDL_GPURenderPass *current_render_pass,
-	SDL_GPUCommandBuffer *current_cmd_buffer,
-	const Mat4 &proj_view,
+	SDL_GPURenderPass *pass,
+	SDL_GPUCommandBuffer *cmd,
+	const Mat4 &cam_proj_view,
+	const Mat4 &light_proj_view,
+	SDL_GPUTexture *shadow_map,
+	SDL_GPUSampler *shadow_sampler,
 	const std::vector<DrawCommand> &queue
 ) {
 	if (queue.empty()) return;
 	
-	SDL_BindGPUGraphicsPipeline(current_render_pass, pipeline);
-	SDL_BindGPUFragmentStorageBuffers(current_render_pass, 0, &materials_buffer, 1);
+	SDL_BindGPUGraphicsPipeline(pass, pipeline);
+	SDL_GPUTextureSamplerBinding shadow_bind{
+		.texture = shadow_map, .sampler = shadow_sampler
+	};
+	SDL_BindGPUFragmentSamplers(pass, 1, &shadow_bind, 1);
+	SDL_BindGPUFragmentStorageBuffers(pass, 0, &materials_buffer, 1);
 
-	for (const DrawCommand &cmd : queue) {
-		Mat4 mvp = proj_view * cmd.transform;
+	for (const DrawCommand &draw_cmd : queue) {
+		Mat4 cam_mvp = cam_proj_view * draw_cmd.transform;
+		SDL_PushGPUVertexUniformData(cmd, 0, &cam_mvp, sizeof(Mat4));
+
+		Mat4 light_mvp = light_proj_view * draw_cmd.transform;
+		SDL_PushGPUVertexUniformData(cmd, 1, &light_mvp, sizeof(Mat4));
 
 		SDL_GPUBufferBinding vertex_binding{
-			.buffer = cmd.model.mesh->get_vertex(),
+			.buffer = draw_cmd.model.mesh->get_vertex(),
 			.offset = 0
 		};
-		SDL_BindGPUVertexBuffers(current_render_pass, 0, &vertex_binding, 1);
+		SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
 		SDL_GPUBufferBinding index_binding{
-			.buffer = cmd.model.mesh->get_index(),
+			.buffer = draw_cmd.model.mesh->get_index(),
 			.offset = 0
 		};
 		SDL_BindGPUIndexBuffer(
-			current_render_pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT
+			pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT
 		);
 
-		SDL_GPUTextureSamplerBinding texture_sampler_binding{
-			.texture = cmd.model.material->albedo_map->get_texture(),
-			.sampler = cmd.model.material->albedo_map->get_sampler()
+		SDL_GPUTextureSamplerBinding albedo_bind{
+			.texture = draw_cmd.model.material->albedo_map->get_texture(),
+			.sampler = draw_cmd.model.material->albedo_map->get_sampler()
 		};
-		SDL_BindGPUFragmentSamplers(
-			current_render_pass, 0, &texture_sampler_binding, 1
-		);
+		SDL_BindGPUFragmentSamplers(pass, 0, &albedo_bind, 1);
 
-		SDL_PushGPUVertexUniformData(current_cmd_buffer, 0, &mvp, sizeof(Mat4));
-		SDL_PushGPUFragmentUniformData(
-			current_cmd_buffer, 0, &light, sizeof(LightData)
-		);
+		SDL_PushGPUFragmentUniformData(cmd, 0, &light, sizeof(LightData));
 
 		SDL_DrawGPUIndexedPrimitives(
-			current_render_pass,
-			cmd.model.mesh->get_index_count(),
-			1, 0, 0, 0
+			pass, draw_cmd.model.mesh->get_index_count(), 1, 0, 0, 0
 		);
 	}
 }

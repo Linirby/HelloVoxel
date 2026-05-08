@@ -7,7 +7,9 @@ namespace lili {
 Shader::Shader(
 	SDL_GPUDevice *device,
 	const std::string &vert_path,
-	const std::string &frag_path
+	const std::string &frag_path,
+	ShaderInfo vert_infos,
+	ShaderInfo frag_infos
 ) {
 	this->device = device;
 	CodeInfo vertex_code_info = get_code_info(vert_path);
@@ -17,10 +19,10 @@ Shader::Shader(
 		.entrypoint = "main",
 		.format = SDL_GPU_SHADERFORMAT_SPIRV,
 		.stage = SDL_GPU_SHADERSTAGE_VERTEX,
-		.num_samplers = 0,
-		.num_storage_textures = 0,
-		.num_storage_buffers = 0,
-		.num_uniform_buffers = 1,
+		.num_samplers = vert_infos.num_samplers,
+		.num_storage_textures = vert_infos.num_storage_textures,
+		.num_storage_buffers = vert_infos.num_storage_buffers,
+		.num_uniform_buffers = vert_infos.num_uniform_buffers,
 		.props = 0
 	};
 	vertex_shader = SDL_CreateGPUShader(this->device, &vertex_create_info);
@@ -38,10 +40,10 @@ Shader::Shader(
 		.entrypoint = "main",
 		.format = SDL_GPU_SHADERFORMAT_SPIRV,
 		.stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-		.num_samplers = 1,
-		.num_storage_textures = 0,
-		.num_storage_buffers = 1,
-		.num_uniform_buffers = 1,
+		.num_samplers = frag_infos.num_samplers,
+		.num_storage_textures = frag_infos.num_storage_textures,
+		.num_storage_buffers = frag_infos.num_storage_buffers,
+		.num_uniform_buffers = frag_infos.num_uniform_buffers,
 		.props = 0
 	};
 	fragment_shader = SDL_CreateGPUShader(this->device, &fragment_create_info);

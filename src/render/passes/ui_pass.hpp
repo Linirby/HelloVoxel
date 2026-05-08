@@ -1,20 +1,17 @@
 #pragma once
 
 #include "render/passes/pass_types.hpp"
-#include "render/core/shader.hpp"
 
 namespace lili {
 
 class UIPass {
 public:
-	UIPass(
-		SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline, Shader *shader
-	);
+	UIPass(SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline);
 	~UIPass();
 
 	void render(
-		SDL_GPURenderPass *current_render_pass,
-		SDL_GPUCommandBuffer *current_cmd_buffer,
+		SDL_GPURenderPass *pass,
+		SDL_GPUCommandBuffer *cmd,
 		const Mat4 &proj_view,
 		const std::vector<DrawCommand> &queue
 	);
@@ -22,7 +19,6 @@ public:
 private:
 	SDL_GPUDevice *device = nullptr;
 	SDL_GPUGraphicsPipeline *pipeline = nullptr;
-	Shader *shader = nullptr;
 	SDL_GPUBuffer *materials_buffer = nullptr;
 };
 

@@ -12,9 +12,11 @@
 #include "render/passes/pass_types.hpp"
 #include "render/passes/world_pass.hpp"
 #include "render/passes/ui_pass.hpp"
+#include "render/passes/shadow_pass.hpp"
 
 #include "render/pipelines/world_pipeline.hpp"
 #include "render/pipelines/ui_pipeline.hpp"
+#include "render/pipelines/shadow_pipeline.hpp"
 
 namespace lili {
 
@@ -28,6 +30,8 @@ public:
 	void submit(const Model &model, Mat4 transform, RenderLayer layer);
 	void end_frame();
 
+	void set_light_matrix(const Mat4 &light_proj_view);
+
 	void on_window_resized(int new_width, int new_height);
 
 	SDL_GPUDevice *get_device() const;
@@ -38,26 +42,35 @@ private:
 
 	SDL_GPUTexture *depth_texture = nullptr;
 
+	SDL_GPUTexture *shadow_map_texture = nullptr;
+	SDL_GPUSampler *shadow_sampler = nullptr;
+
+	SDL_GPUTexture *current_swapchain_texture = nullptr;
+
 	Shader *world_shader = nullptr;
 	Shader *ui_shader = nullptr;
+	Shader *shadow_shader = nullptr;
 
 	WorldPipeline *world_pipeline = nullptr;
 	UIPipeline *ui_pipeline = nullptr;
+	ShadowPipeline *shadow_pipeline = nullptr;
 
 	SDL_GPUCommandBuffer *current_cmd_buffer = nullptr;
-	SDL_GPURenderPass *current_render_pass = nullptr;
 
 	WorldPass *world_pass = nullptr;
 	UIPass *ui_pass = nullptr;
+	ShadowPass *shadow_pass = nullptr;
 
 	std::vector<DrawCommand> world_queue;
 	std::vector<DrawCommand> ui_queue;
 
 	Mat4 projection_view_3d;
 	Mat4 projection_2d;
+	Mat4 light_projection_view;
 
 	void init_device();
 	void init_depth_texture();
+	void init_shadow_resources();
 	void init_shaders();
 	void init_pipelines();
 	void init_passes();

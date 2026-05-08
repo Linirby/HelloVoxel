@@ -47,6 +47,21 @@ void App::init_resources() {
 		(lili::Vec3){ 18.0f, 18.0f, 1.0f },
 		(lili::Vec3){ 0.0f, 0.0f, 0.0f }
 	);
+
+	lili::Vec3 light_dir = lili::Vec3{ -0.5f, -1.0f, -0.3f }.normalized();
+	lili::Vec3 scene_center = lili::Vec3{ 0.0f, 0.0f, 0.0f };
+	float shadow_dist = 160.0f;
+	float ortho_half = 80.0f;
+	lili::Vec3 light_pos = scene_center - light_dir * shadow_dist;
+	lili::Mat4 light_view = lili::Mat4::look_at(
+		light_pos, scene_center, lili::Vec3{ 0.0f, 1.0f, 0.0f }
+	);
+	lili::Mat4 light_proj = lili::Mat4::orthographic(
+		-ortho_half, ortho_half,
+		ortho_half, -ortho_half,
+		0.1f, shadow_dist * 2.0f
+	);
+	renderer->set_light_matrix(light_proj * light_view);
 }
 
 void App::update_chunk_mesh(uint64_t key) {

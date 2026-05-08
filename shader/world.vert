@@ -9,13 +9,19 @@ layout(location = 0) out vec2 v_uv;
 layout(location = 1) out vec3 v_normal;
 layout(location = 2) flat out uint v_material_id;
 layout(location = 3) out vec3 v_world_pos;
+layout(location = 4) out vec4 v_light_pos;
 
-layout(set = 1, binding = 0) uniform UniformBlock {
+layout(set = 1, binding = 0) uniform CameraMVP {
 	mat4 matrix;
-} ubo;
+} u_camera;
+
+layout(set = 1, binding = 1) uniform LightMVP {
+	mat4 matrix;
+} u_light;
 
 void main() {
-	gl_Position = ubo.matrix * vec4(in_pos, 1.0);
+	gl_Position = u_camera.matrix * vec4(in_pos, 1.0);
+	v_light_pos = u_light.matrix * vec4(in_pos, 1.0);
 
 	v_uv = in_uv;
 	v_normal = in_normal;

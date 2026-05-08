@@ -46,8 +46,9 @@ private:
 	lili::Player player;
 	lili::RaycastResult player_raycast;
 	lili::Camera camera;
-
 	std::unique_ptr<lili::Sprite> crosshair = nullptr;
+
+	lili::Mat4 light_proj_view;	
 	
 	bool is_running = false;
 
