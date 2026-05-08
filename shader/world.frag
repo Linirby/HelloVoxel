@@ -7,7 +7,7 @@ layout(location = 3) in vec3 v_world_pos;
 layout(location = 4) in vec4 v_light_pos;
 
 layout(set = 2, binding = 0) uniform sampler2D u_albedo_map;
-layout(set = 2, binding = 1) uniform sampler2D u_shadow_map;
+layout(set = 2, binding = 1) uniform sampler2DShadow u_shadow_map;
 
 struct MaterialGPU {
 	vec4 color_tint;
@@ -40,21 +40,28 @@ float compute_shadow(vec4 light_clip) {
 		return 1.0;
 	}
 	
-	float cos_angle = max(
-		dot(normalize(v_normal), -u_light.direction.xyz), 0.0
+	float ndotl = max(
+		dot(normalize(v_normal), -normalize(u_light.direction.xyz)), 0.0
 	);
-	float bias = mix(0.0025, 0.00025, cos_angle);
+	float normal_bias = max(0.0015 * (1.0 - ndotl), 0.0002);
+	float receiver_bias = 2.0 * max(
+		abs(dFdx(current_depth)),
+		abs(dFdy(current_depth))
+	);
+	float bias = normal_bias + receiver_bias;
 
-	float shadow = 0.0;
+	float visibility = 0.0;
 	vec2 texel = 1.0 / vec2(textureSize(u_shadow_map, 0));
 
-	for (int x = -1; x <= 1; ++x) {
-		for (int y = -1; y <= 1; ++y) {
-			float sm_depth = texture(u_shadow_map, uv + vec2(x, y) * texel).r;
-			shadow += (current_depth - bias > sm_depth) ? 1.0 : 0.0;
+	for (int x = -2; x <= 2; ++x) {
+		for (int y = -2; y <= 2; ++y) {
+			vec2 offset = vec2(x, y) * texel;
+			visibility += texture(
+				u_shadow_map, vec3(uv + offset, current_depth - bias)
+			);
 		}
 	}
-	return 1.0 - shadow / 9.0;
+	return visibility / 25.0;
 }
 
 void main() {

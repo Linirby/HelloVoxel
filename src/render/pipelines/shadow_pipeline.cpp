@@ -38,11 +38,11 @@ ShadowPipeline::ShadowPipeline(
 		.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
 		.rasterizer_state = {
 			.fill_mode = SDL_GPU_FILLMODE_FILL,
-			.cull_mode = SDL_GPU_CULLMODE_NONE,
+			.cull_mode = SDL_GPU_CULLMODE_BACK,
 			.front_face = SDL_GPU_FRONTFACE_CLOCKWISE,
-			.depth_bias_constant_factor = 0.75f,
+			.depth_bias_constant_factor = 0.35f,
 			.depth_bias_clamp = 0.0f,
-			.depth_bias_slope_factor = 0.75f,
+			.depth_bias_slope_factor = 0.9f,
 			.enable_depth_bias = true,
 			.enable_depth_clip = true
 		},

@@ -235,15 +235,16 @@ void Renderer::init_shadow_resources() {
 		);
 
 	SDL_GPUSamplerCreateInfo samp_info{
-		.min_filter = SDL_GPU_FILTER_NEAREST,
-		.mag_filter = SDL_GPU_FILTER_NEAREST,
+		.min_filter = SDL_GPU_FILTER_LINEAR,
+		.mag_filter = SDL_GPU_FILTER_LINEAR,
 		.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
 		.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
 		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
 		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+		.compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
 		.min_lod = 0.0f,
 		.max_lod = 1.0f,
-		.enable_compare = false
+		.enable_compare = true
 	};
 	shadow_sampler = SDL_CreateGPUSampler(device, &samp_info);
 	if (!shadow_sampler)
