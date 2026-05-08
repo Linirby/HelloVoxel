@@ -43,12 +43,12 @@ float compute_shadow(vec4 light_clip) {
 	float ndotl = max(
 		dot(normalize(v_normal), -normalize(u_light.direction.xyz)), 0.0
 	);
-	float normal_bias = max(0.0015 * (1.0 - ndotl), 0.0002);
-	float receiver_bias = 2.0 * max(
+	float normal_bias = max(0.00045 * (1.0 - ndotl), 0.00012);
+	float receiver_bias = 0.75 * max(
 		abs(dFdx(current_depth)),
 		abs(dFdy(current_depth))
 	);
-	float bias = normal_bias + receiver_bias;
+	float bias = min(normal_bias + receiver_bias, 0.0005);
 
 	float visibility = 0.0;
 	vec2 texel = 1.0 / vec2(textureSize(u_shadow_map, 0));

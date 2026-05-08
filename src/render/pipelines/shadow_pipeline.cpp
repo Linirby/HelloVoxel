@@ -42,7 +42,7 @@ ShadowPipeline::ShadowPipeline(
 			.front_face = SDL_GPU_FRONTFACE_CLOCKWISE,
 			.depth_bias_constant_factor = 0.35f,
 			.depth_bias_clamp = 0.0f,
-			.depth_bias_slope_factor = 0.9f,
+			.depth_bias_slope_factor = 1.0f,
 			.enable_depth_bias = true,
 			.enable_depth_clip = true
 		},
