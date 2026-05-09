@@ -1,4 +1,6 @@
 #include <iostream>
+#include <stdexcept>
+#include <vector>
 
 #include "app.hpp"
 
@@ -23,6 +25,8 @@ void App::init_core() {
 }
 
 void App::init_resources() {
+	clear_world_render_cache();
+
 	player = lili::Player({
 		.position = { 0.5f, 3.0, 0.5f },
 	});
@@ -32,7 +36,10 @@ void App::init_resources() {
 	atlas = std::make_unique<lili::Texture>(
 		renderer->get_device(), "assets/cube_atlas.png"
 	);
+	if (!atlas) throw std::runtime_error("Failed to init atlas");
 	world_material = std::make_unique<lili::Material>(atlas.get());
+	if (!world_material)
+		throw std::runtime_error("Failed to init world material");
 	world_material->properties.color_tint = { 1.0f, 0.9f, 0.8f, 1.0f };
 	world_material->properties.roughness = 0.8f;
 
@@ -47,19 +54,32 @@ void App::init_resources() {
 		(lili::Vec3){ 18.0f, 18.0f, 1.0f },
 		(lili::Vec3){ 0.0f, 0.0f, 0.0f }
 	);
+	if (!crosshair) throw std::runtime_error("Failed to init crosshair sprite");
+}
+
+void App::clear_world_render_cache() {
+	chunk_models.clear();
 }
 
 void App::update_chunk_mesh(uint64_t key) {
-	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(
-		map.chunks[key]
-	);
-	if (chunk_data.vertices.empty()) return;
+	auto chunk_it = map.chunks.find(key);
+	if (chunk_it == map.chunks.end()) {
+		chunk_models.erase(key);
+		return;
+	}
+	lili::MeshData chunk_data = lili::ChunkMesher::generate_mesh(chunk_it->second);
+	if (chunk_data.vertices.empty()) {
+		chunk_models.erase(key);
+		return;
+	}
 	auto chunk_mesh = std::make_unique<lili::GPUMesh>(
 		renderer->get_device(), chunk_data
 	);
+	if (!chunk_mesh) throw std::runtime_error("Failed to create chunk GPUMesh");
 	auto chunk_model = std::make_unique<lili::Model>(
 		chunk_mesh.get(), world_material.get()
 	);
+	if (!chunk_model) throw std::runtime_error("Failed to create chunk model");
 
 	int chunk_x = static_cast<int16_t>(key >> 32);
 	int chunk_y = static_cast<int16_t>(key >> 16);
@@ -73,6 +93,36 @@ void App::update_chunk_mesh(uint64_t key) {
 	chunk_models[key] = ChunkRenderData{
 		std::move(chunk_mesh), std::move(chunk_model), transform
 	};
+}
+
+void App::remesh_chunks_affected_by_block(int x, int y, int z) {
+	const int chunk_x = x >> 4;
+	const int chunk_y = y >> 4;
+	const int chunk_z = z >> 4;
+	const int local_x = x & 15;
+	const int local_y = y & 15;
+	const int local_z = z & 15;
+
+	std::vector<uint64_t> keys;
+	auto push_unique_key = [&](int cx, int cy, int cz) {
+		const uint64_t key = map.get_chunk_key(cx, cy, cz);
+		for (const uint64_t existing_key : keys) {
+			if (existing_key == key) return;
+		}
+		keys.push_back(key);
+	};
+
+	push_unique_key(chunk_x, chunk_y, chunk_z);
+	if (local_x == 0) push_unique_key(chunk_x - 1, chunk_y, chunk_z);
+	if (local_x == 15) push_unique_key(chunk_x + 1, chunk_y, chunk_z);
+	if (local_y == 0) push_unique_key(chunk_x, chunk_y - 1, chunk_z);
+	if (local_y == 15) push_unique_key(chunk_x, chunk_y + 1, chunk_z);
+	if (local_z == 0) push_unique_key(chunk_x, chunk_y, chunk_z - 1);
+	if (local_z == 15) push_unique_key(chunk_x, chunk_y, chunk_z + 1);
+
+	for (const uint64_t key : keys) {
+		update_chunk_mesh(key);
+	}
 }
 
 void App::handle_events() {
@@ -92,6 +142,7 @@ void App::handle_events() {
 
 			if (event.key.key == SDLK_R) {
 				if (renderer) SDL_WaitForGPUIdle(renderer->get_device());
+				clear_world_render_cache();
 				init_resources();
 			}
 
@@ -107,6 +158,7 @@ void App::handle_events() {
 				camera.process_mouse(event.motion.xrel, event.motion.yrel);
 		if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
 			if (player.mode != lili::PlayerMode::Builder) continue;
+			if (!player_raycast.hit) continue;
 			uint8_t handed_block = lili::BLOCK_ID_LOG;
 			if (event.button.button == SDL_BUTTON_LEFT) {
 				uint8_t old_block = map.get_block_global(
@@ -114,18 +166,18 @@ void App::handle_events() {
 					player_raycast.hit_y,
 					player_raycast.hit_z
 				);
-				if (old_block == 0) continue;
+				if (old_block == lili::BLOCK_ID_AIR) continue;
 				map.set_block_global(
 					lili::BLOCK_ID_AIR,
 					player_raycast.hit_x,
 					player_raycast.hit_y,
 					player_raycast.hit_z
 				);
-				update_chunk_mesh(map.get_chunk_key(
-					player_raycast.hit_x >> 4,
-					player_raycast.hit_y >> 4,
-					player_raycast.hit_z >> 4
-				));
+				remesh_chunks_affected_by_block(
+					player_raycast.hit_x,
+					player_raycast.hit_y,
+					player_raycast.hit_z
+				);
 			}
 			if (event.button.button == SDL_BUTTON_RIGHT) {
 				uint8_t old_block = map.get_block_global(
@@ -133,18 +185,18 @@ void App::handle_events() {
 					player_raycast.adj_y,
 					player_raycast.adj_z
 				);
-				if (old_block == 1) continue;
+				if (old_block != lili::BLOCK_ID_AIR) continue;
 				map.set_block_global(
 					handed_block,
 					player_raycast.adj_x,
 					player_raycast.adj_y,
 					player_raycast.adj_z
 				);
-				update_chunk_mesh(map.get_chunk_key(
-					player_raycast.adj_x >> 4,
-					player_raycast.adj_y >> 4,
-					player_raycast.adj_z >> 4
-				));
+				remesh_chunks_affected_by_block(
+					player_raycast.adj_x,
+					player_raycast.adj_y,
+					player_raycast.adj_z
+				);
 			}
 		}
 		if (event.type == SDL_EVENT_WINDOW_RESIZED) {
@@ -184,7 +236,7 @@ void App::update(float dt) {
 		temp_fps = 0;
 	}
 
-	std::cout << "FPS: " << fps << '\n';
+	// std::cout << "FPS: " << fps << '\n';
 }
 
 void App::fixed_update(float dt) {
@@ -234,7 +286,7 @@ void App::mainloop() {
             frame_time = 0.25f;
         }
         accumulator += frame_time;
-        handle_events(); 
+        handle_events();
         while (accumulator >= fixed_dt) {
             fixed_update(fixed_dt); 
             accumulator -= fixed_dt;

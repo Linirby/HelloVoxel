@@ -54,12 +54,15 @@ private:
 	float second_counter = 0.0f;
 	int temp_fps = 0;
 	int fps = 0;
+
 	bool is_running = false;
 
 	void init_core();
 	void init_resources();
+	void clear_world_render_cache();
 
 	void update_chunk_mesh(uint64_t key);
+	void remesh_chunks_affected_by_block(int x, int y, int z);
 
 	void handle_events();
 	void update(float dt);
