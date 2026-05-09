@@ -236,7 +236,7 @@ void App::update(float dt) {
 		temp_fps = 0;
 	}
 
-	// std::cout << "FPS: " << fps << '\n';
+	std::cout << "FPS: " << fps << '\n';
 }
 
 void App::fixed_update(float dt) {
