@@ -174,6 +174,17 @@ void App::update(float dt) {
 		0.1f, shadow_dist * 2.0f
 	);
 	renderer->set_light_matrix(light_proj * light_view);
+
+	if (second_counter <= 1.0f) {
+		second_counter += dt;
+		temp_fps++;
+	} else {
+		fps = temp_fps;
+		second_counter = 0.0f;
+		temp_fps = 0;
+	}
+
+	std::cout << "FPS: " << fps << '\n';
 }
 
 void App::fixed_update(float dt) {

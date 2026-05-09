@@ -50,6 +50,10 @@ private:
 
 	lili::Mat4 light_proj_view;	
 	
+	// Extra
+	float second_counter = 0.0f;
+	int temp_fps = 0;
+	int fps = 0;
 	bool is_running = false;
 
 	void init_core();

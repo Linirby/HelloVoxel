@@ -53,7 +53,7 @@ Vec3 Vec3::normalized() const {
 	if (sq_len == 0.0f) {
 		return { 0.0f, 0.0f, 0.0f };
 	}
-	return *this * rsqrt(sq_len);
+	return *this * (1 / std::sqrt(sq_len));
 }
 
 float Vec3::length() const {
