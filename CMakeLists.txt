@@ -92,6 +92,7 @@ add_library(LiliRender STATIC
 	src/render/scene/camera.cpp
 	src/render/scene/model.cpp
 	src/render/scene/sprite.cpp
+	src/render/scene/ui_text.cpp
 )
 target_include_directories(LiliRender PUBLIC src)
 target_link_libraries(LiliRender PRIVATE

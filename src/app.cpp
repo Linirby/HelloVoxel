@@ -50,11 +50,18 @@ void App::init_resources() {
 	crosshair = std::make_unique<lili::Sprite>(
 		renderer->get_device(),
 		"assets/crosshair.png",
-		(lili::Vec3){ win_size[0] / 2.0f, win_size[1] / 2.0f, 0.0f },
+		(lili::Vec3){ win_size[0] / 2.0f, win_size[1] / 2.0f + 300, 0.0f },
 		(lili::Vec3){ 18.0f, 18.0f, 1.0f },
 		(lili::Vec3){ 0.0f, 0.0f, 0.0f }
 	);
 	if (!crosshair) throw std::runtime_error("Failed to init crosshair sprite");
+
+	font = std::make_unique<lili::BitmapFont>(
+		renderer->get_device(), "assets/lili_font.png"
+	);
+	fps_text = std::make_unique<lili::UIText>(
+		renderer->get_device(), font.get(), "FPS:Loading"
+	);
 }
 
 void App::clear_world_render_cache() {
@@ -201,8 +208,10 @@ void App::handle_events() {
 		}
 		if (event.type == SDL_EVENT_WINDOW_RESIZED) {
 			std::array<int, 2> win_size = window->get_size();
-			renderer->on_window_resized(win_size[0], win_size[1]);
-			crosshair->position = { win_size[0] / 2.0f, win_size[1] / 2.0f, 0 };
+			win_w = win_size[0];
+			win_h = win_size[1];      
+			renderer->on_window_resized(win_w, win_h);
+			crosshair->position = { win_w / 2.0f, win_h / 2.0f, 0 };
 		}
 	}
 }
@@ -232,11 +241,10 @@ void App::update(float dt) {
 		temp_fps++;
 	} else {
 		fps = temp_fps;
+		fps_text->set_text("FPS:" + std::to_string(fps));
 		second_counter = 0.0f;
 		temp_fps = 0;
 	}
-
-	std::cout << "FPS: " << fps << '\n';
 }
 
 void App::fixed_update(float dt) {
@@ -267,6 +275,7 @@ void App::render() {
 		);
 	}
 	crosshair->draw(renderer.get());
+	fps_text->draw(renderer.get(), (lili::Vec3){ 16.0f, win_h - 16.0f, 0.0f });
 
 	renderer->end_frame();
 }

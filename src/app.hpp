@@ -12,6 +12,7 @@
 #include "render/scene/camera.hpp"
 #include "render/scene/model.hpp"
 #include "render/scene/sprite.hpp"
+#include "render/scene/ui_text.hpp"
 
 #include "entity/player.hpp"
 
@@ -49,12 +50,13 @@ private:
 	std::unique_ptr<lili::Sprite> crosshair = nullptr;
 
 	lili::Mat4 light_proj_view;	
-	
-	// Extra
+
 	float second_counter = 0.0f;
 	int temp_fps = 0;
 	int fps = 0;
-
+	std::unique_ptr<lili::BitmapFont> font = nullptr;
+	std::unique_ptr<lili::UIText> fps_text = nullptr;
+	
 	bool is_running = false;
 
 	void init_core();
