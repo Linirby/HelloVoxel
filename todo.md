@@ -2,7 +2,7 @@
 
 ## 11/05/26
 
-- [ ] Add BitmapFont + UIText
+- [x] Add BitmapFont + UIText
 
 ## 18/05/26
 
