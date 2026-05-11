@@ -50,7 +50,7 @@ void App::init_resources() {
 	crosshair = std::make_unique<lili::Sprite>(
 		renderer->get_device(),
 		"assets/crosshair.png",
-		(lili::Vec3){ win_size[0] / 2.0f, win_size[1] / 2.0f + 300, 0.0f },
+		(lili::Vec3){ win_size[0] / 2.0f, win_size[1] / 2.0f, 0.0f },
 		(lili::Vec3){ 18.0f, 18.0f, 1.0f },
 		(lili::Vec3){ 0.0f, 0.0f, 0.0f }
 	);
@@ -149,8 +149,8 @@ void App::handle_events() {
 
 			if (event.key.key == SDLK_R) {
 				if (renderer) SDL_WaitForGPUIdle(renderer->get_device());
-				clear_world_render_cache();
-				init_resources();
+				player = lili::Player({ .position = { 0.5f, 3.0, 0.5f } });
+				camera = lili::Camera(-90.0f, 0.0f, fov_y);
 			}
 
 			const bool *keys = SDL_GetKeyboardState(NULL);

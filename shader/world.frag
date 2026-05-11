@@ -43,25 +43,20 @@ float compute_shadow(vec4 light_clip) {
 	float ndotl = max(
 		dot(normalize(v_normal), -normalize(u_light.direction.xyz)), 0.0
 	);
-	float normal_bias = max(0.00045 * (1.0 - ndotl), 0.00012);
-	float receiver_bias = 0.75 * max(
-		abs(dFdx(current_depth)),
-		abs(dFdy(current_depth))
-	);
-	float bias = min(normal_bias + receiver_bias, 0.0005);
+	float bias = max(0.0002 * (1.0 - ndotl), 0.00005);
 
 	float visibility = 0.0;
 	vec2 texel = 1.0 / vec2(textureSize(u_shadow_map, 0));
 
-	for (int x = -2; x <= 2; ++x) {
-		for (int y = -2; y <= 2; ++y) {
-			vec2 offset = vec2(x, y) * texel;
+	for (int x = -1; x <= 1; ++x) {
+		for (int y = -1; y <= 1; ++y) {
+			vec2 offset = (vec2(x, y) - 0.5) * texel;
 			visibility += texture(
 				u_shadow_map, vec3(uv + offset, current_depth - bias)
 			);
 		}
 	}
-	return visibility / 25.0;
+	return visibility / 9.0;
 }
 
 void main() {
@@ -77,7 +72,9 @@ void main() {
 	vec3 specular_color = mix(vec3(1.0), albedo, material.metallic);
 	vec3 emissive = albedo * material.emission;
 
-	float shadow = compute_shadow(v_light_pos);
+	float shadow = 1.0f;
+	if (diff > 0.0001)
+		shadow = compute_shadow(v_light_pos);
 
 	out_color = vec4(
 		ambient + shadow * diffuse + emissive,

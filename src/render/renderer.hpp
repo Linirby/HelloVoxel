@@ -20,6 +20,8 @@
 
 namespace lili {
 
+static constexpr int SHADOW_MAP_QUALITY = 4096;
+
 class Renderer {
 public:
 	Renderer(Window *window);

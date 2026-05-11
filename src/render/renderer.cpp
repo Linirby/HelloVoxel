@@ -221,8 +221,8 @@ void Renderer::init_shadow_resources() {
 			SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET |
 			SDL_GPU_TEXTUREUSAGE_SAMPLER
 		),
-		.width = 4096,
-		.height = 4096,
+		.width = SHADOW_MAP_QUALITY,
+		.height = SHADOW_MAP_QUALITY,
 		.layer_count_or_depth = 1,
 		.num_levels = 1,
 		.sample_count = SDL_GPU_SAMPLECOUNT_1,
@@ -241,7 +241,7 @@ void Renderer::init_shadow_resources() {
 		.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
 		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
 		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-		.compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
+		.compare_op = SDL_GPU_COMPAREOP_LESS,
 		.min_lod = 0.0f,
 		.max_lod = 1.0f,
 		.enable_compare = true
