@@ -5,6 +5,7 @@
 
 #include "core/sdl_system.hpp"
 #include "core/window.hpp"
+#include "core/clock.hpp"
 
 #include "physics/collision.hpp"
 
@@ -13,6 +14,7 @@
 #include "render/scene/model.hpp"
 #include "render/scene/sprite.hpp"
 #include "render/scene/ui_text.hpp"
+#include "render/scene/directional_light.hpp"
 
 #include "entity/player.hpp"
 
@@ -31,6 +33,8 @@ private:
 	std::unique_ptr<lili::SDLSystem> sdl_sys = nullptr;
 	std::unique_ptr<lili::Window> window = nullptr;
 	std::unique_ptr<lili::Renderer> renderer = nullptr;
+	std::unique_ptr<lili::Clock> clock = nullptr;
+	bool is_running = false;
 
 	// Settings
 	int win_w = 1280;
@@ -48,16 +52,8 @@ private:
 	lili::RaycastResult player_raycast;
 	lili::Camera camera;
 	std::unique_ptr<lili::Sprite> crosshair = nullptr;
-
-	lili::Mat4 light_proj_view;	
-
-	float second_counter = 0.0f;
-	int temp_fps = 0;
-	int fps = 0;
 	std::unique_ptr<lili::BitmapFont> font = nullptr;
-	std::unique_ptr<lili::UIText> fps_text = nullptr;
-	
-	bool is_running = false;
+	std::unique_ptr<lili::DirectionalLight> dir_light = nullptr;
 
 	void init_core();
 	void init_resources();

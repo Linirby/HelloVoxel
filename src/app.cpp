@@ -21,6 +21,7 @@ void App::init_core() {
 	window = std::make_unique<lili::Window>("HelloVoxel", win_w, win_h);
 	window->set_relative_mouse_mode(true);
 	renderer = std::make_unique<lili::Renderer>(window.get());
+	clock = std::make_unique<lili::Clock>();
 	is_running = true;
 }
 
@@ -36,10 +37,7 @@ void App::init_resources() {
 	atlas = std::make_unique<lili::Texture>(
 		renderer->get_device(), "assets/cube_atlas.png"
 	);
-	if (!atlas) throw std::runtime_error("Failed to init atlas");
 	world_material = std::make_unique<lili::Material>(atlas.get());
-	if (!world_material)
-		throw std::runtime_error("Failed to init world material");
 	world_material->properties.color_tint = { 1.0f, 0.9f, 0.8f, 1.0f };
 	world_material->properties.roughness = 0.8f;
 
@@ -59,9 +57,10 @@ void App::init_resources() {
 	font = std::make_unique<lili::BitmapFont>(
 		renderer->get_device(), "assets/lili_font.png"
 	);
-	fps_text = std::make_unique<lili::UIText>(
-		renderer->get_device(), font.get(), "FPS:Loading"
-	);
+
+	dir_light = std::make_unique<lili::DirectionalLight>();
+	dir_light->set_direction({ -0.5f, -1.0f, -0.5f });
+	dir_light->set_color({ 1.0f, 0.9f, 0.9f, 0.75f });
 }
 
 void App::clear_world_render_cache() {
@@ -220,31 +219,8 @@ void App::update(float dt) {
 	camera.position = player.position;
 	if (player.mode != lili::PlayerMode::Spectator) camera.position.y += 1.6f;
 
-	const lili::Vec3 light_dir = lili::Vec3{ -0.5f, -1.0f, -0.3f }.normalized();
-	const float shadow_dist = 96.0f;
-	const float ortho_half = 36.0f;
-	const lili::Vec3 scene_center = camera.position;
-	const lili::Vec3 light_pos = scene_center - light_dir * shadow_dist;
-
-	const lili::Mat4 light_view = lili::Mat4::look_at(
-		light_pos, scene_center, lili::Vec3{ 0.0f, 1.0f, 0.0f }
-	);
-	const lili::Mat4 light_proj = lili::Mat4::orthographic(
-		-ortho_half, ortho_half,
-		ortho_half, -ortho_half,
-		0.1f, shadow_dist * 2.0f
-	);
-	renderer->set_light_matrix(light_proj * light_view);
-
-	if (second_counter <= 1.0f) {
-		second_counter += dt;
-		temp_fps++;
-	} else {
-		fps = temp_fps;
-		fps_text->set_text("FPS:" + std::to_string(fps));
-		second_counter = 0.0f;
-		temp_fps = 0;
-	}
+	dir_light->update_focus(camera.position);
+	renderer->set_directional_light(dir_light.get());
 }
 
 void App::fixed_update(float dt) {
@@ -275,32 +251,20 @@ void App::render() {
 		);
 	}
 	crosshair->draw(renderer.get());
-	fps_text->draw(renderer.get(), (lili::Vec3){ 16.0f, win_h - 16.0f, 0.0f });
+	clock->draw_fps(renderer.get(), font.get(), { 16.0f, win_h - 16.0f, 0.0f });
 
 	renderer->end_frame();
 }
 
 void App::mainloop() {
-    Uint64 last = SDL_GetTicks();
-
-    const float fixed_dt = 1.0f / 60.0f; 
-    float accumulator = 0.0f;
-
     while (is_running) {
-        Uint64 now = SDL_GetTicks();
-        float frame_time = (now - last) / 1000.0f;
-        last = now;
+		clock->update();
 
-        if (frame_time > 0.25f) {
-            frame_time = 0.25f;
-        }
-        accumulator += frame_time;
         handle_events();
-        while (accumulator >= fixed_dt) {
-            fixed_update(fixed_dt); 
-            accumulator -= fixed_dt;
+        while (clock->step()) {
+            fixed_update(clock->get_fixed_dt()); 
         }
-		update(frame_time);
+		update(clock->get_dt());
         render();
     }
 }

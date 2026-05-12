@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "render/scene/model.hpp"
+#include "render/scene/directional_light.hpp"
 
 namespace lili {
 
@@ -121,22 +122,27 @@ SDL_GPUBuffer *create_materials_buffer(SDL_GPUDevice *device) {
 }  // namespace
 
 WorldPass::WorldPass(
-	SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline
+	SDL_GPUDevice *device,
+	SDL_GPUGraphicsPipeline *pipeline
 ) {
 	this->device = device;
 	this->pipeline = pipeline;
 	materials_buffer = create_materials_buffer(device);
-	light = {
-		.direction = (Vec4){ -0.5f, -1.0f, -0.3f, 0.0f }.normalized(),
-		.color = (Vec4){ 1.0f, 1.0f, 0.9f, 0.75f },
-		.ambient = (Vec4){ 0.15f, 0.15f, 0.2f, 0.0f },
-	};
+	light.direction = (Vec4){ -0.5f, -1.0f, -0.3f, 0.0f }.normalized();
+	light.color = { 1.0f, 1.0f, 0.9f, 0.75f };
+	light.ambient = { 0.15f, 0.15f, 0.2f, 0.0f };
 }
 
 WorldPass::~WorldPass() {
 	if (materials_buffer) {
 		SDL_ReleaseGPUBuffer(device, materials_buffer);
 	}
+}
+
+void WorldPass::set_directional_light(const DirectionalLight &dir_light) {
+	Vec3 dir_vec3 = dir_light.get_direction();
+	light.direction = { dir_vec3.x, dir_vec3.y, dir_vec3.z, 0.0f };
+	light.color = dir_light.get_color();
 }
 
 void WorldPass::render(

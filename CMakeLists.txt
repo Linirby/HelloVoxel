@@ -13,6 +13,7 @@ find_package(SDL3_image REQUIRED CONFIG)
 
 # Lili Core
 add_library(LiliCore STATIC
+	src/core/clock.cpp
 	src/core/sdl_system.cpp
 	src/core/window.cpp
 )
@@ -81,15 +82,16 @@ add_library(LiliRender STATIC
 	src/render/core/shader.cpp
 	src/render/core/texture.cpp
 
+	src/render/passes/shadow_pass.cpp
 	src/render/passes/world_pass.cpp
 	src/render/passes/ui_pass.cpp
-	src/render/passes/shadow_pass.cpp
 
+	src/render/pipelines/shadow_pipeline.cpp
 	src/render/pipelines/ui_pipeline.cpp
 	src/render/pipelines/world_pipeline.cpp
-	src/render/pipelines/shadow_pipeline.cpp
 
 	src/render/scene/camera.cpp
+	src/render/scene/directional_light.cpp
 	src/render/scene/model.cpp
 	src/render/scene/sprite.cpp
 	src/render/scene/ui_text.cpp

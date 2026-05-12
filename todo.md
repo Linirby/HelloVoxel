@@ -7,8 +7,9 @@
 ## 18/05/26
 
 - [ ] Code refactor (ordered, compact):
-	- [ ] Make a Clock object (dt + fps logic out of `App`)
-	- [ ] Create a DirectionalLight object (light matrix calculus out of `App`)
+	- [x] Make a Clock object (dt + fps logic out of `App`)
+	- [x] Create a DirectionalLight object (light matrix calculus out of `App`)
+		I've discovered some but with shadows and lights, so im trying to fix
 	- [ ] Make SDL events wrapper (`SDL_Event` -> API events)
 	- [ ] Hide chunk update/loading/remesh behind a world runtime API
 	- [ ] Keep app-facing API feature-oriented and extensible (platformer/sandbox/custom)
@@ -16,3 +17,4 @@
 
 ## Later ...
 - [ ] Add frustum culling
+- [ ] Add CSM (Cascaded Shadow Maps)

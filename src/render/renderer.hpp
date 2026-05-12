@@ -32,7 +32,7 @@ public:
 	void submit(const Model &model, Mat4 transform, RenderLayer layer);
 	void end_frame();
 
-	void set_light_matrix(const Mat4 &light_proj_view);
+	void set_directional_light(DirectionalLight *dir_light);
 
 	void on_window_resized(int new_width, int new_height);
 
@@ -68,7 +68,8 @@ private:
 
 	Mat4 projection_view_3d;
 	Mat4 projection_2d;
-	Mat4 light_projection_view;
+
+	DirectionalLight *directional_light = nullptr;
 
 	void init_device();
 	void init_depth_texture();

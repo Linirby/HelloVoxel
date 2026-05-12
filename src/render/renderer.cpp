@@ -87,15 +87,20 @@ void Renderer::submit(const Model &model, Mat4 transform, RenderLayer layer) {
 	}
 }
 
-void Renderer::set_light_matrix(const Mat4 &light_proj_view) {
-	light_projection_view = light_proj_view;
+void Renderer::set_directional_light(DirectionalLight *dir_light) {
+	directional_light = dir_light;
 }
 
 void Renderer::end_frame() {
+	if (!directional_light) {
+		throw std::runtime_error("Directional light is not set");
+	}
+	world_pass->set_directional_light(*directional_light);
+
 	shadow_pass->render(
 		current_cmd_buffer,
 		shadow_map_texture,
-		light_projection_view,
+		directional_light->get_projection_view(),
 		world_queue
 	);
 
@@ -126,7 +131,7 @@ void Renderer::end_frame() {
 		main_pass,
 		current_cmd_buffer,
 		projection_view_3d,
-		light_projection_view,
+		directional_light->get_projection_view(),
 		shadow_map_texture,
 		shadow_sampler,
 		world_queue

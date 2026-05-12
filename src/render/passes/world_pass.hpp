@@ -1,6 +1,7 @@
 #pragma once
 
 #include "render/passes/pass_types.hpp"
+#include "render/scene/directional_light.hpp"
 
 namespace lili {
 
@@ -14,6 +15,8 @@ class WorldPass {
 public:
 	WorldPass(SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline);
 	~WorldPass();
+
+	void set_directional_light(const DirectionalLight &dir_light);
 
 	void render(
 		SDL_GPURenderPass *pass,
