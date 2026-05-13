@@ -6,6 +6,7 @@
 #include "core/sdl_system.hpp"
 #include "core/window.hpp"
 #include "core/clock.hpp"
+#include "core/event.hpp"
 
 #include "physics/collision.hpp"
 
@@ -34,6 +35,7 @@ private:
 	std::unique_ptr<lili::Window> window = nullptr;
 	std::unique_ptr<lili::Renderer> renderer = nullptr;
 	std::unique_ptr<lili::Clock> clock = nullptr;
+	std::unique_ptr<lili::Event> event = nullptr;
 	bool is_running = false;
 
 	// Settings

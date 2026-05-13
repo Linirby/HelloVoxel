@@ -4,7 +4,6 @@
 
 #include "app.hpp"
 
-#include "core/window.hpp"
 #include "world/map_manager.hpp"
 #include "world/block.hpp"
 #include "meshing/mesher.hpp"
@@ -18,10 +17,14 @@ void App::run(const std::string &map_path) {
 
 void App::init_core() {
 	sdl_sys = std::make_unique<lili::SDLSystem>();
+
 	window = std::make_unique<lili::Window>("HelloVoxel", win_w, win_h);
 	window->set_relative_mouse_mode(true);
+
 	renderer = std::make_unique<lili::Renderer>(window.get());
 	clock = std::make_unique<lili::Clock>();
+	event = std::make_unique<lili::Event>();
+
 	is_running = true;
 }
 
@@ -132,41 +135,41 @@ void App::remesh_chunks_affected_by_block(int x, int y, int z) {
 }
 
 void App::handle_events() {
-	SDL_Event event;
+	while (event->poll()) {
+		if (event->type() == lili::EventType::QUIT) is_running = false;
 
-	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_EVENT_QUIT) is_running = false;
-		if (event.type == SDL_EVENT_KEY_DOWN) {
-			if (event.key.key == SDLK_ESCAPE) is_running = false;
-			if (event.key.key == SDLK_TAB) {
-				bool is_relative = window->is_relative_mouse_mode();
-				window->set_relative_mouse_mode(!is_relative);
-			}
-
-			if (event.key.key == SDLK_P) player.toggle_spectator();
-			if (event.key.key == SDLK_B) player.toggle_builder();
-
-			if (event.key.key == SDLK_R) {
-				if (renderer) SDL_WaitForGPUIdle(renderer->get_device());
-				player = lili::Player({ .position = { 0.5f, 3.0, 0.5f } });
-				camera = lili::Camera(-90.0f, 0.0f, fov_y);
-			}
-
-			const bool *keys = SDL_GetKeyboardState(NULL);
-			if (keys[SDL_SCANCODE_LCTRL] && keys[SDL_SCANCODE_S]) {
-				lili::save_map("custom_map.json", map);
-				std::cout << "Map saved at custom_map.json" << '\n';
-				return;
+		if (event->type() == lili::EventType::KEYBOARD) {
+			lili::KeyboardEvent keyboard = event->keyboard();
+			if (event->key_just_pressed(keyboard)) {
+				if (keyboard.key == SDLK_ESCAPE)
+					is_running = false;
+				if (keyboard.key == SDLK_TAB) {
+					bool is_relative = window->is_relative_mouse_mode();
+					window->set_relative_mouse_mode(!is_relative);
+				}
+				if (keyboard.key == SDLK_P)
+					player.toggle_spectator();
+				if (keyboard.key == SDLK_B)
+					player.toggle_builder();
+				if (keyboard.key == SDLK_R) {
+					if (renderer) SDL_WaitForGPUIdle(renderer->get_device());
+					player = lili::Player({ .position = { 0.5f, 3.0f, 0.5f } });
+					camera = lili::Camera(-90.0f, 0.0f, fov_y);
+				}
+				if (keyboard.key == SDLK_RETURN) {
+					lili::save_map("custom_map.json", map);
+					std::cout << "Map saved at `./custom_map.json`\n";
+					return;
+				}
 			}
 		}
-		if (event.type == SDL_EVENT_MOUSE_MOTION)
-			if (window->is_relative_mouse_mode())
-				camera.process_mouse(event.motion.xrel, event.motion.yrel);
-		if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+
+		if (event->type() == lili::EventType::MOUSE_BUTTON) {
 			if (player.mode != lili::PlayerMode::Builder) continue;
 			if (!player_raycast.hit) continue;
 			uint8_t handed_block = lili::BLOCK_ID_LOG;
-			if (event.button.button == SDL_BUTTON_LEFT) {
+			lili::MouseButtonEvent mouse_button = event->mouse_button();
+			if (mouse_button.button == lili::MouseButton::LEFT) {
 				uint8_t old_block = map.get_block_global(
 					player_raycast.hit_x,
 					player_raycast.hit_y,
@@ -185,7 +188,7 @@ void App::handle_events() {
 					player_raycast.hit_z
 				);
 			}
-			if (event.button.button == SDL_BUTTON_RIGHT) {
+			if (mouse_button.button == lili::MouseButton::RIGHT) {
 				uint8_t old_block = map.get_block_global(
 					player_raycast.adj_x,
 					player_raycast.adj_y,
@@ -205,10 +208,15 @@ void App::handle_events() {
 				);
 			}
 		}
-		if (event.type == SDL_EVENT_WINDOW_RESIZED) {
+		if (event->type() == lili::EventType::MOUSE_MOTION) {
+			lili::MouseMotionEvent mouse_motion = event->mouse_motion();
+			if (window->is_relative_mouse_mode())
+				camera.process_mouse(mouse_motion.dx, mouse_motion.dy);
+		}
+		if (event->type() == lili::EventType::WINDOW_RESIZED) {
 			std::array<int, 2> win_size = window->get_size();
 			win_w = win_size[0];
-			win_h = win_size[1];      
+			win_h = win_size[1];
 			renderer->on_window_resized(win_w, win_h);
 			crosshair->position = { win_w / 2.0f, win_h / 2.0f, 0 };
 		}

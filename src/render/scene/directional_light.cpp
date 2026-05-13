@@ -1,10 +1,9 @@
 #include "render/scene/directional_light.hpp"
-#include <cmath>
 
 namespace lili {
 
 DirectionalLight::DirectionalLight() {
-	direction = lili::Vec3{ -0.5f, -1.0f, -0.3f }.normalized();
+	direction = Vec3{ -0.5f, -1.0f, -0.3f }.normalized();
 	color = { 1.0f, 1.0f, 0.9f, 0.75f };
 	shadow_distance = 100.0f;
 	orthogonal_half = 50.0f;
@@ -30,22 +29,12 @@ void DirectionalLight::set_orthogonal_half(float value) {
 void DirectionalLight::update_focus(const Vec3 &target_point) {
 	focus_point = target_point;
 	position = focus_point - direction * shadow_distance;
-	lili::Vec3 up_vector = { 0.0f, 1.0f, 0.0f };
 
-	if (std::abs(direction.y) > 0.999f) {
-		if (direction.y > 0.0f)
-			up_vector = { 0.0f, 0.0f, -1.0f };
-		else
-			up_vector = { 0.0f, 0.0f, 1.0f };
-	} else {
-		if (direction.y > 0.0f)
-			up_vector = { 0.0f, -1.0f, 0.0f };
-		else
-			up_vector = { 0.0f, 1.0f, 0.0f };
-	}
+	Vec3 up_vector = (direction.y > 0.0f) ?
+		Vec3{ 0.0f, -1.0f, 0.0f } : Vec3{ 0.0f, 1.0f, 0.0f };
 
-	view = lili::Mat4::look_at(position, focus_point, up_vector);
-	projection = lili::Mat4::orthographic(
+	view = Mat4::look_at(position, focus_point, up_vector);
+	projection = Mat4::orthographic(
 		-orthogonal_half, orthogonal_half,
 		orthogonal_half, -orthogonal_half,
 		0.1f, shadow_distance * 2.0f

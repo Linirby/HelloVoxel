@@ -16,6 +16,7 @@ add_library(LiliCore STATIC
 	src/core/clock.cpp
 	src/core/sdl_system.cpp
 	src/core/window.cpp
+	src/core/event.cpp
 )
 target_include_directories(LiliCore PUBLIC src)
 target_link_libraries(LiliCore PRIVATE SDL3::SDL3)
