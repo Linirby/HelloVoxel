@@ -11,6 +11,7 @@
 	- [x] Create a DirectionalLight object (light matrix calculus out of `App`)
 		I've discovered some but with shadows and lights, so im trying to fix
 	- [ ] Make SDL events wrapper (`SDL_Event` -> API events)
+	- [ ] Make an object to query Keyboard state (like `SDL_GetKeyboardState()`)
 	- [ ] Hide chunk update/loading/remesh behind a world runtime API
 	- [ ] Keep app-facing API feature-oriented and extensible (platformer/sandbox/custom)
 	- [ ] Final cleanup: consistency + remove duplicated leftover logic

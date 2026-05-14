@@ -17,6 +17,8 @@ add_library(LiliCore STATIC
 	src/core/sdl_system.cpp
 	src/core/window.cpp
 	src/core/event.cpp
+	src/core/keyboard.cpp
+	src/core/mouse.cpp
 )
 target_include_directories(LiliCore PUBLIC src)
 target_link_libraries(LiliCore PRIVATE SDL3::SDL3)

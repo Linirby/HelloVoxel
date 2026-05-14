@@ -7,6 +7,8 @@
 #include "core/window.hpp"
 #include "core/clock.hpp"
 #include "core/event.hpp"
+#include "core/keyboard.hpp"
+#include "core/mouse.hpp"
 
 #include "physics/collision.hpp"
 
@@ -34,8 +36,12 @@ private:
 	std::unique_ptr<lili::SDLSystem> sdl_sys = nullptr;
 	std::unique_ptr<lili::Window> window = nullptr;
 	std::unique_ptr<lili::Renderer> renderer = nullptr;
-	std::unique_ptr<lili::Clock> clock = nullptr;
-	std::unique_ptr<lili::Event> event = nullptr;
+
+	lili::Clock clock;
+	lili::Event event;
+	lili::Keyboard keyboard;
+	lili::Mouse mouse;
+
 	bool is_running = false;
 
 	// Settings
@@ -63,8 +69,11 @@ private:
 
 	void update_chunk_mesh(uint64_t key);
 	void remesh_chunks_affected_by_block(int x, int y, int z);
+	void place_block();
+	void break_block();
 
-	void handle_events();
+	void handle_inputs();
+	void handle_keyboard();
 	void update(float dt);
 	void fixed_update(float dt);
 	void render();

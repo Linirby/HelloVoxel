@@ -69,7 +69,7 @@ public:
 	EventType type() const;
 
 	bool key_just_pressed(const KeyboardEvent &keyboard) const;
-	bool key_just_released(const KeyboardEvent &keyboard) const;
+	bool mouse_button_pressed(const MouseButtonEvent &keyboard) const;
 
 	const KeyboardEvent keyboard() const;
 	const MouseButtonEvent mouse_button() const;

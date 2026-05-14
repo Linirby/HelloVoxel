@@ -39,6 +39,14 @@ Vec4 Vec4::operator*(const float scalar) const {
 	return { x * scalar, y * scalar, z * scalar, w * scalar };
 }
 
+Vec4 Vec4::operator*=(const float scalar) {
+	x = x * scalar;
+	y = y * scalar;
+	z = z * scalar;
+	w = w * scalar;
+	return *this;
+}
+
 float Vec4::dot(const Vec4 &o) const {
 	return x * o.x + y * o.y + z * o.z + w * o.w;
 }

@@ -11,6 +11,7 @@ struct Vec4 {
 	Vec4 operator+(const Vec4 &o) const;
 	Vec4 operator+=(const Vec4 &o);
 	Vec4 operator*(const float scalar) const;
+	Vec4 operator*=(const float scalar);
 
 	float dot(const Vec4 &o) const;
 	Vec4 cross(const Vec4 &o) const;

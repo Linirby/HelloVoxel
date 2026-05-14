@@ -2,6 +2,8 @@
 
 #include "geometry/vec3.hpp"
 #include "world/map.hpp"
+#include "render/scene/camera.hpp"
+#include "core/keyboard.hpp"
 
 namespace lili {
 
@@ -13,38 +15,48 @@ enum class PlayerMode {
 
 class Player {
 public:
-	Vec3 position = { 0.0f, 0.0f, 0.0f };
-	Vec3 velocity = { 0.0f, 0.0f, 0.0f };
-	
-	float walk_speed = 5.0f;
-	float run_speed = 7.0f;
-	float builder_speed = 8.0f;
-	float spectator_speed = 15.0f;
+	Player();
+	~Player() = default;
 
-	float ground_control = 15.0f;
-	float air_control = 4.0f;
+	void set_position(const Vec3 &pos);
 
-	float jump_power = 8.0f;
-	float gravity = -25.0f;
-	bool is_grounded = false;
+	Vec3 get_position() const;
+	float get_build_range() const;
+	PlayerMode get_mode() const;
 
-	float width = 0.8f;
-	float height = 1.8f;
-
-	float build_range = 12.0f;
-
-	PlayerMode mode = PlayerMode::Physical;
-
-	void process_keys(
-		const bool *keys,
-		const Vec3 &cam_front, const Vec3 &cam_right, const Vec3 &cam_up,
-		float dt
-	);
+	void process_keys(const Keyboard &keyboard, const Camera &camera);
 	void update_physics(float dt, Map &map);
 	void toggle_spectator();
 	void toggle_builder();
 
 private:
+	Vec3 position;
+	Vec3 velocity;
+	Vec3 direction;
+
+	bool jump_input;
+	bool is_running;
+	
+	float walk_speed;
+	float run_speed;
+	float current_speed;
+	float builder_speed;
+	float spectator_speed;
+
+	float ground_control;
+	float air_control;
+
+	float jump_power;
+	float gravity;
+	bool is_grounded;
+
+	float width;
+	float height;
+
+	float build_range;
+
+	PlayerMode mode;
+
 	bool check_collision(const Vec3 &test_pos, Map &map) const;
 };
 

@@ -23,8 +23,8 @@ bool Event::key_just_pressed(const KeyboardEvent &keyboard) const {
 	return keyboard.action == KeyAction::PRESSED && !keyboard.repeat;
 }
 
-bool Event::key_just_released(const KeyboardEvent &keyboard) const {
-	return keyboard.action == KeyAction::RELEASED && !keyboard.repeat;
+bool Event::mouse_button_pressed(const MouseButtonEvent &mouse_button) const {
+	return mouse_button.action == MouseAction::PRESSED;
 }
 
 const KeyboardEvent Event::keyboard() const {
@@ -40,10 +40,18 @@ const KeyboardEvent Event::keyboard() const {
 const MouseButtonEvent Event::mouse_button() const {
 	MouseButton button;
 	switch (sdl_event.button.button) {
-		case SDL_BUTTON_LEFT: button = MouseButton::LEFT;
-		case SDL_BUTTON_MIDDLE: button = MouseButton::MIDDLE;
-		case SDL_BUTTON_RIGHT: button = MouseButton::RIGHT;
-		default: button = MouseButton::UNKNOWN;
+		case SDL_BUTTON_LEFT:
+			button = MouseButton::LEFT;
+			break;
+		case SDL_BUTTON_MIDDLE:
+			button = MouseButton::MIDDLE;
+			break;
+		case SDL_BUTTON_RIGHT:
+			button = MouseButton::RIGHT;
+			break;
+		default:
+			button = MouseButton::UNKNOWN;
+			break;
 	}
 	return {
 		.button = button,

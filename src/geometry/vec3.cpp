@@ -36,6 +36,13 @@ Vec3 Vec3::operator*(const float scalar) const {
 	return { x * scalar, y * scalar, z * scalar };
 }
 
+Vec3 Vec3::operator*=(const float scalar) {
+	x = x * scalar;
+	y = y * scalar;
+	z = z * scalar;
+	return *this;
+}
+
 float Vec3::dot(const Vec3 &o) const {
 	return x * o.x + y * o.y + z * o.z;
 }

@@ -20,10 +20,7 @@ void App::init_core() {
 
 	window = std::make_unique<lili::Window>("HelloVoxel", win_w, win_h);
 	window->set_relative_mouse_mode(true);
-
 	renderer = std::make_unique<lili::Renderer>(window.get());
-	clock = std::make_unique<lili::Clock>();
-	event = std::make_unique<lili::Event>();
 
 	is_running = true;
 }
@@ -31,9 +28,8 @@ void App::init_core() {
 void App::init_resources() {
 	clear_world_render_cache();
 
-	player = lili::Player({
-		.position = { 0.5f, 3.0, 0.5f },
-	});
+	player = lili::Player();
+	player.set_position({ 0.5f, 3.0f, 0.5f });
 	camera = lili::Camera(-90.0f, 0.0f, fov_y);
 	map = lili::load_map(map_path);
 
@@ -134,86 +130,19 @@ void App::remesh_chunks_affected_by_block(int x, int y, int z) {
 	}
 }
 
-void App::handle_events() {
-	while (event->poll()) {
-		if (event->type() == lili::EventType::QUIT) is_running = false;
+void App::place_block() {
 
-		if (event->type() == lili::EventType::KEYBOARD) {
-			lili::KeyboardEvent keyboard = event->keyboard();
-			if (event->key_just_pressed(keyboard)) {
-				if (keyboard.key == SDLK_ESCAPE)
-					is_running = false;
-				if (keyboard.key == SDLK_TAB) {
-					bool is_relative = window->is_relative_mouse_mode();
-					window->set_relative_mouse_mode(!is_relative);
-				}
-				if (keyboard.key == SDLK_P)
-					player.toggle_spectator();
-				if (keyboard.key == SDLK_B)
-					player.toggle_builder();
-				if (keyboard.key == SDLK_R) {
-					if (renderer) SDL_WaitForGPUIdle(renderer->get_device());
-					player = lili::Player({ .position = { 0.5f, 3.0f, 0.5f } });
-					camera = lili::Camera(-90.0f, 0.0f, fov_y);
-				}
-				if (keyboard.key == SDLK_RETURN) {
-					lili::save_map("custom_map.json", map);
-					std::cout << "Map saved at `./custom_map.json`\n";
-					return;
-				}
-			}
-		}
+}
 
-		if (event->type() == lili::EventType::MOUSE_BUTTON) {
-			if (player.mode != lili::PlayerMode::Builder) continue;
-			if (!player_raycast.hit) continue;
-			uint8_t handed_block = lili::BLOCK_ID_LOG;
-			lili::MouseButtonEvent mouse_button = event->mouse_button();
-			if (mouse_button.button == lili::MouseButton::LEFT) {
-				uint8_t old_block = map.get_block_global(
-					player_raycast.hit_x,
-					player_raycast.hit_y,
-					player_raycast.hit_z
-				);
-				if (old_block == lili::BLOCK_ID_AIR) continue;
-				map.set_block_global(
-					lili::BLOCK_ID_AIR,
-					player_raycast.hit_x,
-					player_raycast.hit_y,
-					player_raycast.hit_z
-				);
-				remesh_chunks_affected_by_block(
-					player_raycast.hit_x,
-					player_raycast.hit_y,
-					player_raycast.hit_z
-				);
-			}
-			if (mouse_button.button == lili::MouseButton::RIGHT) {
-				uint8_t old_block = map.get_block_global(
-					player_raycast.adj_x,
-					player_raycast.adj_y,
-					player_raycast.adj_z
-				);
-				if (old_block != lili::BLOCK_ID_AIR) continue;
-				map.set_block_global(
-					handed_block,
-					player_raycast.adj_x,
-					player_raycast.adj_y,
-					player_raycast.adj_z
-				);
-				remesh_chunks_affected_by_block(
-					player_raycast.adj_x,
-					player_raycast.adj_y,
-					player_raycast.adj_z
-				);
-			}
-		}
-		if (event->type() == lili::EventType::MOUSE_MOTION) {
-			lili::MouseMotionEvent mouse_motion = event->mouse_motion();
-			if (window->is_relative_mouse_mode())
-				camera.process_mouse(mouse_motion.dx, mouse_motion.dy);
-		}
-		if (event->type() == lili::EventType::WINDOW_RESIZED) {
+void App::break_block() {
+
+}
+
+void App::handle_inputs() {
+	while (event.poll()) {
+		if (event.type() == lili::EventType::QUIT) is_running = false;
+
+		if (event.type() == lili::EventType::WINDOW_RESIZED) {
 			std::array<int, 2> win_size = window->get_size();
 			win_w = win_size[0];
 			win_h = win_size[1];
@@ -221,31 +150,96 @@ void App::handle_events() {
 			crosshair->position = { win_w / 2.0f, win_h / 2.0f, 0 };
 		}
 	}
+	
+	if (keyboard.pressed(SDL_SCANCODE_ESCAPE))
+		is_running = false;
+	if (keyboard.pressed(SDL_SCANCODE_TAB)) {
+		bool is_relative = window->is_relative_mouse_mode();
+		window->set_relative_mouse_mode(!is_relative);
+	}
+	if (keyboard.pressed(SDL_SCANCODE_P))
+		player.toggle_spectator();
+	if (keyboard.pressed(SDL_SCANCODE_B))
+		player.toggle_builder();
+
+	if (keyboard.pressed(SDL_SCANCODE_R)) {
+		if (renderer) SDL_WaitForGPUIdle(renderer->get_device());
+		player.set_position({ 0.5f, 3.0f, 0.5f });
+		camera = lili::Camera{ -90.0f, 0.0f, fov_y };
+	}
+	if (
+		keyboard.pressed(SDL_SCANCODE_LCTRL) &&
+		keyboard.pressed(SDL_SCANCODE_S)
+	) {
+		lili::save_map("custom_map.json", map);
+		std::cout << "Map saved at: `custom_map.json`\n";
+	}
+
+    if (player.get_mode() == lili::PlayerMode::Builder) {
+        player_raycast = lili::raycast_voxel(
+            camera.position, camera.front, player.get_build_range(), map 
+        );
+		if (player_raycast.hit) {
+			uint8_t handed_block = lili::BLOCK_ID_LOG;
+			if (mouse.pressed(lili::MouseButton::LEFT)) {
+				uint8_t old_block = map.get_block_global(
+					player_raycast.hit_x,
+					player_raycast.hit_y,
+					player_raycast.hit_z
+				);
+				if (old_block != lili::BLOCK_ID_AIR) {
+					map.set_block_global(
+						lili::BLOCK_ID_AIR,
+						player_raycast.hit_x,
+						player_raycast.hit_y,
+						player_raycast.hit_z
+					);
+					remesh_chunks_affected_by_block(
+						player_raycast.hit_x,
+						player_raycast.hit_y,
+						player_raycast.hit_z
+					);
+				}
+			}
+			if (mouse.pressed(lili::MouseButton::RIGHT)) {
+				uint8_t old_block = map.get_block_global(
+					player_raycast.adj_x,
+					player_raycast.adj_y,
+					player_raycast.adj_z
+				);
+				if (old_block == lili::BLOCK_ID_AIR) {
+					map.set_block_global(
+						handed_block,
+						player_raycast.adj_x,
+						player_raycast.adj_y,
+						player_raycast.adj_z
+					);
+					remesh_chunks_affected_by_block(
+						player_raycast.adj_x,
+						player_raycast.adj_y,
+						player_raycast.adj_z
+					);
+				}
+			}
+		}
+    }
+
+    player.process_keys(keyboard, camera);
 }
 
 void App::update(float dt) {
-	camera.position = player.position;
-	if (player.mode != lili::PlayerMode::Spectator) camera.position.y += 1.6f;
+	if (window->is_relative_mouse_mode())
+		camera.process_mouse(mouse.get_dx(), mouse.get_dy());
+
+	camera.position = player.get_position();
+	camera.position.y += 1.6f;
 
 	dir_light->update_focus(camera.position);
 	renderer->set_directional_light(dir_light.get());
 }
 
 void App::fixed_update(float dt) {
-    const bool *keys = SDL_GetKeyboardState(NULL);
-
-    if (player.mode == lili::PlayerMode::Builder) {
-        player_raycast = lili::raycast_voxel(
-            camera.position, camera.front, player.build_range, map 
-        );
-    }
-    player.process_keys(keys, camera.front, camera.right, camera.up, dt);
     player.update_physics(dt, map);
-
-    camera.position = player.position;
-    if (player.mode != lili::PlayerMode::Spectator) {
-        camera.position.y += 1.6f;
-    }
 }
 
 void App::render() {
@@ -259,20 +253,22 @@ void App::render() {
 		);
 	}
 	crosshair->draw(renderer.get());
-	clock->draw_fps(renderer.get(), font.get(), { 16.0f, win_h - 16.0f, 0.0f });
+	clock.draw_fps(renderer.get(), font.get(), { 16.0f, win_h - 16.0f, 0.0f });
 
 	renderer->end_frame();
 }
 
 void App::mainloop() {
     while (is_running) {
-		clock->update();
+		clock.update();
+		keyboard.update();
+		mouse.update();
 
-        handle_events();
-        while (clock->step()) {
-            fixed_update(clock->get_fixed_dt()); 
+        handle_inputs();
+        while (clock.step()) {
+            fixed_update(clock.get_fixed_dt()); 
         }
-		update(clock->get_dt());
+		update(clock.get_dt());
         render();
     }
 }
