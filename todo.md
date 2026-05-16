@@ -19,3 +19,4 @@
 ## Later ...
 - [ ] Add frustum culling
 - [ ] Add CSM (Cascaded Shadow Maps)
+- [ ] Make shadow (they are removed because i don't like them)
