@@ -2,23 +2,35 @@
 
 namespace lili {
 
-Sprite::Sprite(
-	SDL_GPUDevice *device,
-	const std::string &texture_path,
-	Vec3 position,
-	Vec3 scale,
-	Vec3 rotation
-) {
-	texture = std::make_unique<Texture>(device, texture_path);
+Sprite::Sprite() {
+	texture = nullptr;
+	material = nullptr;
+	mesh = nullptr;
+	model = {};
+	position = {};
+	scale = {};
+	rotation = {};
+}
+
+void Sprite::set_texture(Renderer *renderer, const std::string &path) {
+	texture = std::make_unique<Texture>(renderer->get_device(), path);
 	material = std::make_unique<Material>(texture.get());
 	material->properties.color_tint = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 	MeshData mesh_data = create_unit_quad();
-	mesh = std::make_unique<GPUMesh>(device, mesh_data);
+	mesh = std::make_unique<GPUMesh>(renderer->get_device(), mesh_data);
 	model = Model(mesh.get(), material.get());
+}
 
+void Sprite::set_position(Vec3 position) {
 	this->position = position;
+}
+
+void Sprite::set_scale(Vec3 scale) {
 	this->scale = scale;
+}
+
+void Sprite::set_rotation(Vec3 rotation) {
 	this->rotation = rotation;
 }
 

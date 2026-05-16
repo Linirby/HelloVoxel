@@ -24,17 +24,12 @@ public:
 	WorldRuntime();
 	~WorldRuntime() = default;
 
-	void bind_renderer(Renderer *renderer);
+	void set_atlas_map(Renderer *renderer, const std::string &file_path);
 
-	void load_map_path(const std::string &map_path);
-	void save_map_file(const std::string &file_name);
-
-	void load_chunks();
-	void draw_chunks();
-	void clear_chunks();
-
-	void set_material_albedo(const std::string &file_path);
-	void set_material_properties(MaterialProps mat_props);
+	void load_map(const std::string &map_path);
+	void save_map(const std::string &file_name);
+	void draw_map();
+	void clear_map();
 
 	Map get_map() const;
 
@@ -48,6 +43,8 @@ private:
 	std::unique_ptr<Material> world_material;
 	Map map;
 	std::unordered_map<uint64_t, ChunkRenderData> chunk_models;
+
+	void load_chunks();
 
 	void load_unique_chunk(uint64_t key);
 	void remesh_chunks_affected_by_block(int x, int y, int z);

@@ -1,7 +1,6 @@
 #include "app.hpp"
 
 #include <iostream>
-#include <stdexcept>
 
 void App::run(const std::string &map_path) {
 	this->map_path = map_path;
@@ -13,43 +12,40 @@ void App::run(const std::string &map_path) {
 void App::init_core() {
 	sdl_sys = std::make_unique<lili::SDLSystem>();
 
-	window = std::make_unique<lili::Window>("HelloVoxel", win_w, win_h);
+	window = std::make_unique<lili::Window>();
+	window->set_title("Voxel Template");
+	window->set_size(1280, 720);
+	window->set_resizable(true);
 	window->set_relative_mouse_mode(true);
-	renderer = std::make_unique<lili::Renderer>(window.get());
+
+	renderer = std::make_unique<lili::Renderer>();
+	renderer->set_window(window.get());
 
 	is_running = true;
 }
 
 void App::init_resources() {
+	camera = lili::Camera();
+	camera.set_rotation(-90.0f, 0.0f);
+	camera.set_fov(90.0f);
+
 	player = lili::Player();
 	player.set_position({ 0.5f, 3.0f, 0.5f });
-	camera = lili::Camera(-90.0f, 0.0f, fov_y);
-	player.bind_camera(camera);
+	player.set_camera(camera);
 
 	world = std::make_unique<lili::WorldRuntime>();
-	world->bind_renderer(renderer.get());
-	world->set_material_albedo("assets/cube_atlas.png");
-	world->set_material_properties({
-		.color_tint = { 1.0f, 0.9f, 0.8f, 1.0f },
-		.roughness = 0.8f
-	});
-	world->load_map_path(map_path);
-	world->load_chunks();
+	world->set_atlas_map(renderer.get(), "assets/cube_atlas.png");
+	world->load_map(map_path);
 	
-	std::array<int, 2> win_size = window->get_size();
-	crosshair = std::make_unique<lili::Sprite>(
-		renderer->get_device(),
-		"assets/crosshair.png",
-		(lili::Vec3){ win_size[0] / 2.0f, win_size[1] / 2.0f, 0.0f },
-		(lili::Vec3){ 18.0f, 18.0f, 1.0f },
-		(lili::Vec3){ 0.0f, 0.0f, 0.0f }
-	);
-	if (!crosshair) throw std::runtime_error("Failed to init crosshair sprite");
+	crosshair = std::make_unique<lili::Sprite>();
+	crosshair->set_texture(renderer.get(), "assets/crosshair.png");
+	crosshair->set_position({ win_w / 2.0f, win_h / 2.0f, 0.0f });
+	crosshair->set_scale({ 18.0f, 18.0f, 1.0f });
+	crosshair->set_rotation({ 0.0f, 0.0f, 0.0f });
 
-	font = std::make_unique<lili::BitmapFont>(
-		renderer->get_device(), "assets/lili_font.png"
-	);
-
+	font = std::make_unique<lili::BitmapFont>();
+	font->set_atlas_map(renderer.get(), "assets/lili_font.png");
+	font->set_size(16, 6);
 }
 
 void App::handle_inputs() {
@@ -61,7 +57,7 @@ void App::handle_inputs() {
 			win_w = win_size[0];
 			win_h = win_size[1];
 			renderer->on_window_resized(win_w, win_h);
-			crosshair->position = { win_w / 2.0f, win_h / 2.0f, 0 };
+			crosshair->set_position({ win_w / 2.0f, win_h / 2.0f, 0.0f });
 		}
 	}
 	
@@ -79,14 +75,16 @@ void App::handle_inputs() {
 	if (keyboard.pressed(SDL_SCANCODE_R)) {
 		if (renderer) SDL_WaitForGPUIdle(renderer->get_device());
 		player.set_position({ 0.5f, 3.0f, 0.5f });
-		camera = lili::Camera{ -90.0f, 0.0f, fov_y };
-		player.bind_camera(camera);
+		camera = lili::Camera();
+		camera.set_rotation(-90.0f, 0.0f);
+		camera.set_fov(90.0f);
+		player.set_camera(camera);
 	}
 	if (
 		keyboard.pressed(SDL_SCANCODE_LCTRL) &&
 		keyboard.pressed(SDL_SCANCODE_S)
 	) {
-		world->save_map_file("custom_map.json");
+		world->save_map("custom_map.json");
 		std::cout << "Map saved at: `custom_map.json`\n";
 	}
 
@@ -111,7 +109,7 @@ void App::fixed_update(float dt) {
 void App::render() {
 	if (!renderer->begin_frame(camera)) return;
 
-	world->draw_chunks();
+	world->draw_map();
 	crosshair->draw(renderer.get());
 	clock.draw_fps(renderer.get(), font.get(), { 16.0f, win_h - 16.0f, 0.0f });
 

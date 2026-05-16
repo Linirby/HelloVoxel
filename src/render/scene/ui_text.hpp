@@ -19,20 +19,19 @@ struct GlyphUV {
 
 class BitmapFont {
 public:
-	BitmapFont(
-		SDL_GPUDevice *device,
-		const std::string &atlas_path,
-		int grid_cols = 16,
-		int grid_rows = 6
-	);
+	BitmapFont();
+	~BitmapFont() = default;
+
+	void set_atlas_map(Renderer *renderer, const std::string &path);
+	void set_size(uint8_t cols, uint8_t rows);
 
 	Texture *get_texture() const;
 	GlyphUV glyph_uv(char c) const;
 
 private:
 	std::unique_ptr<Texture> texture;
-	int cols = 16;
-	int rows = 6;
+	int cols;
+	int rows;
 };
 
 class UIText {

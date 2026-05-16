@@ -6,7 +6,8 @@
 namespace lili {
 
 SDLSystem::SDLSystem() {
-	if (!SDL_Init(SDL_INIT_VIDEO)) throw std::runtime_error(SDL_GetError());
+	if (!SDL_Init(SDL_INIT_VIDEO))
+		throw std::runtime_error(SDL_GetError());
 }
 
 SDLSystem::~SDLSystem() {

@@ -12,26 +12,28 @@ WorldRuntime::WorldRuntime() {
 	map = {};
 }
 
-void WorldRuntime::bind_renderer(Renderer *renderer) {
+void WorldRuntime::set_atlas_map(
+	Renderer *renderer, const std::string &file_path
+) {
 	this->renderer = renderer;
+	if (!world_material)
+		world_material = std::make_unique<Material>();
+	albedo_map = std::make_unique<Texture>(
+		renderer->get_device(), file_path
+	);
+	world_material->albedo_map = albedo_map.get();
 }
 
-void WorldRuntime::load_map_path(const std::string &map_path) {
-	map = load_map(map_path);
+void WorldRuntime::load_map(const std::string &map_path) {
+	map = lili::load_map(map_path);
+	load_chunks();
 }
 
-void WorldRuntime::save_map_file(const std::string &file_name) {
-	save_map(file_name, map);
+void WorldRuntime::save_map(const std::string &file_name) {
+	lili::save_map(file_name, map);
 }
 
-void WorldRuntime::load_chunks() {
-	if (!renderer)
-		throw std::runtime_error("Renderer not bind in WorldRuntime");
-	for (const auto &pair : map.chunks)
-		load_unique_chunk(pair.first);
-}
-
-void WorldRuntime::draw_chunks() {
+void WorldRuntime::draw_map() {
 	for (const auto &data : chunk_models) {
 		renderer->submit(
 			*data.second.model,
@@ -41,25 +43,8 @@ void WorldRuntime::draw_chunks() {
 	}
 }
 
-void WorldRuntime::clear_chunks() {
+void WorldRuntime::clear_map() {
 	chunk_models.clear();
-}
-
-void WorldRuntime::set_material_albedo(const std::string &file_path) {
-	if (!renderer)
-		throw std::runtime_error("Renderer not bind in WorldRuntime");
-	if (!world_material)
-		world_material = std::make_unique<Material>();
-	albedo_map = std::make_unique<Texture>(
-		renderer->get_device(), file_path
-	);
-	world_material->albedo_map = albedo_map.get();
-}
-
-void WorldRuntime::set_material_properties(MaterialProps mat_props) {
-	if (!world_material)
-		world_material = std::make_unique<Material>();
-	world_material->properties = mat_props;
 }
 
 Map WorldRuntime::get_map() const {
@@ -82,6 +67,15 @@ void WorldRuntime::remove_block(const Vec3 &pos) {
 	}
 }
 
+void WorldRuntime::load_chunks() {
+	if (!renderer)
+		throw std::runtime_error("Renderer not bind in WorldRuntime");
+	if (map.chunks.empty())
+		throw std::runtime_error("Map don't have chunks");
+	for (const auto &pair : map.chunks)
+		load_unique_chunk(pair.first);
+}
+
 void WorldRuntime::load_unique_chunk(uint64_t key) {
 	if (!renderer)
 		throw std::runtime_error("Renderer not bind in WorldRuntime");
@@ -102,12 +96,12 @@ void WorldRuntime::load_unique_chunk(uint64_t key) {
 		chunk_models.erase(key);
 		return;
 	}
-	auto chunk_mesh = std::make_unique<GPUMesh>(
+	std::unique_ptr<GPUMesh> chunk_mesh = std::make_unique<GPUMesh>(
 		renderer->get_device(), chunk_data
 	);
 	if (!chunk_mesh)
 		throw std::runtime_error("Failed to create chunk GPUMesh");
-	auto chunk_model = std::make_unique<Model>(
+	std::unique_ptr<Model> chunk_model = std::make_unique<Model>(
 		chunk_mesh.get(), world_material.get()
 	);
 	if (!chunk_model)

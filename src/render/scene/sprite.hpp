@@ -12,18 +12,13 @@ namespace lili {
 
 class Sprite {
 public:
-	Sprite(
-		SDL_GPUDevice *device,
-		const std::string &texture_path,
-		Vec3 position,
-		Vec3 scale = {},
-		Vec3 rotation = {}
-	);
+	Sprite();
+	~Sprite() = default;
 
-	Vec3 position;
-	Vec3 scale;
-	Vec3 rotation;
-
+	void set_texture(Renderer *renderer, const std::string &path);
+	void set_position(Vec3 position);
+	void set_scale(Vec3 scale);
+	void set_rotation(Vec3 rotation);
 	void draw(Renderer *renderer);
 
 private:
@@ -31,6 +26,10 @@ private:
 	std::unique_ptr<Material> material = nullptr;
 	std::unique_ptr<GPUMesh> mesh = nullptr;
 	Model model;
+
+	Vec3 position;
+	Vec3 scale;
+	Vec3 rotation;
 };
 
 }  // namespace lili

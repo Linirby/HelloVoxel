@@ -54,6 +54,8 @@ const BlockDefinition &BlockRegistry::get_block(uint8_t block_id) const {
 }
 
 BlockRegistry::BlockRegistry() {
+	MaterialRegistry material_reg = MaterialRegistry::get();
+
 	register_block("core:air", {
 		.top_texture = 0,
 		.bottom_texture = 0,
@@ -61,7 +63,7 @@ BlockRegistry::BlockRegistry() {
 		.right_texture = 0,
 		.back_texture = 0,
 		.left_texture = 0,
-		.material_id = 0
+		.material_id = material_reg.get_material_id("core:none")
 	});
 	register_block("core:debug", {
 		.top_texture = 0,
@@ -70,16 +72,7 @@ BlockRegistry::BlockRegistry() {
 		.right_texture = 5,
 		.back_texture = 6,
 		.left_texture = 7,
-		.material_id = 0
-	});
-	register_block("core:log", {
-		.top_texture = 8,
-		.bottom_texture = 8,
-		.front_texture = 12,
-		.right_texture = 12,
-		.back_texture = 12,
-		.left_texture = 12,
-		.material_id = MaterialRegistry::get().get_material_id("core:log_mat")
+		.material_id = material_reg.get_material_id("core:debug")
 	});
 }
 

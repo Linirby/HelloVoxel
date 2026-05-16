@@ -20,9 +20,9 @@ public:
 	Player();
 	~Player() = default;
 
-	void bind_camera(Camera &camera);
 
 	void set_position(const Vec3 &pos);
+	void set_camera(Camera &camera);
 
 	Vec3 get_position() const;
 	float get_build_range() const;
@@ -61,6 +61,7 @@ private:
 	float height;
 
 	float build_range;
+	uint8_t selected_block;
 
 	PlayerMode mode;
 

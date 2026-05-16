@@ -12,8 +12,8 @@
 		I've discovered some but with shadows and lights, so im trying to fix
 	- [x] Make SDL events wrapper (`SDL_Event` -> API events)
 	- [x] Make an object to query Keyboard & Mouse states
-	- [ ] Hide chunk update/loading/remesh behind a world runtime API
-	- [ ] Keep app-facing API feature-oriented and extensible (platformer/sandbox/custom)
+	- [x] Hide chunk update/loading/remesh behind a world runtime API
+	- [ ] { In Progress } Keep app-facing API feature-oriented and extensible (platformer/sandbox/custom)
 	- [ ] Final cleanup: consistency + remove duplicated leftover logic
 
 ## Later ...

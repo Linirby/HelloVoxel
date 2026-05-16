@@ -9,14 +9,17 @@
 
 namespace lili {
 
-Renderer::Renderer(Window *window) {
-	this->window = window;
-
-	init_device();
-	init_depth_texture();
-	init_shaders();
-	init_pipelines();
-	init_passes();
+Renderer::Renderer() {
+	device = nullptr;
+	depth_texture = nullptr;
+	current_swapchain_texture = nullptr;
+	current_cmd_buffer = nullptr;
+	world_shader = nullptr;
+	ui_shader = nullptr;
+	world_pipeline = nullptr;
+	ui_pipeline = nullptr;
+	world_pass = nullptr;
+	ui_pass = nullptr;
 }
 
 Renderer::~Renderer() {
@@ -30,6 +33,36 @@ Renderer::~Renderer() {
 	if (world_shader) delete world_shader;
 	if (depth_texture) SDL_ReleaseGPUTexture(device, depth_texture);
 	if (device) SDL_DestroyGPUDevice(device);
+}
+
+void Renderer::set_window(Window *window) {
+	this->window = window;
+	init_device();
+	init_depth_texture();
+	init_shaders();
+	init_pipelines();
+	init_passes();
+}
+
+void Renderer::on_window_resized(int new_width, int new_height) {
+	SDL_ReleaseGPUTexture(device, depth_texture);
+
+	SDL_GPUTextureCreateInfo depth_info{
+		.type = SDL_GPU_TEXTURETYPE_2D,
+		.format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
+		.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
+		.width = static_cast<uint32_t>(new_width),
+		.height = static_cast<uint32_t>(new_height),
+		.layer_count_or_depth = 1,
+		.num_levels = 1
+	};
+	depth_texture = SDL_CreateGPUTexture(device, &depth_info);
+	if (!depth_texture)
+		throw std::runtime_error("Failed to create depth texture");
+}
+
+SDL_GPUDevice *Renderer::get_device() const {
+	return device;
 }
 
 bool Renderer::begin_frame(Camera camera) {
@@ -120,27 +153,6 @@ void Renderer::end_frame() {
 	SDL_EndGPURenderPass(main_pass);
 	SDL_SubmitGPUCommandBuffer(current_cmd_buffer);
 	current_cmd_buffer = nullptr;
-}
-
-void Renderer::on_window_resized(int new_width, int new_height) {
-	SDL_ReleaseGPUTexture(device, depth_texture);
-
-	SDL_GPUTextureCreateInfo depth_info{
-		.type = SDL_GPU_TEXTURETYPE_2D,
-		.format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
-		.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
-		.width = static_cast<uint32_t>(new_width),
-		.height = static_cast<uint32_t>(new_height),
-		.layer_count_or_depth = 1,
-		.num_levels = 1
-	};
-	depth_texture = SDL_CreateGPUTexture(device, &depth_info);
-	if (!depth_texture)
-		throw std::runtime_error("Failed to create depth texture");
-}
-
-SDL_GPUDevice *Renderer::get_device() const {
-	return device;
 }
 
 void Renderer::init_device() {

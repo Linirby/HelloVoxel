@@ -17,12 +17,6 @@ struct BlockDefinition {
 	uint16_t material_id = 0;
 };
 
-enum BlockID : uint8_t {
-	BLOCK_ID_AIR = 0,
-	BLOCK_ID_DEBUG = 1,
-	BLOCK_ID_LOG = 2
-};
-
 class BlockRegistry {
 public:
 	static BlockRegistry &get();

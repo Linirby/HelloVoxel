@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "physics/collision.hpp"
+#include "world/block.hpp"
 
 namespace lili {
 
@@ -33,16 +34,17 @@ Player::Player() {
 	height = 1.8f;
 
 	build_range = 12.0f;
+	selected_block = 1;
 
 	mode = PlayerMode::Physical;
 }
 
-void Player::bind_camera(Camera &camera) {
-	this->camera = &camera;
-}
-
 void Player::set_position(const Vec3 &pos) {
 	position = pos;
+}
+
+void Player::set_camera(Camera &camera) {
+	this->camera = &camera;
 }
 
 Vec3 Player::get_position() const {
@@ -110,6 +112,8 @@ void Player::process_keys(const Keyboard &keyboard) {
 }
 
 void Player::process_mouse(const Mouse &mouse, WorldRuntime *world) {
+	BlockRegistry block_registry = BlockRegistry::get();
+
 	if (mouse.pressed(lili::MouseButton::LEFT)) {
 		RaycastResult raycast = lili::raycast_voxel(
 			camera->position,
@@ -133,7 +137,7 @@ void Player::process_mouse(const Mouse &mouse, WorldRuntime *world) {
 			world->get_map()
 		);
 		if (raycast.hit) {
-			world->add_block(1, {
+			world->add_block(selected_block, {
 				static_cast<float>(raycast.adj_x),
 				static_cast<float>(raycast.adj_y),
 				static_cast<float>(raycast.adj_z)

@@ -6,10 +6,10 @@
 namespace lili {
 
 struct Model {
-	GPUMesh *mesh = nullptr;
-	Material *material = nullptr;
+	GPUMesh *mesh;
+	Material *material;
 
-	Model() = default;
+	Model();
 	Model(GPUMesh *mesh, Material *material);
 };
 
