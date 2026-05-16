@@ -14,7 +14,6 @@ Renderer::Renderer(Window *window) {
 
 	init_device();
 	init_depth_texture();
-	init_shadow_resources();
 	init_shaders();
 	init_pipelines();
 	init_passes();
@@ -23,17 +22,12 @@ Renderer::Renderer(Window *window) {
 Renderer::~Renderer() {
 	SDL_WaitForGPUIdle(device);
 
-	if (shadow_pass) delete shadow_pass;
 	if (ui_pass) delete ui_pass;
 	if (world_pass) delete world_pass;
-	if (shadow_pipeline) delete shadow_pipeline;
 	if (ui_pipeline) delete ui_pipeline;
 	if (world_pipeline) delete world_pipeline;
-	if (shadow_shader) delete shadow_shader;
 	if (ui_shader) delete ui_shader;
 	if (world_shader) delete world_shader;
-	if (shadow_sampler) SDL_ReleaseGPUSampler(device, shadow_sampler);
-	if (shadow_map_texture) SDL_ReleaseGPUTexture(device, shadow_map_texture);
 	if (depth_texture) SDL_ReleaseGPUTexture(device, depth_texture);
 	if (device) SDL_DestroyGPUDevice(device);
 }
@@ -87,23 +81,7 @@ void Renderer::submit(const Model &model, Mat4 transform, RenderLayer layer) {
 	}
 }
 
-void Renderer::set_directional_light(DirectionalLight *dir_light) {
-	directional_light = dir_light;
-}
-
 void Renderer::end_frame() {
-	if (!directional_light) {
-		throw std::runtime_error("Directional light is not set");
-	}
-	world_pass->set_directional_light(*directional_light);
-
-	shadow_pass->render(
-		current_cmd_buffer,
-		shadow_map_texture,
-		directional_light->get_projection_view(),
-		world_queue
-	);
-
 	SDL_GPUColorTargetInfo color_target_info{
 		.texture = current_swapchain_texture,
 		.clear_color = SDL_FColor{ 0.1f, 0.1f, 0.1f, 1.0f },
@@ -131,9 +109,6 @@ void Renderer::end_frame() {
 		main_pass,
 		current_cmd_buffer,
 		projection_view_3d,
-		directional_light->get_projection_view(),
-		shadow_map_texture,
-		shadow_sampler,
 		world_queue
 	);
 	ui_pass->render(
@@ -218,56 +193,15 @@ void Renderer::init_depth_texture() {
 	}
 }
 
-void Renderer::init_shadow_resources() {
-	SDL_GPUTextureCreateInfo tex_info{
-		.type = SDL_GPU_TEXTURETYPE_2D,
-		.format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
-		.usage = (
-			SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET |
-			SDL_GPU_TEXTUREUSAGE_SAMPLER
-		),
-		.width = SHADOW_MAP_QUALITY,
-		.height = SHADOW_MAP_QUALITY,
-		.layer_count_or_depth = 1,
-		.num_levels = 1,
-		.sample_count = SDL_GPU_SAMPLECOUNT_1,
-		.props = 0
-	};
-	shadow_map_texture = SDL_CreateGPUTexture(device, &tex_info);
-	if (!shadow_map_texture)
-		throw std::runtime_error(
-			"Shadow map texture creation failed: " + std::string(SDL_GetError())
-		);
-
-	SDL_GPUSamplerCreateInfo samp_info{
-		.min_filter = SDL_GPU_FILTER_LINEAR,
-		.mag_filter = SDL_GPU_FILTER_LINEAR,
-		.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
-		.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-		.compare_op = SDL_GPU_COMPAREOP_LESS,
-		.min_lod = 0.0f,
-		.max_lod = 1.0f,
-		.enable_compare = true
-	};
-	shadow_sampler = SDL_CreateGPUSampler(device, &samp_info);
-	if (!shadow_sampler)
-		throw std::runtime_error(
-			"Shadow sampler creation failed: " + std::string(SDL_GetError())
-		);
-}
-
 void Renderer::init_shaders() {
 	world_shader = new Shader(
 		device, "shader/world.vert.spv", "shader/world.frag.spv",
 		(ShaderInfo){
-			.num_uniform_buffers = 2
+			.num_uniform_buffers = 1
 		},
 		(ShaderInfo){
-			.num_samplers = 2,
-			.num_storage_buffers = 1,
-			.num_uniform_buffers = 1
+			.num_samplers = 1,
+			.num_storage_buffers = 1
 		}
 	);
 	ui_shader = new Shader(
@@ -280,12 +214,6 @@ void Renderer::init_shaders() {
 			.num_storage_buffers = 1
 		}
 	);
-	shadow_shader = new Shader(
-		device, "shader/shadow.vert.spv", "shader/shadow.frag.spv",
-		(ShaderInfo){
-			.num_uniform_buffers = 1
-		}
-	);
 }
 
 void Renderer::init_pipelines() {
@@ -295,15 +223,11 @@ void Renderer::init_pipelines() {
 	ui_pipeline = new UIPipeline(
 		device, window->get_sdl_window(), ui_shader
 	);
-	shadow_pipeline = new ShadowPipeline(
-		device, window->get_sdl_window(), shadow_shader
-	);
 }
 
 void Renderer::init_passes() {
 	world_pass = new WorldPass(device, world_pipeline->get_sdl_pipeline());
 	ui_pass = new UIPass(device, ui_pipeline->get_sdl_pipeline());
-	shadow_pass = new ShadowPass(device, shadow_pipeline->get_sdl_pipeline());
 }
 
 }  // namespace lili

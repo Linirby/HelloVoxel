@@ -66,13 +66,6 @@ add_library(LiliMeshing STATIC
 target_include_directories(LiliMeshing PUBLIC src)
 target_link_libraries(LiliMeshing PRIVATE LiliWorld)
 
-# Lili Entity
-add_library(LiliEntity STATIC
-	src/entity/player.cpp
-)
-target_include_directories(LiliEntity PUBLIC src)
-target_link_libraries(LiliEntity PRIVATE LiliGeometry LiliPhysics LiliWorld)
-
 # ==============================================================================
 #  > TIER 4
 # ==============================================================================
@@ -85,16 +78,13 @@ add_library(LiliRender STATIC
 	src/render/core/shader.cpp
 	src/render/core/texture.cpp
 
-	src/render/passes/shadow_pass.cpp
 	src/render/passes/world_pass.cpp
 	src/render/passes/ui_pass.cpp
 
-	src/render/pipelines/shadow_pipeline.cpp
 	src/render/pipelines/ui_pipeline.cpp
 	src/render/pipelines/world_pipeline.cpp
 
 	src/render/scene/camera.cpp
-	src/render/scene/directional_light.cpp
 	src/render/scene/model.cpp
 	src/render/scene/sprite.cpp
 	src/render/scene/ui_text.cpp
@@ -105,6 +95,29 @@ target_link_libraries(LiliRender PRIVATE
 	LiliMeshing
 	SDL3::SDL3
 	SDL3_image::SDL3_image
+)
+
+add_library(LiliRuntime STATIC
+	src/runtime/world_runtime.cpp
+)
+target_include_directories(LiliRuntime PUBLIC src)
+target_link_libraries(LiliRuntime PRIVATE
+	LiliGeometry
+	LiliMeshing
+	LiliWorld
+	LiliRender
+)
+
+# Lili Entity
+add_library(LiliEntity STATIC
+	src/entity/player.cpp
+)
+target_include_directories(LiliEntity PUBLIC src)
+target_link_libraries(LiliEntity PRIVATE
+	LiliGeometry
+	LiliPhysics
+	LiliWorld
+	LiliRuntime
 )
 
 # ==============================================================================
@@ -120,8 +133,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE src)
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	LiliCore
 	LiliWorld
-	LiliMeshing
+	LiliPhysics
 	LiliEntity
-	LiliRender
+	LiliRuntime
 	SDL3::SDL3
 )

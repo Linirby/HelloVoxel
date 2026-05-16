@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "render/scene/model.hpp"
-#include "render/scene/directional_light.hpp"
 
 namespace lili {
 
@@ -128,9 +127,6 @@ WorldPass::WorldPass(
 	this->device = device;
 	this->pipeline = pipeline;
 	materials_buffer = create_materials_buffer(device);
-	light.direction = (Vec4){ -0.5f, -1.0f, -0.3f, 0.0f }.normalized();
-	light.color = { 1.0f, 1.0f, 0.9f, 0.75f };
-	light.ambient = { 0.15f, 0.15f, 0.2f, 0.0f };
 }
 
 WorldPass::~WorldPass() {
@@ -139,36 +135,20 @@ WorldPass::~WorldPass() {
 	}
 }
 
-void WorldPass::set_directional_light(const DirectionalLight &dir_light) {
-	Vec3 dir_vec3 = dir_light.get_direction();
-	light.direction = { dir_vec3.x, dir_vec3.y, dir_vec3.z, 0.0f };
-	light.color = dir_light.get_color();
-}
-
 void WorldPass::render(
 	SDL_GPURenderPass *pass,
 	SDL_GPUCommandBuffer *cmd,
 	const Mat4 &cam_proj_view,
-	const Mat4 &light_proj_view,
-	SDL_GPUTexture *shadow_map,
-	SDL_GPUSampler *shadow_sampler,
 	const std::vector<DrawCommand> &queue
 ) {
 	if (queue.empty()) return;
 	
 	SDL_BindGPUGraphicsPipeline(pass, pipeline);
-	SDL_GPUTextureSamplerBinding shadow_bind{
-		.texture = shadow_map, .sampler = shadow_sampler
-	};
-	SDL_BindGPUFragmentSamplers(pass, 1, &shadow_bind, 1);
 	SDL_BindGPUFragmentStorageBuffers(pass, 0, &materials_buffer, 1);
 
 	for (const DrawCommand &draw_cmd : queue) {
 		Mat4 cam_mvp = cam_proj_view * draw_cmd.transform;
 		SDL_PushGPUVertexUniformData(cmd, 0, &cam_mvp, sizeof(Mat4));
-
-		Mat4 light_mvp = light_proj_view * draw_cmd.transform;
-		SDL_PushGPUVertexUniformData(cmd, 1, &light_mvp, sizeof(Mat4));
 
 		SDL_GPUBufferBinding vertex_binding{
 			.buffer = draw_cmd.model.mesh->get_vertex(),
@@ -188,8 +168,6 @@ void WorldPass::render(
 			.sampler = draw_cmd.model.material->albedo_map->get_sampler()
 		};
 		SDL_BindGPUFragmentSamplers(pass, 0, &albedo_bind, 1);
-
-		SDL_PushGPUFragmentUniformData(cmd, 0, &light, sizeof(LightData));
 
 		SDL_DrawGPUIndexedPrimitives(
 			pass, draw_cmd.model.mesh->get_index_count(), 1, 0, 0, 0

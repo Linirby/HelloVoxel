@@ -17,9 +17,10 @@
 #include "render/scene/model.hpp"
 #include "render/scene/sprite.hpp"
 #include "render/scene/ui_text.hpp"
-#include "render/scene/directional_light.hpp"
 
 #include "entity/player.hpp"
+
+#include "runtime/world_runtime.hpp"
 
 struct ChunkRenderData {
 	std::unique_ptr<lili::GPUMesh> mesh = nullptr;
@@ -51,25 +52,19 @@ private:
 	
 	// Resources
 	std::string map_path = "assets/maps/test_01.json";
-	lili::Map map;
 	std::unique_ptr<lili::Texture> atlas = nullptr;
-	std::unique_ptr<lili::Material> world_material = nullptr;
-	std::unordered_map<uint64_t, ChunkRenderData> chunk_models;
+	std::unique_ptr<lili::WorldRuntime> world = nullptr;
 
 	lili::Player player;
 	lili::RaycastResult player_raycast;
 	lili::Camera camera;
 	std::unique_ptr<lili::Sprite> crosshair = nullptr;
 	std::unique_ptr<lili::BitmapFont> font = nullptr;
-	std::unique_ptr<lili::DirectionalLight> dir_light = nullptr;
 
 	void init_core();
 	void init_resources();
-	void clear_world_render_cache();
 
-	void update_chunk_mesh(uint64_t key);
-	void remesh_chunks_affected_by_block(int x, int y, int z);
-	void place_block();
+	void place_block(uint8_t new_block);
 	void break_block();
 
 	void handle_inputs();
