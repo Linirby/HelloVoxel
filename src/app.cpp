@@ -32,14 +32,16 @@ void App::init_resources() {
 	custom_log_mat.properties.color_tint = { 0.9f, 1.0f, 0.8f, 1.0f };
 	material_registry.register_material("custom:log_mat", custom_log_mat);
 
+	world_atlas_props = { .cols = 8, .rows = 8 };
+
 	lili::BlockRegistry &block_registry = lili::BlockRegistry::get();
 	block_registry.register_block("custom:log", {
-		.top_texture = 8,
-		.bottom_texture = 8,
-		.front_texture = 9,
-		.right_texture = 9,
-		.back_texture = 9,
-		.left_texture = 9,
+		.top_texture = world_atlas_props.get_index_from_pos({ 0, 1 }),
+		.bottom_texture = world_atlas_props.get_index_from_pos({ 0, 1 }),
+		.front_texture = world_atlas_props.get_index_from_pos({ 1, 1 }),
+		.right_texture = world_atlas_props.get_index_from_pos({ 1, 1 }),
+		.back_texture = world_atlas_props.get_index_from_pos({ 1, 1 }),
+		.left_texture = world_atlas_props.get_index_from_pos({ 1, 1 }),
 		.material_id = material_registry.get_material_id("custom:log_mat")
 	});
 	// After window is linked to the register no material can be add without a
@@ -56,7 +58,12 @@ void App::init_resources() {
 	player.set_selected_block(block_registry.get_block_id("custom:log"));
 
 	world = std::make_unique<lili::WorldRuntime>();
-	world->set_atlas_map(renderer.get(), "assets/cube_atlas.png", 8, 8);
+	world->set_atlas_map(
+		renderer.get(),
+		"assets/cube_atlas.png",
+		world_atlas_props.cols,
+		world_atlas_props.rows
+	);
 	world->load_map(map_path);
 	
 	crosshair = std::make_unique<lili::Sprite>();

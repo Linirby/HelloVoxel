@@ -47,6 +47,8 @@ private:
 	int win_w = 1280;
 	int win_h = 720;
 	float fov_y = 90.0f;
+
+	lili::AtlasProperties world_atlas_props;
 	
 	lili::Camera camera;
 	lili::Player player;

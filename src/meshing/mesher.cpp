@@ -12,6 +12,10 @@ float AtlasProperties::get_uv_height() const {
 	return 1.0f / rows;
 }
 
+uint16_t AtlasProperties::get_index_from_pos(Vec2 pos) const {
+	return pos.x + pos.y * cols;
+}
+
 MeshData ChunkMesher::generate_mesh(
 	const Chunk &chunk, AtlasProperties atlas_props
 ) {

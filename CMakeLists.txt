@@ -26,6 +26,7 @@ target_link_libraries(LiliCore PRIVATE SDL3::SDL3)
 # Lili Geometry
 add_library(LiliGeometry STATIC
 	src/geometry/mat4x4.cpp
+	src/geometry/vec2.cpp
 	src/geometry/vec3.cpp
 	src/geometry/vec4.cpp
 )
