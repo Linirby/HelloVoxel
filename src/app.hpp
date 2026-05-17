@@ -33,7 +33,6 @@ public:
 	void run(const std::string &map_path = "assets/maps/test_01.json");
 
 private:
-	// Core
 	std::unique_ptr<lili::SDLSystem> sdl_sys = nullptr;
 	std::unique_ptr<lili::Window> window = nullptr;
 	std::unique_ptr<lili::Renderer> renderer = nullptr;
@@ -45,19 +44,18 @@ private:
 
 	bool is_running = false;
 
-	// Settings
 	int win_w = 1280;
 	int win_h = 720;
 	float fov_y = 90.0f;
 	
-	// Resources
+	lili::Camera camera;
+	lili::Player player;
+	lili::RaycastResult player_raycast;
+
 	std::string map_path = "assets/maps/test_01.json";
 	std::unique_ptr<lili::Texture> atlas = nullptr;
 	std::unique_ptr<lili::WorldRuntime> world = nullptr;
 
-	lili::Player player;
-	lili::RaycastResult player_raycast;
-	lili::Camera camera;
 	std::unique_ptr<lili::Sprite> crosshair = nullptr;
 	std::unique_ptr<lili::BitmapFont> font = nullptr;
 

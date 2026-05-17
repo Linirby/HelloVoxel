@@ -19,6 +19,8 @@ struct BlockDefinition {
 
 class BlockRegistry {
 public:
+	BlockRegistry(const BlockRegistry&) = delete;
+	BlockRegistry& operator=(const BlockRegistry&) = delete;
 	static BlockRegistry &get();
 
 	uint16_t register_block(const std::string &key, const BlockDefinition &block);

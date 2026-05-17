@@ -8,12 +8,13 @@ namespace lili {
 WorldRuntime::WorldRuntime() {
 	renderer = nullptr;
 	albedo_map = nullptr;
+	world_atlas_props = { .cols = 1, .rows = 1 };
 	world_material = std::make_unique<Material>();
 	map = {};
 }
 
 void WorldRuntime::set_atlas_map(
-	Renderer *renderer, const std::string &file_path
+	Renderer *renderer, const std::string &file_path, int n_cols, int n_rows
 ) {
 	this->renderer = renderer;
 	if (!world_material)
@@ -21,6 +22,8 @@ void WorldRuntime::set_atlas_map(
 	albedo_map = std::make_unique<Texture>(
 		renderer->get_device(), file_path
 	);
+	world_atlas_props.cols = n_cols;
+	world_atlas_props.rows = n_rows;
 	world_material->albedo_map = albedo_map.get();
 }
 
@@ -90,7 +93,7 @@ void WorldRuntime::load_unique_chunk(uint64_t key) {
 		return;
 	}
 	MeshData chunk_data = ChunkMesher::generate_mesh(
-		chunk_it->second
+		chunk_it->second, world_atlas_props
 	);
 	if (chunk_data.vertices.empty()) {
 		chunk_models.erase(key);

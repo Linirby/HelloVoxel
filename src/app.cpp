@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+#include "world/block.hpp"
+#include "world/material.hpp"
+
 void App::run(const std::string &map_path) {
 	this->map_path = map_path;
 	init_core();
@@ -19,12 +22,30 @@ void App::init_core() {
 	window->set_relative_mouse_mode(true);
 
 	renderer = std::make_unique<lili::Renderer>();
-	renderer->set_window(window.get());
 
 	is_running = true;
 }
 
 void App::init_resources() {
+	lili::MaterialRegistry &material_registry = lili::MaterialRegistry::get();
+	lili::Material custom_log_mat;
+	custom_log_mat.properties.color_tint = { 0.9f, 1.0f, 0.8f, 1.0f };
+	material_registry.register_material("custom:log_mat", custom_log_mat);
+
+	lili::BlockRegistry &block_registry = lili::BlockRegistry::get();
+	block_registry.register_block("custom:log", {
+		.top_texture = 8,
+		.bottom_texture = 8,
+		.front_texture = 9,
+		.right_texture = 9,
+		.back_texture = 9,
+		.left_texture = 9,
+		.material_id = material_registry.get_material_id("custom:log_mat")
+	});
+	// After window is linked to the register no material can be add without a
+	// new pass to update material list for the GPU
+	renderer->set_window(window.get());
+
 	camera = lili::Camera();
 	camera.set_rotation(-90.0f, 0.0f);
 	camera.set_fov(90.0f);
@@ -32,9 +53,10 @@ void App::init_resources() {
 	player = lili::Player();
 	player.set_position({ 0.5f, 3.0f, 0.5f });
 	player.set_camera(camera);
+	player.set_selected_block(block_registry.get_block_id("custom:log"));
 
 	world = std::make_unique<lili::WorldRuntime>();
-	world->set_atlas_map(renderer.get(), "assets/cube_atlas.png");
+	world->set_atlas_map(renderer.get(), "assets/cube_atlas.png", 8, 8);
 	world->load_map(map_path);
 	
 	crosshair = std::make_unique<lili::Sprite>();

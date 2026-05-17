@@ -9,17 +9,72 @@
 
 namespace lili {
 
-namespace {
+WorldPass::WorldPass(
+	SDL_GPUDevice *device,
+	SDL_GPUGraphicsPipeline *pipeline
+) {
+	this->device = device;
+	this->pipeline = pipeline;
+	create_materials_buffer(device);
+}
 
-struct MaterialGPU {
-	float color_tint[4];
-	float roughness;
-	float metallic;
-	float emission;
-	float padding;
-};
+WorldPass::~WorldPass() {
+	if (materials_buffer) {
+		SDL_ReleaseGPUBuffer(device, materials_buffer);
+	}
+}
 
-SDL_GPUBuffer *create_materials_buffer(SDL_GPUDevice *device) {
+void WorldPass::render(
+	SDL_GPURenderPass *pass,
+	SDL_GPUCommandBuffer *cmd,
+	const Mat4 &cam_proj_view,
+	const std::vector<DrawCommand> &queue
+) {
+	if (queue.empty()) return;
+	
+	SDL_BindGPUGraphicsPipeline(pass, pipeline);
+	SDL_BindGPUFragmentStorageBuffers(pass, 0, &materials_buffer, 1);
+
+	for (const DrawCommand &draw_cmd : queue) {
+		if (!draw_cmd.model.mesh)
+			throw std::runtime_error("WorldPass received draw command without mesh.");
+		if (!draw_cmd.model.material)
+			throw std::runtime_error("WorldPass received draw command without material.");
+		if (!draw_cmd.model.material->albedo_map) {
+			throw std::runtime_error(
+				"WorldPass received draw command with material missing albedo map."
+			);
+		}
+
+		Mat4 cam_mvp = cam_proj_view * draw_cmd.transform;
+		SDL_PushGPUVertexUniformData(cmd, 0, &cam_mvp, sizeof(Mat4));
+
+		SDL_GPUBufferBinding vertex_binding{
+			.buffer = draw_cmd.model.mesh->get_vertex(),
+			.offset = 0
+		};
+		SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
+		SDL_GPUBufferBinding index_binding{
+			.buffer = draw_cmd.model.mesh->get_index(),
+			.offset = 0
+		};
+		SDL_BindGPUIndexBuffer(
+			pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT
+		);
+
+		SDL_GPUTextureSamplerBinding albedo_bind{
+			.texture = draw_cmd.model.material->albedo_map->get_texture(),
+			.sampler = draw_cmd.model.material->albedo_map->get_sampler()
+		};
+		SDL_BindGPUFragmentSamplers(pass, 0, &albedo_bind, 1);
+
+		SDL_DrawGPUIndexedPrimitives(
+			pass, draw_cmd.model.mesh->get_index_count(), 1, 0, 0, 0
+		);
+	}
+}
+
+void WorldPass::create_materials_buffer(SDL_GPUDevice *device) {
 	const MaterialRegistry &registry = MaterialRegistry::get();
 	const size_t material_count = registry.material_count();
 	if (material_count == 0) {
@@ -54,7 +109,7 @@ SDL_GPUBuffer *create_materials_buffer(SDL_GPUDevice *device) {
 		.size = size,
 		.props = 0
 	};
-	SDL_GPUBuffer *materials_buffer = SDL_CreateGPUBuffer(
+	materials_buffer = SDL_CreateGPUBuffer(
 		device, &materials_buffer_createinfo
 	);
 	if (!materials_buffer) {
@@ -114,75 +169,6 @@ SDL_GPUBuffer *create_materials_buffer(SDL_GPUDevice *device) {
 	SDL_EndGPUCopyPass(copy_pass);
 	SDL_SubmitGPUCommandBuffer(upload_cmd);
 	SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
-
-	return materials_buffer;
-}
-
-}  // namespace
-
-WorldPass::WorldPass(
-	SDL_GPUDevice *device,
-	SDL_GPUGraphicsPipeline *pipeline
-) {
-	this->device = device;
-	this->pipeline = pipeline;
-	materials_buffer = create_materials_buffer(device);
-}
-
-WorldPass::~WorldPass() {
-	if (materials_buffer) {
-		SDL_ReleaseGPUBuffer(device, materials_buffer);
-	}
-}
-
-void WorldPass::render(
-	SDL_GPURenderPass *pass,
-	SDL_GPUCommandBuffer *cmd,
-	const Mat4 &cam_proj_view,
-	const std::vector<DrawCommand> &queue
-) {
-	if (queue.empty()) return;
-	
-	SDL_BindGPUGraphicsPipeline(pass, pipeline);
-	SDL_BindGPUFragmentStorageBuffers(pass, 0, &materials_buffer, 1);
-
-	for (const DrawCommand &draw_cmd : queue) {
-		if (!draw_cmd.model.mesh)
-			throw std::runtime_error("WorldPass received draw command without mesh.");
-		if (!draw_cmd.model.material)
-			throw std::runtime_error("WorldPass received draw command without material.");
-		if (!draw_cmd.model.material->albedo_map) {
-			throw std::runtime_error(
-				"WorldPass received draw command with material missing albedo map."
-			);
-		}
-
-		Mat4 cam_mvp = cam_proj_view * draw_cmd.transform;
-		SDL_PushGPUVertexUniformData(cmd, 0, &cam_mvp, sizeof(Mat4));
-
-		SDL_GPUBufferBinding vertex_binding{
-			.buffer = draw_cmd.model.mesh->get_vertex(),
-			.offset = 0
-		};
-		SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
-		SDL_GPUBufferBinding index_binding{
-			.buffer = draw_cmd.model.mesh->get_index(),
-			.offset = 0
-		};
-		SDL_BindGPUIndexBuffer(
-			pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT
-		);
-
-		SDL_GPUTextureSamplerBinding albedo_bind{
-			.texture = draw_cmd.model.material->albedo_map->get_texture(),
-			.sampler = draw_cmd.model.material->albedo_map->get_sampler()
-		};
-		SDL_BindGPUFragmentSamplers(pass, 0, &albedo_bind, 1);
-
-		SDL_DrawGPUIndexedPrimitives(
-			pass, draw_cmd.model.mesh->get_index_count(), 1, 0, 0, 0
-		);
-	}
 }
 
 }  // namespace lili

@@ -4,12 +4,17 @@
 
 namespace lili {
 
-inline constexpr int ATLAS_COLS = 4;
-inline constexpr int ATLAS_ROWS = 4;
-constexpr float UV_W = 1.0f / ATLAS_COLS;
-constexpr float UV_H = 1.0f / ATLAS_ROWS;
+float AtlasProperties::get_uv_width() const {
+	return 1.0f / cols;
+}
 
-MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
+float AtlasProperties::get_uv_height() const {
+	return 1.0f / rows;
+}
+
+MeshData ChunkMesher::generate_mesh(
+	const Chunk &chunk, AtlasProperties atlas_props
+) {
 	MeshData mesh;
 
 	for (int x = 0; x < Chunk::SIZE; ++x) {
@@ -53,9 +58,13 @@ MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
 							default: tex_idx = 0; break;
 						}
 
-						float u_offset = (tex_idx % ATLAS_COLS) * UV_W;
+						float u_offset = (
+							(tex_idx % atlas_props.cols) *
+							atlas_props.get_uv_width()
+						);
 						float v_offset = (
-							(static_cast<int>(tex_idx / ATLAS_COLS)) * UV_H
+							static_cast<int>(tex_idx / atlas_props.cols) *
+							atlas_props.get_uv_height()
 						);
 
 						float nx = face_normals[face][0];
@@ -63,8 +72,14 @@ MeshData ChunkMesher::generate_mesh(const Chunk &chunk) {
 						float nz = face_normals[face][2];
 
 						for (int v = 0; v < 4; ++v) {
-							float final_u = u_offset + (face_uvs[v][0] * UV_W);
-							float final_v = v_offset + (face_uvs[v][1] * UV_H);
+							float final_u = (
+								u_offset +
+								(face_uvs[v][0] * atlas_props.get_uv_width())
+							);
+							float final_v = (
+								v_offset +
+								(face_uvs[v][1] * atlas_props.get_uv_height())
+							);
 
 							mesh.vertices.push_back((Vertex){
 								px + face_vertices[face][v][0],

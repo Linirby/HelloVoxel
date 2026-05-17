@@ -1,7 +1,16 @@
 #pragma once
 
 #include "render/passes/pass_types.hpp"
+
 namespace lili {
+
+struct MaterialGPU {
+	float color_tint[4];
+	float roughness;
+	float metallic;
+	float emission;
+	float padding;
+};
 
 class WorldPass {
 public:
@@ -19,6 +28,8 @@ private:
 	SDL_GPUDevice *device = nullptr;
 	SDL_GPUGraphicsPipeline *pipeline = nullptr;
 	SDL_GPUBuffer *materials_buffer = nullptr;
+
+	void create_materials_buffer(SDL_GPUDevice *device);
 };
 
 }  // namespace lili

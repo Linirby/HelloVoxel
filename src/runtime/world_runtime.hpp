@@ -5,6 +5,8 @@
 
 #include "geometry/mat4x4.hpp"
 
+#include "meshing/mesher.hpp"
+
 #include "render/renderer.hpp"
 #include "render/core/gpu_mesh.hpp"
 #include "render/scene/model.hpp"
@@ -24,7 +26,9 @@ public:
 	WorldRuntime();
 	~WorldRuntime() = default;
 
-	void set_atlas_map(Renderer *renderer, const std::string &file_path);
+	void set_atlas_map(
+		Renderer *renderer, const std::string &file_path, int n_cols, int n_rows
+	);
 
 	void load_map(const std::string &map_path);
 	void save_map(const std::string &file_name);
@@ -40,6 +44,7 @@ private:
 	Renderer *renderer;
 
 	std::unique_ptr<Texture> albedo_map;
+	AtlasProperties world_atlas_props;
 	std::unique_ptr<Material> world_material;
 	Map map;
 	std::unordered_map<uint64_t, ChunkRenderData> chunk_models;

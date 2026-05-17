@@ -47,6 +47,10 @@ void Player::set_camera(Camera &camera) {
 	this->camera = &camera;
 }
 
+void Player::set_selected_block(uint16_t block) {
+	selected_block = block;
+}
+
 Vec3 Player::get_position() const {
 	return position;
 }
@@ -112,7 +116,7 @@ void Player::process_keys(const Keyboard &keyboard) {
 }
 
 void Player::process_mouse(const Mouse &mouse, WorldRuntime *world) {
-	BlockRegistry block_registry = BlockRegistry::get();
+	BlockRegistry &block_registry = BlockRegistry::get();
 
 	if (mouse.pressed(lili::MouseButton::LEFT)) {
 		RaycastResult raycast = lili::raycast_voxel(
