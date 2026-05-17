@@ -12,56 +12,43 @@
 #include "render/passes/pass_types.hpp"
 #include "render/passes/world_pass.hpp"
 #include "render/passes/ui_pass.hpp"
-#include "render/passes/shadow_pass.hpp"
 
 #include "render/pipelines/world_pipeline.hpp"
 #include "render/pipelines/ui_pipeline.hpp"
-#include "render/pipelines/shadow_pipeline.hpp"
 
 namespace lili {
 
-static constexpr int SHADOW_MAP_QUALITY = 4096;
-
 class Renderer {
 public:
-	Renderer(Window *window);
+	Renderer();
 	~Renderer();
 
-	// Holy trinity of rendering, The TRIFORCE!
-	bool begin_frame(Camera camera);
-	void submit(const Model &model, Mat4 transform, RenderLayer layer);
-	void end_frame();
-
-	void set_directional_light(DirectionalLight *dir_light);
-
+	void set_window(Window *window);
 	void on_window_resized(int new_width, int new_height);
 
 	SDL_GPUDevice *get_device() const;
 
+	bool begin_frame(Camera camera);
+	void submit(const Model &model, Mat4 transform, RenderLayer layer);
+	void end_frame();
+
 private:
-	Window *window = nullptr;
-	SDL_GPUDevice *device = nullptr;
+	Window *window;
+	SDL_GPUDevice *device;
 
-	SDL_GPUTexture *depth_texture = nullptr;
+	SDL_GPUTexture *depth_texture;
 
-	SDL_GPUTexture *shadow_map_texture = nullptr;
-	SDL_GPUSampler *shadow_sampler = nullptr;
+	SDL_GPUTexture *current_swapchain_texture;
+	SDL_GPUCommandBuffer *current_cmd_buffer;
 
-	SDL_GPUTexture *current_swapchain_texture = nullptr;
+	Shader *world_shader;
+	Shader *ui_shader;
 
-	Shader *world_shader = nullptr;
-	Shader *ui_shader = nullptr;
-	Shader *shadow_shader = nullptr;
+	WorldPipeline *world_pipeline;
+	UIPipeline *ui_pipeline;
 
-	WorldPipeline *world_pipeline = nullptr;
-	UIPipeline *ui_pipeline = nullptr;
-	ShadowPipeline *shadow_pipeline = nullptr;
-
-	SDL_GPUCommandBuffer *current_cmd_buffer = nullptr;
-
-	WorldPass *world_pass = nullptr;
-	UIPass *ui_pass = nullptr;
-	ShadowPass *shadow_pass = nullptr;
+	WorldPass *world_pass;
+	UIPass *ui_pass;
 
 	std::vector<DrawCommand> world_queue;
 	std::vector<DrawCommand> ui_queue;
@@ -69,11 +56,8 @@ private:
 	Mat4 projection_view_3d;
 	Mat4 projection_2d;
 
-	DirectionalLight *directional_light = nullptr;
-
 	void init_device();
 	void init_depth_texture();
-	void init_shadow_resources();
 	void init_shaders();
 	void init_pipelines();
 	void init_passes();

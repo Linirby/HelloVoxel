@@ -3,9 +3,13 @@
 #include <SDL3/SDL.h>
 #include <cmath>
 
+#include "physics/collision.hpp"
+#include "world/block.hpp"
+
 namespace lili {
 
 Player::Player() {
+	camera = nullptr;
 	position = {};
 	velocity = {};
 	direction = {};
@@ -30,12 +34,21 @@ Player::Player() {
 	height = 1.8f;
 
 	build_range = 12.0f;
+	selected_block = 1;
 
 	mode = PlayerMode::Physical;
 }
 
 void Player::set_position(const Vec3 &pos) {
 	position = pos;
+}
+
+void Player::set_camera(Camera &camera) {
+	this->camera = &camera;
+}
+
+void Player::set_selected_block(uint16_t block) {
+	selected_block = block;
 }
 
 Vec3 Player::get_position() const {
@@ -50,25 +63,30 @@ PlayerMode Player::get_mode() const {
 	return mode;
 }
 
-void Player::process_keys(const Keyboard &keyboard, const Camera &camera) {
+void Player::process_keys(const Keyboard &keyboard) {
 	direction = {};
 	is_running = false;
 	jump_input = false;
+	if (camera == nullptr) return;
 
 	if (mode == PlayerMode::Spectator) {
-		if (keyboard.held(SDL_SCANCODE_W)) direction += camera.front;
-		if (keyboard.held(SDL_SCANCODE_S)) direction -= camera.front;
-		if (keyboard.held(SDL_SCANCODE_D)) direction += camera.right;
-		if (keyboard.held(SDL_SCANCODE_A)) direction -= camera.right;
-		if (keyboard.held(SDL_SCANCODE_SPACE)) direction += camera.up;
-		if (keyboard.held(SDL_SCANCODE_LSHIFT)) direction -= camera.up;
+		if (keyboard.held(SDL_SCANCODE_W)) direction += camera->front;
+		if (keyboard.held(SDL_SCANCODE_S)) direction -= camera->front;
+		if (keyboard.held(SDL_SCANCODE_D)) direction += camera->right;
+		if (keyboard.held(SDL_SCANCODE_A)) direction -= camera->right;
+		if (keyboard.held(SDL_SCANCODE_SPACE)) direction += camera->up;
+		if (keyboard.held(SDL_SCANCODE_LSHIFT)) direction -= camera->up;
 		return;
 	}
 
 	if (mode == PlayerMode::Builder) {
-		Vec3 front = Vec3{ camera.front.x, 0.0f, camera.front.z }.normalized();
-		Vec3 right = Vec3{ camera.right.x, 0.0f, camera.right.z }.normalized();
-		Vec3 up = Vec3{ 0.0f, camera.up.y, 0.0f }.normalized();
+		Vec3 front = Vec3{
+			camera->front.x, 0.0f, camera->front.z
+		}.normalized();
+		Vec3 right = Vec3{
+			camera->right.x, 0.0f, camera->right.z
+		}.normalized();
+		Vec3 up = Vec3{ 0.0f, camera->up.y, 0.0f }.normalized();
 
 		if (keyboard.held(SDL_SCANCODE_W)) direction += front;
 		if (keyboard.held(SDL_SCANCODE_S)) direction -= front;
@@ -79,8 +97,12 @@ void Player::process_keys(const Keyboard &keyboard, const Camera &camera) {
 		return;
 	}
 
-	Vec3 flat_front = Vec3{ camera.front.x, 0.0f, camera.front.z }.normalized();
-	Vec3 flat_right = Vec3{ camera.right.x, 0.0f, camera.right.z }.normalized();
+	Vec3 flat_front = Vec3{
+		camera->front.x, 0.0f, camera->front.z
+	}.normalized();
+	Vec3 flat_right = Vec3{
+		camera->right.x, 0.0f, camera->right.z
+	}.normalized();
 
 	if (keyboard.held(SDL_SCANCODE_W)) direction += flat_front;
 	if (keyboard.held(SDL_SCANCODE_S)) direction -= flat_front;
@@ -93,7 +115,42 @@ void Player::process_keys(const Keyboard &keyboard, const Camera &camera) {
 	jump_input = keyboard.held(SDL_SCANCODE_SPACE);
 }
 
-void Player::update_physics(float dt, Map &map) {
+void Player::process_mouse(const Mouse &mouse, WorldRuntime *world) {
+	BlockRegistry &block_registry = BlockRegistry::get();
+
+	if (mouse.pressed(lili::MouseButton::LEFT)) {
+		RaycastResult raycast = lili::raycast_voxel(
+			camera->position,
+			camera->front,
+			get_build_range(),
+			world->get_map()
+		);
+		if (raycast.hit) {
+			world->remove_block({
+				static_cast<float>(raycast.hit_x),
+				static_cast<float>(raycast.hit_y),
+				static_cast<float>(raycast.hit_z)
+			});
+		}
+	}
+	else if (mouse.pressed(lili::MouseButton::RIGHT)) {
+		RaycastResult raycast = lili::raycast_voxel(
+			camera->position,
+			camera->front,
+			get_build_range(),
+			world->get_map()
+		);
+		if (raycast.hit) {
+			world->add_block(selected_block, {
+				static_cast<float>(raycast.adj_x),
+				static_cast<float>(raycast.adj_y),
+				static_cast<float>(raycast.adj_z)
+			});
+		}
+	}
+}
+
+void Player::update_physics(float dt, const Map &map) {
 	if (mode == PlayerMode::Spectator) {
 		position += direction * spectator_speed * dt;
 		return;
@@ -160,7 +217,7 @@ void Player::toggle_builder() {
 		mode = PlayerMode::Physical;
 }
 
-bool Player::check_collision(const Vec3 &test_pos, Map &map) const {
+bool Player::check_collision(const Vec3 &test_pos, const Map &map) const {
 	float pad = 0.05f;
 
 	Vec3 min = {

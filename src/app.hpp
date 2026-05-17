@@ -17,9 +17,10 @@
 #include "render/scene/model.hpp"
 #include "render/scene/sprite.hpp"
 #include "render/scene/ui_text.hpp"
-#include "render/scene/directional_light.hpp"
 
 #include "entity/player.hpp"
+
+#include "runtime/world_runtime.hpp"
 
 struct ChunkRenderData {
 	std::unique_ptr<lili::GPUMesh> mesh = nullptr;
@@ -32,7 +33,6 @@ public:
 	void run(const std::string &map_path = "assets/maps/test_01.json");
 
 private:
-	// Core
 	std::unique_ptr<lili::SDLSystem> sdl_sys = nullptr;
 	std::unique_ptr<lili::Window> window = nullptr;
 	std::unique_ptr<lili::Renderer> renderer = nullptr;
@@ -44,32 +44,27 @@ private:
 
 	bool is_running = false;
 
-	// Settings
 	int win_w = 1280;
 	int win_h = 720;
 	float fov_y = 90.0f;
-	
-	// Resources
-	std::string map_path = "assets/maps/test_01.json";
-	lili::Map map;
-	std::unique_ptr<lili::Texture> atlas = nullptr;
-	std::unique_ptr<lili::Material> world_material = nullptr;
-	std::unordered_map<uint64_t, ChunkRenderData> chunk_models;
 
+	lili::AtlasProperties world_atlas_props;
+	
+	lili::Camera camera;
 	lili::Player player;
 	lili::RaycastResult player_raycast;
-	lili::Camera camera;
+
+	std::string map_path = "assets/maps/test_01.json";
+	std::unique_ptr<lili::Texture> atlas = nullptr;
+	std::unique_ptr<lili::WorldRuntime> world = nullptr;
+
 	std::unique_ptr<lili::Sprite> crosshair = nullptr;
 	std::unique_ptr<lili::BitmapFont> font = nullptr;
-	std::unique_ptr<lili::DirectionalLight> dir_light = nullptr;
 
 	void init_core();
 	void init_resources();
-	void clear_world_render_cache();
 
-	void update_chunk_mesh(uint64_t key);
-	void remesh_chunks_affected_by_block(int x, int y, int z);
-	void place_block();
+	void place_block(uint8_t new_block);
 	void break_block();
 
 	void handle_inputs();

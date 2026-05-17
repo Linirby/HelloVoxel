@@ -2,15 +2,19 @@
 
 namespace lili {
 
-BitmapFont::BitmapFont(
-	SDL_GPUDevice *device,
-	const std::string &atlas_path,
-	int grid_cols,
-	int grid_rows
-) {
-	texture = std::make_unique<Texture>(device, atlas_path);
-	cols = grid_cols;
-	rows = grid_rows;
+BitmapFont::BitmapFont() {
+	texture = nullptr;
+	cols = 16;
+	rows = 16;
+}
+
+void BitmapFont::set_atlas_map(Renderer *renderer, const std::string &path) {
+	texture = std::make_unique<Texture>(renderer->get_device(), path);
+}
+
+void BitmapFont::set_size(uint8_t cols, uint8_t rows) {
+	this->cols = cols;
+	this->rows = rows;
 }
 
 Texture *BitmapFont::get_texture() const {

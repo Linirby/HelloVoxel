@@ -17,14 +17,10 @@ struct BlockDefinition {
 	uint16_t material_id = 0;
 };
 
-enum BlockID : uint8_t {
-	BLOCK_ID_AIR = 0,
-	BLOCK_ID_DEBUG = 1,
-	BLOCK_ID_LOG = 2
-};
-
 class BlockRegistry {
 public:
+	BlockRegistry(const BlockRegistry&) = delete;
+	BlockRegistry& operator=(const BlockRegistry&) = delete;
 	static BlockRegistry &get();
 
 	uint16_t register_block(const std::string &key, const BlockDefinition &block);

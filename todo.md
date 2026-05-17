@@ -10,13 +10,14 @@
 	- [x] Make a Clock object (dt + fps logic out of `App`)
 	- [x] Create a DirectionalLight object (light matrix calculus out of `App`)
 		I've discovered some but with shadows and lights, so im trying to fix
-	- [ ] Make SDL events wrapper (`SDL_Event` -> API events)
-	- [ ] Make an object to query Keyboard state (like `SDL_GetKeyboardState()`)
-	- [ ] Hide chunk update/loading/remesh behind a world runtime API
-	- [ ] Keep app-facing API feature-oriented and extensible (platformer/sandbox/custom)
+	- [x] Make SDL events wrapper (`SDL_Event` -> API events)
+	- [x] Make an object to query Keyboard & Mouse states
+	- [x] Hide chunk update/loading/remesh behind a world runtime API
+	- [ ] { In Progress } Keep app-facing API feature-oriented and extensible (platformer/sandbox/custom)
 	- [ ] Final cleanup: consistency + remove duplicated leftover logic
 
 ## Later ...
+- [ ] Adding Ambient Occlusion instead of shadow mapping (shadow proj later)
 - [ ] Add frustum culling
 - [ ] Add CSM (Cascaded Shadow Maps)
 - [ ] Make shadow (they are removed because i don't like them)

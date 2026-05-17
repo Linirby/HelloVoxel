@@ -146,6 +146,16 @@ void UIPass::render(
 	SDL_BindGPUFragmentStorageBuffers(pass, 0, &materials_buffer, 1);
 
 	for (const DrawCommand &draw_cmd : queue) {
+		if (!draw_cmd.model.mesh)
+			throw std::runtime_error("UIPass received draw command without mesh.");
+		if (!draw_cmd.model.material)
+			throw std::runtime_error("UIPass received draw command without material.");
+		if (!draw_cmd.model.material->albedo_map) {
+			throw std::runtime_error(
+				"UIPass received draw command with material missing albedo map."
+			);
+		}
+
 		Mat4 mvp = proj_view * draw_cmd.transform;
 		SDL_PushGPUVertexUniformData(cmd, 0, &mvp, sizeof(Mat4));
 

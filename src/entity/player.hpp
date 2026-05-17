@@ -4,6 +4,8 @@
 #include "world/map.hpp"
 #include "render/scene/camera.hpp"
 #include "core/keyboard.hpp"
+#include "core/mouse.hpp"
+#include "runtime/world_runtime.hpp"
 
 namespace lili {
 
@@ -19,17 +21,22 @@ public:
 	~Player() = default;
 
 	void set_position(const Vec3 &pos);
+	void set_camera(Camera &camera);
+	void set_selected_block(uint16_t block);
 
 	Vec3 get_position() const;
 	float get_build_range() const;
 	PlayerMode get_mode() const;
 
-	void process_keys(const Keyboard &keyboard, const Camera &camera);
-	void update_physics(float dt, Map &map);
+	void process_keys(const Keyboard &keyboard);
+	void process_mouse(const Mouse &mouse, WorldRuntime *world);
+	void update_physics(float dt, const Map &map);
 	void toggle_spectator();
 	void toggle_builder();
 
 private:
+	Camera *camera;
+
 	Vec3 position;
 	Vec3 velocity;
 	Vec3 direction;
@@ -54,10 +61,11 @@ private:
 	float height;
 
 	float build_range;
+	uint8_t selected_block;
 
 	PlayerMode mode;
 
-	bool check_collision(const Vec3 &test_pos, Map &map) const;
+	bool check_collision(const Vec3 &test_pos, const Map &map) const;
 };
 
 }  // namespace lili

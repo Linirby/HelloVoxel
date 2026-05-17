@@ -4,17 +4,21 @@
 
 namespace lili {
 
-Camera::Camera(float yaw, float pitch, float fov_y) {
-	this->yaw = yaw;
-	this->pitch = pitch;
-	this->fov_y = fov_y;
+Camera::Camera() {
+	this->yaw = -90.0f;
+	this->pitch = 0.0f;
 	update_vectors();
+	this->fov_y = 70.0f;
 }
 
 void Camera::set_rotation(float new_yaw, float new_pitch) {
 	yaw = new_yaw;
 	pitch = new_pitch;
 	update_vectors();
+}
+
+void Camera::set_fov(float degree) {
+	fov_y = degree;
 }
 
 void Camera::process_mouse(float x_offset, float y_offset) {

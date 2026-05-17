@@ -1,13 +1,9 @@
 #version 450
 
 layout(location = 0) in vec2 v_uv;
-layout(location = 1) in vec3 v_normal;
-layout(location = 2) flat in uint v_material_id;
-layout(location = 3) in vec3 v_world_pos;
-layout(location = 4) in vec4 v_light_pos;
+layout(location = 1) flat in uint v_material_id;
 
 layout(set = 2, binding = 0) uniform sampler2D u_albedo_map;
-layout(set = 2, binding = 1) uniform sampler2DShadow u_shadow_map;
 
 struct MaterialGPU {
 	vec4 color_tint;
@@ -16,15 +12,9 @@ struct MaterialGPU {
 	float emission;
 	float padding;
 };
-layout(std430, set = 2, binding = 2) readonly buffer MaterialBuffer {
+layout(std430, set = 2, binding = 1) readonly buffer MaterialBuffer {
 	MaterialGPU materials[];
 } u_materials;
-
-layout(set = 3, binding = 0) uniform LightData {
-	vec4 direction;
-	vec4 color;
-	vec4 ambient;
-} u_light;
 
 layout(location = 0) out vec4 out_color;
 
@@ -33,19 +23,10 @@ void main() {
 	MaterialGPU material = u_materials.materials[v_material_id];
 
 	vec3 albedo = tex_color.rgb * material.color_tint.rgb;
-	vec3 normal = normalize(v_normal);
-	vec3 light_dir = normalize(u_light.direction.xyz);
-
-	vec3 ambient = u_light.ambient.xyz * albedo;
-
-	float ndotl = dot(normal, -light_dir);
-	float diff = max(ndotl, 0.0);
-	vec3 diffuse = diff * u_light.color.rgb * u_light.color.a * albedo;
-
 	vec3 emissive = albedo * material.emission;
 
 	out_color = vec4(
-		ambient + diffuse + emissive,
+		albedo + emissive,
 		tex_color.a * material.color_tint.a
 	);
 }

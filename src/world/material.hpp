@@ -28,6 +28,8 @@ struct Material {
 
 class MaterialRegistry {
 public:
+	MaterialRegistry(const MaterialRegistry&) = delete;
+	MaterialRegistry& operator=(const MaterialRegistry&) = delete;
 	static MaterialRegistry &get();
 
 	uint16_t register_material(const std::string &key, const Material &material);

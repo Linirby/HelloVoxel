@@ -7,6 +7,9 @@ namespace lili {
 
 class Camera {
 public:
+	Camera();
+	~Camera() = default;
+
 	Vec3 position = { 0.0f, 0.0f, 0.0f };
 	Vec3 front = { 0.0f, 0.0f, -1.0f };
 	Vec3 right = { 1.0f, 0.0f,  0.0f };
@@ -20,9 +23,8 @@ public:
 	float near_dist = 0.3f;
 	float far_dist = 100.0f;
 
-	Camera(float yaw = -90.0f, float pitch = 0.0f, float fov_y = 90.0f);
-
 	void set_rotation(float new_yaw, float new_pitch);
+	void set_fov(float degree);
 	void process_mouse(float offset_x, float offset_y);
 	Mat4 get_view_matrix() const;
 
