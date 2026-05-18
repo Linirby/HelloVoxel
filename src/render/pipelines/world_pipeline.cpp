@@ -16,7 +16,7 @@ WorldPipeline::WorldPipeline(
 
 	SDL_GPUVertexBufferDescription vertex_buffer_desc{
 		.slot = 0,
-		.pitch = sizeof(float) * 9,
+		.pitch = sizeof(float) * 10,
 		.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
 		.instance_step_rate = 0
 	};
@@ -44,6 +44,12 @@ WorldPipeline::WorldPipeline(
 			.buffer_slot = 0,
 			.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT,
 			.offset = sizeof(float) * 8
+		},
+		(SDL_GPUVertexAttribute){
+			.location = 4,
+			.buffer_slot = 0,
+			.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT,
+			.offset = sizeof(float) * 9
 		}
 	};
 	SDL_GPUColorTargetDescription color_target_desc{

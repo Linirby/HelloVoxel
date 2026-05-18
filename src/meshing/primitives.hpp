@@ -10,6 +10,7 @@ struct Vertex {
 	float nx, ny, nz;
 	float u, v;
 	float material_id;
+	float ao;
 };
 
 struct MeshData {

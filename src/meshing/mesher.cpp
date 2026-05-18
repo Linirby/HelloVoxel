@@ -1,139 +1,120 @@
 #include "meshing/mesher.hpp"
+
+#include <stdexcept>
+
 #include "meshing/voxel_data.hpp"
 #include "world/block.hpp"
+#include "meshing/ao_helper.hpp"
 
 namespace lili {
 
-float AtlasProperties::get_uv_width() const {
-	return 1.0f / cols;
-}
+float AtlasProperties::get_u() const { return 1.0f / cols; }
+float AtlasProperties::get_v() const { return 1.0f / rows; }
 
-float AtlasProperties::get_uv_height() const {
-	return 1.0f / rows;
-}
-
-uint16_t AtlasProperties::get_index_from_pos(Vec2 pos) const {
+uint16_t AtlasProperties::get_index_from_pos(Vec2 pos) {
+	if (pos.x > cols - 1)
+		throw std::runtime_error("x is out of atlas map");
+	if (pos.y > rows - 1)
+		throw std::runtime_error("y is out of atlas map");
 	return pos.x + pos.y * cols;
 }
 
-MeshData ChunkMesher::generate_mesh(
-	const Chunk &chunk, AtlasProperties atlas_props
-) {
-	MeshData mesh;
-
-	for (int x = 0; x < Chunk::SIZE; ++x) {
-		for (int y = 0; y < Chunk::SIZE; ++y) {
-			for (int z = 0; z < Chunk::SIZE; ++z) {
-				compute_faces(mesh, chunk, atlas_props, x, y, z);
-			}
-		}
+static uint16_t get_face_texture(const BlockDefinition &def, int face) {
+	switch (face) {
+		case 0: return def.top_texture;
+		case 1: return def.bottom_texture;
+		case 2: return def.right_texture;
+		case 3: return def.left_texture;
+		case 4: return def.front_texture;
+		case 5: return def.back_texture;
+		default: return 0;
 	}
+}
+
+ChunkMesher::ChunkMesher(const Chunk &chunk, AtlasProperties atlas_props) :
+	chunk(chunk), atlas_props(atlas_props) {}
+
+MeshData ChunkMesher::generate_mesh() {
+	for (int x = 0; x < Chunk::SIZE; ++x)
+		for (int y = 0; y < Chunk::SIZE; ++y)
+			for (int z = 0; z < Chunk::SIZE; ++z)
+				process_block(x, y, z);
 	return mesh;
 }
 
-void ChunkMesher::compute_vertices(
-	float u_offset, float v_offset,
-	AtlasProperties atlas_props, MeshData &mesh,
-	int px, int py, int pz,
-	int face,
-	float nx, float ny, float nz,
-	float material_id
-) {
-	for (int v = 0; v < 4; ++v) {
-		float final_u = (
-			u_offset +
-			(face_uvs[v][0] * atlas_props.get_uv_width())
-		);
-		float final_v = (
-			v_offset +
-			(face_uvs[v][1] * atlas_props.get_uv_height())
-		);
-
-		mesh.vertices.push_back((Vertex){
-			px + face_vertices[face][v][0],
-			py + face_vertices[face][v][1],
-			pz + face_vertices[face][v][2],
-			nx, ny, nz,
-			final_u, final_v,
-			material_id
-		});
-	}
+void ChunkMesher::process_block(int x, int y, int z) {
+	if (chunk.get_block(x, y, z) == 0)
+		return;
+	for (int face = 0; face < 6; ++face)
+		emit_face(x, y, z, face);
 }
 
-void ChunkMesher::compute_faces(
-	MeshData &mesh,
-	const Chunk &chunk,
-	AtlasProperties atlas_props,
-	int x, int y, int z
-) {
-	uint8_t block_id = chunk.get_block(x, y, z);
-	if (block_id == 0) return;
+void ChunkMesher::emit_face(int x, int y, int z, int face) {
+	int cx = x + face_normals[face][0];
+	int cy = y + face_normals[face][1];
+	int cz = z + face_normals[face][2];
 
-	const BlockDefinition &block_def = (
-		BlockRegistry::get().get_block(block_id)
+	bool oob = (
+		cx < 0 || cx >= Chunk::SIZE ||
+		cy < 0 || cy >= Chunk::SIZE ||
+		cz < 0 || cz >= Chunk::SIZE
+	);
+	if (!oob && chunk.get_block(cx, cy, cz) != 0)
+		return;
+
+	const BlockDefinition &def = BlockRegistry::get().get_block(
+		chunk.get_block(x, y, z)
 	);
 
-	float px = static_cast<float>(x);
-	float py = static_cast<float>(y);
-	float pz = static_cast<float>(z);
+	uint16_t tex_idx = get_face_texture(def, face);
+	float u_off = (tex_idx % atlas_props.cols) * atlas_props.get_u();
+	float v_off = (int)(tex_idx / atlas_props.cols) * atlas_props.get_v();
+	float mat_id = static_cast<float>(def.material_id);
+	float nx = static_cast<float>(face_normals[face][0]);
+	float ny = static_cast<float>(face_normals[face][1]);
+	float nz = static_cast<float>(face_normals[face][2]);
 
-	float material_id = static_cast<float>(block_def.material_id);
+	uint8_t ao[4];
+	sample_face_ao(chunk, cx, cy, cz, face, ao);
 
-	for (int face = 0; face < 6; ++face) {
-		int check_x = x + face_normals[face][0];
-		int check_y = y + face_normals[face][1];
-		int check_z = z + face_normals[face][2];
-		if (
-			check_x < 0 || check_x >= Chunk::SIZE ||
-			check_y < 0 || check_y >= Chunk::SIZE ||
-			check_z < 0 || check_z >= Chunk::SIZE ||
-			chunk.get_block(check_x, check_y, check_z) == 0
-		) {
-			uint32_t start_idx = static_cast<uint32_t>(
-				mesh.vertices.size()
-			);
-			uint16_t tex_idx;
-			switch (face) {
-				case 0: tex_idx = block_def.top_texture; break;
-				case 1: tex_idx = block_def.bottom_texture; break;
-				case 2: tex_idx = block_def.right_texture; break;
-				case 3: tex_idx = block_def.left_texture; break;
-				case 4: tex_idx = block_def.front_texture; break;
-				case 5: tex_idx = block_def.back_texture; break;
-				default: tex_idx = 0; break;
-			}
+	uint32_t start = static_cast<uint32_t>(mesh.vertices.size());
 
-			float u_offset = (
-				(tex_idx % atlas_props.cols) *
-				atlas_props.get_uv_width()
-			);
-			float v_offset = (
-				static_cast<int>(tex_idx / atlas_props.cols) *
-				atlas_props.get_uv_height()
-			);
+	for (int v = 0; v < 4; ++v) {
+		mesh.vertices.push_back({
+			x + face_vertices[face][v][0],
+            y + face_vertices[face][v][1],
+            z + face_vertices[face][v][2],
+            nx, ny, nz,
+            u_off + face_uvs[v][0] * atlas_props.get_u(),
+            v_off + face_uvs[v][1] * atlas_props.get_v(),
+            mat_id,
+            static_cast<float>(ao[v])
+		});
+	}
+	emit_indices(start, ao);
+}
 
-			float nx = face_normals[face][0];
-			float ny = face_normals[face][1];
-			float nz = face_normals[face][2];
+void ChunkMesher::emit_indices(uint32_t start, const uint8_t ao[4]) {
+	bool flip = (ao[0] + ao[2]) > (ao[1] + ao[3]);
 
-			compute_vertices(
-				u_offset, v_offset,
-				atlas_props, mesh,
-				px, py, pz,
-				face,
-				nx, ny, nz,
-				material_id
-			);
-
-			mesh.indices.insert(mesh.indices.end(), {
-				start_idx,
-				static_cast<uint16_t>(start_idx + 1),
-				static_cast<uint16_t>(start_idx + 2),
-				static_cast<uint16_t>(start_idx + 2),
-				static_cast<uint16_t>(start_idx + 3),
-				start_idx
-			});
-		}
+	if (flip) {
+		mesh.indices.insert(mesh.indices.end(), {
+			static_cast<uint16_t>(start),
+			static_cast<uint16_t>(start + 1),
+			static_cast<uint16_t>(start + 3),
+			static_cast<uint16_t>(start + 1),
+			static_cast<uint16_t>(start + 2),
+			static_cast<uint16_t>(start + 3),
+		});
+	} else {
+		mesh.indices.insert(mesh.indices.end(), {
+			static_cast<uint16_t>(start),
+			static_cast<uint16_t>(start + 1),
+			static_cast<uint16_t>(start + 2),
+			static_cast<uint16_t>(start + 2),
+			static_cast<uint16_t>(start + 3),
+			static_cast<uint16_t>(start),
+		});
 	}
 }
 

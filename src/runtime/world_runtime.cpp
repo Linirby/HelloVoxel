@@ -92,9 +92,8 @@ void WorldRuntime::load_unique_chunk(uint64_t key) {
 		chunk_models.erase(key);
 		return;
 	}
-	MeshData chunk_data = ChunkMesher::generate_mesh(
-		chunk_it->second, world_atlas_props
-	);
+	ChunkMesher chunk_mesher = ChunkMesher(chunk_it->second, world_atlas_props);
+	MeshData chunk_data = chunk_mesher.generate_mesh();
 	if (chunk_data.vertices.empty()) {
 		chunk_models.erase(key);
 		return;

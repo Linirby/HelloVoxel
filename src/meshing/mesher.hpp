@@ -10,37 +10,25 @@ struct AtlasProperties {
 	int cols;
 	int rows;
 
-	float get_uv_width() const;
-	float get_uv_height() const;
-	uint16_t get_index_from_pos(Vec2 pos) const;
+	float get_u() const;
+	float get_v() const;
+	
+	uint16_t get_index_from_pos(Vec2 pos);
 };
 
 class ChunkMesher {
 public:
-	static MeshData generate_mesh(
-		const Chunk &chunk, AtlasProperties atlas_props
-	);
+	ChunkMesher(const Chunk &chunk, AtlasProperties atlas_props);
+	MeshData generate_mesh();
 
 private:
-	static void compute_vertex_ao(
-		const Chunk &chunk,
-		int fx, int fy, int fz,
-		int face, int corner
-	);
-	static void compute_vertices(
-		float u_offset, float v_offset,
-		AtlasProperties atlas_props, MeshData &mesh,
-		int px, int py, int pz,
-		int face,
-		float nx, float ny, float nz,
-		float material_id
-	);
-	static void compute_faces(
-		MeshData &mesh,
-		const Chunk &chunk,
-		AtlasProperties atlas_props,
-		int x, int y, int z
-	);
+	const Chunk &chunk;
+	AtlasProperties atlas_props;
+	MeshData mesh;
+
+	void process_block(int x, int y, int z);
+	void emit_face(int x, int y, int z, int face);
+	void emit_indices(uint32_t start, const uint8_t ao[4]);
 };
 
 }  // namespace lili

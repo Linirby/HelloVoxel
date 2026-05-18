@@ -16,7 +16,7 @@ UIPipeline::UIPipeline(
 
 	SDL_GPUVertexBufferDescription vertex_buffer_desc{
 		.slot = 0,
-		.pitch = sizeof(float) * 9,
+		.pitch = sizeof(float) * 10,
 		.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
 		.instance_step_rate = 0
 	};

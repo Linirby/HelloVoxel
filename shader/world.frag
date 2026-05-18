@@ -2,6 +2,7 @@
 
 layout(location = 0) in vec2 v_uv;
 layout(location = 1) flat in uint v_material_id;
+layout(location = 2) in float v_ao;
 
 layout(set = 2, binding = 0) uniform sampler2D u_albedo_map;
 
@@ -25,8 +26,11 @@ void main() {
 	vec3 albedo = tex_color.rgb * material.color_tint.rgb;
 	vec3 emissive = albedo * material.emission;
 
+	float ao = 1.0 - (v_ao / 3.0) * 0.75;
+	vec3 ambient = albedo * ao;
+
 	out_color = vec4(
-		albedo + emissive,
+		ambient + emissive,
 		tex_color.a * material.color_tint.a
 	);
 }
