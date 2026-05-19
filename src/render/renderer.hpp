@@ -1,3 +1,4 @@
+/// Renderer interface for world and UI passes.
 #pragma once
 
 #include <SDL3/SDL.h>
@@ -20,18 +21,27 @@ namespace lili {
 
 class Renderer {
 public:
+	/// Create a renderer.
 	Renderer();
+	/// Destroy renderer resources.
 	~Renderer();
 
+	/// Bind a window to the renderer.
 	void set_window(Window *window);
+	/// Resize swapchain resources on window resize.
 	void on_window_resized(int new_width, int new_height);
 
+	/// Get the underlying GPU device.
 	SDL_GPUDevice *get_device() const;
 
+	/// Set the scene directional light.
 	void set_directional_light(Vec3 direction, Vec4 color, Vec4 ambient);
 
+	/// Begin a new frame with the given camera.
 	bool begin_frame(Camera camera);
+	/// Submit a draw call to the renderer queue.
 	void submit(const Model &model, Mat4 transform, RenderLayer layer);
+	/// End the current frame and present.
 	void end_frame();
 
 private:

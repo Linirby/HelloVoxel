@@ -1,3 +1,4 @@
+/// GPU shader wrapper.
 #pragma once
 
 #include <SDL3/SDL_gpu.h>
@@ -20,6 +21,7 @@ struct ShaderInfo {
 
 class Shader {
 public:
+	/// Create a shader from vertex and fragment SPIR-V paths.
 	Shader(
 		SDL_GPUDevice *device,
 		const std::string &vert_path,
@@ -27,9 +29,12 @@ public:
 		ShaderInfo vert_infos = {},
 		ShaderInfo frag_infos = {}
 	);
+	/// Destroy shader resources.
 	~Shader();
 
+	/// Get the compiled vertex shader.
 	SDL_GPUShader *get_vertex() const;
+	/// Get the compiled fragment shader.
 	SDL_GPUShader *get_fragment() const;
 
 private:

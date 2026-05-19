@@ -1,3 +1,4 @@
+/// Block registry and block definitions.
 #pragma once
 
 #include <cstdint>
@@ -19,17 +20,27 @@ struct BlockDefinition {
 
 class BlockRegistry {
 public:
+	/// Non-copyable.
 	BlockRegistry(const BlockRegistry&) = delete;
+	/// Non-copyable.
 	BlockRegistry& operator=(const BlockRegistry&) = delete;
+	/// Get the global block registry instance.
 	static BlockRegistry &get();
 
+	/// Register a block definition and return its ID.
 	uint16_t register_block(const std::string &key, const BlockDefinition &block);
 
+	/// Check if a block key is registered.
 	bool has_block(const std::string &key) const;
+	/// Get the number of registered blocks.
 	uint16_t get_size() const;
+	/// Get a block ID by key.
 	uint16_t get_block_id(const std::string &key) const;
+	/// Get a block definition by key.
 	const BlockDefinition &get_block(const std::string &key) const;
+	/// Get a block definition by ID.
 	const BlockDefinition &get_block(uint16_t block_id) const;
+	/// Get a block definition by ID (uint8 overload).
 	const BlockDefinition &get_block(uint8_t block_id) const;
 
 private:

@@ -1,3 +1,4 @@
+/// Model scene object.
 #pragma once
 
 #include "render/core/gpu_mesh.hpp"
@@ -9,7 +10,9 @@ struct Model {
 	GPUMesh *mesh;
 	Material *material;
 
+	/// Create an empty model.
 	Model();
+	/// Create a model from mesh and material.
 	Model(GPUMesh *mesh, Material *material);
 };
 

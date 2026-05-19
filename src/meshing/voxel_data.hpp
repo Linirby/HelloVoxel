@@ -1,3 +1,4 @@
+/// Voxel mesh data structures used by the mesher.
 #pragma once
 
 namespace lili {

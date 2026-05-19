@@ -1,3 +1,4 @@
+/// Collision helpers for voxel maps.
 #pragma once
 
 #include "geometry/vec3.hpp"
@@ -10,6 +11,7 @@ struct AABB {
 	Vec3 min;
 	Vec3 max;
 
+	/// Check intersection with another AABB.
 	bool intersect(const AABB &other) const;
 };
 

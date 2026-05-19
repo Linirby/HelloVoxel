@@ -1,3 +1,4 @@
+/// Ambient occlusion lookup data for voxel meshing.
 #pragma once
 
 namespace lili {

@@ -1,3 +1,4 @@
+/// Render layer and pass type enums.
 #pragma once
 
 #include "render/scene/model.hpp"

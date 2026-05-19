@@ -1,3 +1,4 @@
+/// Map load/save helpers.
 #pragma once
 
 #include <string>

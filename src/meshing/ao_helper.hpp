@@ -1,3 +1,4 @@
+/// Helpers for ambient occlusion calculations during meshing.
 #pragma once
 
 #include <cstdint>

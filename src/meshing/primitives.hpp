@@ -1,3 +1,4 @@
+/// Voxel face primitives for mesh generation.
 #pragma once
 
 #include <vector>

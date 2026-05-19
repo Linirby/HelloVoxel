@@ -1,3 +1,4 @@
+/// UI text scene object.
 #pragma once
 
 #include <SDL3/SDL_gpu.h>
@@ -19,13 +20,19 @@ struct GlyphUV {
 
 class BitmapFont {
 public:
+	/// Create a bitmap font.
 	BitmapFont();
+	/// Destroy the bitmap font.
 	~BitmapFont() = default;
 
+	/// Set the font atlas texture from a file path.
 	void set_atlas_map(Renderer *renderer, const std::string &path);
+	/// Set the atlas grid size (columns/rows).
 	void set_size(uint8_t cols, uint8_t rows);
 
+	/// Get the atlas texture.
 	Texture *get_texture() const;
+	/// Get UV coordinates for a glyph.
 	GlyphUV glyph_uv(char c) const;
 
 private:
@@ -36,6 +43,7 @@ private:
 
 class UIText {
 public:
+	/// Create a UI text object.
 	UIText(Renderer *renderer, BitmapFont *font, const std::string &text);
 
 	float scale = 3.0f;
@@ -43,7 +51,9 @@ public:
 	float glyph_h = 8.0f;
 	float advance = 6.0f;
 
+	/// Set the displayed text.
 	void set_text(const std::string &value);
+	/// Draw the text at a world-space position.
 	void draw(const Vec3 &position);
 
 private:

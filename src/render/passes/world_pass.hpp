@@ -1,3 +1,4 @@
+/// World render pass interface.
 #pragma once
 
 #include "render/passes/pass_types.hpp"
@@ -20,9 +21,12 @@ struct DirectionalLightGPU {
 
 class WorldPass {
 public:
+	/// Create a world render pass.
 	WorldPass(SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline);
+	/// Destroy world pass resources.
 	~WorldPass();
 
+	/// Render the world draw queue.
 	void render(
 		SDL_GPURenderPass *pass,
 		SDL_GPUCommandBuffer *cmd,

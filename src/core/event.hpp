@@ -1,3 +1,4 @@
+/// SDL event wrapper with typed accessors.
 #pragma once
 
 #include "SDL3/SDL_events.h"
@@ -62,18 +63,28 @@ struct MouseWheelEvent {
 
 class Event {
 public:
+	/// Create an event wrapper.
 	Event();
+	/// Destroy the event wrapper.
 	~Event() = default;
 
+	/// Poll the next SDL event and update cached state.
 	bool poll();
+	/// Get the current event type.
 	EventType type() const;
 
+	/// Check if a keyboard event is a fresh press.
 	bool key_just_pressed(const KeyboardEvent &keyboard) const;
+	/// Check if a mouse button event is a press.
 	bool mouse_button_pressed(const MouseButtonEvent &keyboard) const;
 
+	/// Get the current keyboard event.
 	const KeyboardEvent keyboard() const;
+	/// Get the current mouse button event.
 	const MouseButtonEvent mouse_button() const;
+	/// Get the current mouse motion event.
 	const MouseMotionEvent mouse_motion() const;
+	/// Get the current mouse wheel event.
 	const MouseWheelEvent mouse_wheel() const;
 
 private:

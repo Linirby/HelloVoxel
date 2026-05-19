@@ -1,3 +1,4 @@
+/// Chunk mesher interface.
 #pragma once
 
 #include "meshing/primitives.hpp"
@@ -10,15 +11,20 @@ struct AtlasProperties {
 	int cols;
 	int rows;
 
+	/// Get the normalized U size of a tile.
 	float get_u() const;
+	/// Get the normalized V size of a tile.
 	float get_v() const;
 	
+	/// Convert atlas grid position to a tile index.
 	uint16_t get_index_from_pos(Vec2 pos);
 };
 
 class ChunkMesher {
 public:
+	/// Create a mesher for a chunk neighborhood.
 	ChunkMesher(const ChunkNeighborhood &neighborhood, AtlasProperties atlas_props);
+	/// Generate mesh data for the neighborhood.
 	MeshData generate_mesh();
 
 private:
