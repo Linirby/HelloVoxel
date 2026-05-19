@@ -54,6 +54,10 @@ const float Clock::get_dt() const {
 	return dt;
 }
 
+const float Clock::get_alpha() const {
+	return accumulator / fixed_dt;
+}
+
 void Clock::draw_fps(Renderer *renderer, BitmapFont *font, const Vec3 pos) {
 	if (!fps_text)
 		fps_text = std::make_unique<UIText>(

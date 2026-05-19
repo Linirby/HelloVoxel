@@ -18,6 +18,7 @@ public:
 	bool step();
 	const float get_fixed_dt() const;
 	const float get_dt() const;
+	const float get_alpha() const;
 	void draw_fps(Renderer *renderer, BitmapFont *font, const Vec3 pos);
 
 private:

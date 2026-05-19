@@ -31,6 +31,8 @@ void App::init_core() {
 }
 
 void App::init_resources() {
+	clock.set_fixed_dt(1.0f / 20.0f);
+
 	lili::MaterialRegistry &material_registry = lili::MaterialRegistry::get();
 	lili::Material custom_log_mat;
 	custom_log_mat.properties.color_tint = { 0.9f, 1.0f, 0.8f, 1.0f };
@@ -158,16 +160,16 @@ void App::handle_inputs() {
 void App::update(float dt) {
 	if (window->is_relative_mouse_mode())
 		camera.process_mouse(mouse.get_dx(), mouse.get_dy());
-
-	camera.position = player.get_position();
-	camera.position.y += 1.6f;
 }
 
 void App::fixed_update(float dt) {
     player.update_physics(dt, world->get_map());
 }
 
-void App::render() {
+void App::render(float alpha) {
+	camera.position = player.get_interpolated_position(alpha);
+	camera.position.y += 1.6f;
+
 	if (!renderer->begin_frame(camera)) return;
 
 	world->draw_map();
@@ -192,6 +194,6 @@ void App::mainloop() {
             fixed_update(clock.get_fixed_dt()); 
         }
 		update(clock.get_dt());
-        render();
+        render(clock.get_alpha());
     }
 }

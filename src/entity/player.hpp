@@ -25,6 +25,7 @@ public:
 	void set_selected_block(uint16_t block);
 
 	Vec3 get_position() const;
+	Vec3 get_interpolated_position(float alpha) const;
 	float get_build_range() const;
 	uint16_t get_selected_block() const;
 	PlayerMode get_mode() const;
@@ -38,6 +39,7 @@ public:
 private:
 	Camera *camera;
 
+	Vec3 previous_position;
 	Vec3 position;
 	Vec3 velocity;
 	Vec3 direction;

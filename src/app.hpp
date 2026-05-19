@@ -73,6 +73,6 @@ private:
 	void handle_keyboard();
 	void update(float dt);
 	void fixed_update(float dt);
-	void render();
+	void render(float alpha);
 	void mainloop();
 };

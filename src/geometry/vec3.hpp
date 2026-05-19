@@ -16,7 +16,7 @@ struct Vec3 {
 	float dot(const Vec3 &o) const;
 	Vec3 cross(const Vec3 &o) const;
 	Vec3 normalized() const;
-	Vec3 lerp(const Vec3 &o) const;
+	Vec3 lerp(const Vec3 &o, float t) const;
 	float length() const;
 };
 

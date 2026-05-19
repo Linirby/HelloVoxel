@@ -63,6 +63,14 @@ Vec3 Vec3::normalized() const {
 	return *this * (1 / std::sqrt(sq_len));
 }
 
+Vec3 Vec3::lerp(const Vec3 &o, float t) const {
+	return {
+		std::lerp(x, o.x, t),
+		std::lerp(y, o.y, t),
+		std::lerp(z, o.z, t)
+	};
+}
+
 float Vec3::length() const {
 	return std::sqrt(x * x + y * y + z * z);
 }

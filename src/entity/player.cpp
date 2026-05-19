@@ -10,6 +10,8 @@ namespace lili {
 
 Player::Player() {
 	camera = nullptr;
+
+	previous_position = {};
 	position = {};
 	velocity = {};
 	direction = {};
@@ -53,6 +55,10 @@ void Player::set_selected_block(uint16_t block) {
 
 Vec3 Player::get_position() const {
 	return position;
+}
+
+Vec3 Player::get_interpolated_position(float alpha) const {
+	return previous_position.lerp(position, alpha);
 }
 
 float Player::get_build_range() const {
@@ -155,6 +161,8 @@ void Player::process_mouse(const Mouse &mouse, WorldRuntime *world) {
 }
 
 void Player::update_physics(float dt, const Map &map) {
+	previous_position = position;
+
 	if (mode == PlayerMode::Spectator) {
 		position += direction * spectator_speed * dt;
 		return;
