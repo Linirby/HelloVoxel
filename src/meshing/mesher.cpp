@@ -31,8 +31,9 @@ static uint16_t get_face_texture(const BlockDefinition &def, int face) {
 	}
 }
 
-ChunkMesher::ChunkMesher(const Chunk &chunk, AtlasProperties atlas_props) :
-	chunk(chunk), atlas_props(atlas_props) {}
+ChunkMesher::ChunkMesher(
+	const ChunkNeighborhood &neighborhood, AtlasProperties atlas_props
+) : neighborhood(neighborhood), atlas_props(atlas_props) {}
 
 MeshData ChunkMesher::generate_mesh() {
 	for (int x = 0; x < Chunk::SIZE; ++x)
@@ -43,7 +44,7 @@ MeshData ChunkMesher::generate_mesh() {
 }
 
 void ChunkMesher::process_block(int x, int y, int z) {
-	if (chunk.get_block(x, y, z) == 0)
+	if (neighborhood.get_block(x, y, z) == 0)
 		return;
 	for (int face = 0; face < 6; ++face)
 		emit_face(x, y, z, face);
@@ -54,16 +55,11 @@ void ChunkMesher::emit_face(int x, int y, int z, int face) {
 	int cy = y + face_normals[face][1];
 	int cz = z + face_normals[face][2];
 
-	bool oob = (
-		cx < 0 || cx >= Chunk::SIZE ||
-		cy < 0 || cy >= Chunk::SIZE ||
-		cz < 0 || cz >= Chunk::SIZE
-	);
-	if (!oob && chunk.get_block(cx, cy, cz) != 0)
+	if (neighborhood.get_block(cx, cy, cz) != 0)
 		return;
 
 	const BlockDefinition &def = BlockRegistry::get().get_block(
-		chunk.get_block(x, y, z)
+		static_cast<uint8_t>(neighborhood.get_block(x, y, z))
 	);
 
 	uint16_t tex_idx = get_face_texture(def, face);
@@ -75,7 +71,7 @@ void ChunkMesher::emit_face(int x, int y, int z, int face) {
 	float nz = static_cast<float>(face_normals[face][2]);
 
 	uint8_t ao[4];
-	sample_face_ao(chunk, cx, cy, cz, face, ao);
+	sample_face_ao(neighborhood, cx, cy, cz, face, ao);
 
 	uint32_t start = static_cast<uint32_t>(mesh.vertices.size());
 

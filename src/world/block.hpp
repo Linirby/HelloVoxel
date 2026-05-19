@@ -26,6 +26,7 @@ public:
 	uint16_t register_block(const std::string &key, const BlockDefinition &block);
 
 	bool has_block(const std::string &key) const;
+	uint16_t get_size() const;
 	uint16_t get_block_id(const std::string &key) const;
 	const BlockDefinition &get_block(const std::string &key) const;
 	const BlockDefinition &get_block(uint16_t block_id) const;

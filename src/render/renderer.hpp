@@ -28,6 +28,8 @@ public:
 
 	SDL_GPUDevice *get_device() const;
 
+	void set_directional_light(Vec3 direction, Vec4 color, Vec4 ambient);
+
 	bool begin_frame(Camera camera);
 	void submit(const Model &model, Mat4 transform, RenderLayer layer);
 	void end_frame();
@@ -55,6 +57,7 @@ private:
 
 	Mat4 projection_view_3d;
 	Mat4 projection_2d;
+	DirectionalLightGPU directional_light;
 
 	void init_device();
 	void init_depth_texture();

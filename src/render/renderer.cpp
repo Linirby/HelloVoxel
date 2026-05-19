@@ -20,6 +20,11 @@ Renderer::Renderer() {
 	ui_pipeline = nullptr;
 	world_pass = nullptr;
 	ui_pass = nullptr;
+	directional_light = {
+		{ 0.5f, -1.0f, 0.3f, 0.0f },
+		{ 1.0f, 0.9f, 0.8f, 0.6f },
+		{ 0.3f, 0.3f, 0.3f, 1.0f }
+	};
 }
 
 Renderer::~Renderer() {
@@ -63,6 +68,14 @@ void Renderer::on_window_resized(int new_width, int new_height) {
 
 SDL_GPUDevice *Renderer::get_device() const {
 	return device;
+}
+
+void Renderer::set_directional_light(Vec3 direction, Vec4 color, Vec4 ambient) {
+	directional_light = {
+		{ direction.x, direction.y, direction.z, 0.0f },
+		color,
+		ambient
+	};
 }
 
 bool Renderer::begin_frame(Camera camera) {
@@ -142,6 +155,7 @@ void Renderer::end_frame() {
 		main_pass,
 		current_cmd_buffer,
 		projection_view_3d,
+		directional_light,
 		world_queue
 	);
 	ui_pass->render(
@@ -213,7 +227,8 @@ void Renderer::init_shaders() {
 		},
 		(ShaderInfo){
 			.num_samplers = 1,
-			.num_storage_buffers = 1
+			.num_storage_buffers = 1,
+			.num_uniform_buffers = 1
 		}
 	);
 	ui_shader = new Shader(

@@ -12,6 +12,12 @@ struct MaterialGPU {
 	float padding;
 };
 
+struct DirectionalLightGPU {
+	Vec4 direction;
+	Vec4 color;
+	Vec4 ambient;
+};
+
 class WorldPass {
 public:
 	WorldPass(SDL_GPUDevice *device, SDL_GPUGraphicsPipeline *pipeline);
@@ -21,6 +27,7 @@ public:
 		SDL_GPURenderPass *pass,
 		SDL_GPUCommandBuffer *cmd,
 		const Mat4 &cam_proj_view,
+		const DirectionalLightGPU &light,
 		const std::vector<DrawCommand> &queue
 	);
 

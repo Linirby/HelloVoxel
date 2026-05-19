@@ -62,6 +62,7 @@ target_link_libraries(LiliWorld PRIVATE LiliGeometry)
 # Lili Meshing
 add_library(LiliMeshing STATIC
 	src/meshing/ao_helper.cpp
+	src/meshing/chunk_neighborhood.cpp
 	src/meshing/mesher.cpp
 	src/meshing/primitives.cpp
 )

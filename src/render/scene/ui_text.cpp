@@ -41,9 +41,9 @@ GlyphUV BitmapFont::glyph_uv(char c) const {
 }
 
 UIText::UIText(
-	SDL_GPUDevice *device, BitmapFont *font, const std::string &text
+	Renderer *renderer, BitmapFont *font, const std::string &text
 ) {
-	this->device = device;
+	this->renderer = renderer;
 	this->font = font;
 	this->text = text;
 	material = std::make_unique<Material>(font->get_texture());
@@ -57,7 +57,7 @@ void UIText::set_text(const std::string &value) {
 	rebuild_mesh();
 }
 
-void UIText::draw(Renderer *renderer, const Vec3 &position) {
+void UIText::draw(const Vec3 &position) {
 	if (!mesh) return;
 	Mat4 translation = Mat4::translate(position);
 	Mat4 scaling = Mat4::scale({ scale, scale, 1.0f });
@@ -119,7 +119,7 @@ void UIText::rebuild_mesh() {
 		offset_x += advance;
 	}
 
-	mesh = std::make_unique<GPUMesh>(device, mesh_data);
+	mesh = std::make_unique<GPUMesh>(renderer->get_device(), mesh_data);
 	model = Model(mesh.get(), material.get());
 }
 

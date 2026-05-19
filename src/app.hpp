@@ -61,6 +61,8 @@ private:
 	std::unique_ptr<lili::Sprite> crosshair = nullptr;
 	std::unique_ptr<lili::BitmapFont> font = nullptr;
 
+	std::unique_ptr<lili::UIText> block_id_text = nullptr;
+
 	void init_core();
 	void init_resources();
 

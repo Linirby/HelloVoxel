@@ -26,6 +26,7 @@ public:
 
 	Vec3 get_position() const;
 	float get_build_range() const;
+	uint16_t get_selected_block() const;
 	PlayerMode get_mode() const;
 
 	void process_keys(const Keyboard &keyboard);

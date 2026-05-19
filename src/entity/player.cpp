@@ -59,6 +59,10 @@ float Player::get_build_range() const {
 	return build_range;
 }
 
+uint16_t Player::get_selected_block() const {
+	return selected_block;
+}
+
 PlayerMode Player::get_mode() const {
 	return mode;
 }

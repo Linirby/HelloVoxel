@@ -32,6 +32,10 @@ bool BlockRegistry::has_block(const std::string &key) const {
 	return key_to_id.contains(key);
 }
 
+uint16_t BlockRegistry::get_size() const {
+	return id_to_block.size();
+}
+
 uint16_t BlockRegistry::get_block_id(const std::string &key) const {
 	auto it = key_to_id.find(key);
 	if (it == key_to_id.end())

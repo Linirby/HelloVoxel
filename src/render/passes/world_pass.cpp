@@ -28,6 +28,7 @@ void WorldPass::render(
 	SDL_GPURenderPass *pass,
 	SDL_GPUCommandBuffer *cmd,
 	const Mat4 &cam_proj_view,
+	const DirectionalLightGPU &light,
 	const std::vector<DrawCommand> &queue
 ) {
 	if (queue.empty()) return;
@@ -35,14 +36,21 @@ void WorldPass::render(
 	SDL_BindGPUGraphicsPipeline(pass, pipeline);
 	SDL_BindGPUFragmentStorageBuffers(pass, 0, &materials_buffer, 1);
 
+	SDL_PushGPUFragmentUniformData(cmd, 0, &light, sizeof(DirectionalLightGPU));
+
 	for (const DrawCommand &draw_cmd : queue) {
 		if (!draw_cmd.model.mesh)
-			throw std::runtime_error("WorldPass received draw command without mesh.");
+			throw std::runtime_error(
+				"WorldPass received draw command without mesh."
+			);
 		if (!draw_cmd.model.material)
-			throw std::runtime_error("WorldPass received draw command without material.");
+			throw std::runtime_error(
+				"WorldPass received draw command without material."
+			);
 		if (!draw_cmd.model.material->albedo_map) {
 			throw std::runtime_error(
-				"WorldPass received draw command with material missing albedo map."
+				"WorldPass received draw command with material "
+				"missing albedo map."
 			);
 		}
 

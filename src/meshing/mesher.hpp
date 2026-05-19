@@ -1,7 +1,7 @@
 #pragma once
 
 #include "meshing/primitives.hpp"
-#include "world/chunk.hpp"
+#include "meshing/chunk_neighborhood.hpp"
 #include "geometry/vec2.hpp"
 
 namespace lili {
@@ -18,11 +18,11 @@ struct AtlasProperties {
 
 class ChunkMesher {
 public:
-	ChunkMesher(const Chunk &chunk, AtlasProperties atlas_props);
+	ChunkMesher(const ChunkNeighborhood &neighborhood, AtlasProperties atlas_props);
 	MeshData generate_mesh();
 
 private:
-	const Chunk &chunk;
+	const ChunkNeighborhood neighborhood;
 	AtlasProperties atlas_props;
 	MeshData mesh;
 

@@ -22,6 +22,10 @@ void App::init_core() {
 	window->set_relative_mouse_mode(true);
 
 	renderer = std::make_unique<lili::Renderer>();
+	lili::Vec3 light_dir = { -0.3f, -1.0f, -0.5f };
+	lili::Vec4 light_color = { 1.0f, 0.9f, 0.8f, 0.75f };
+	lili::Vec4 light_ambient = { 0.3f, 0.3f, 0.3f, 1.0f };
+	renderer->set_directional_light(light_dir, light_color, light_ambient);
 
 	is_running = true;
 }
@@ -75,6 +79,12 @@ void App::init_resources() {
 	font = std::make_unique<lili::BitmapFont>();
 	font->set_atlas_map(renderer.get(), "assets/lili_font.png");
 	font->set_size(16, 6);
+
+	block_id_text = std::make_unique<lili::UIText>(
+		renderer.get(),
+		font.get(),
+		"Block ID:" + std::to_string(player.get_selected_block())
+	);
 }
 
 void App::handle_inputs() {
@@ -87,6 +97,28 @@ void App::handle_inputs() {
 			win_h = win_size[1];
 			renderer->on_window_resized(win_w, win_h);
 			crosshair->set_position({ win_w / 2.0f, win_h / 2.0f, 0.0f });
+		}
+
+		if (event.type() == lili::EventType::MOUSE_WHEEL) {
+			lili::MouseWheelEvent mouse_wheel = event.mouse_wheel();
+			uint16_t block = player.get_selected_block();
+			const lili::BlockRegistry &block_reg = lili::BlockRegistry::get();
+			uint16_t num_blocks = block_reg.get_size();
+			if (mouse_wheel.dy > 0) {
+				if (block + 1 >= num_blocks)
+					block = num_blocks - 1;
+				else
+					block += 1;
+			} else if (mouse_wheel.dy < 0) {
+				if (block - 1 < block_reg.get_block_id("core:debug"))
+					block = 1;
+				else
+					block -= 1;
+			}
+			player.set_selected_block(block);
+			block_id_text->set_text(
+				"Block ID:" + std::to_string(player.get_selected_block())
+			);
 		}
 	}
 	
@@ -110,7 +142,7 @@ void App::handle_inputs() {
 		player.set_camera(camera);
 	}
 	if (
-		keyboard.pressed(SDL_SCANCODE_LCTRL) &&
+		keyboard.held(SDL_SCANCODE_LCTRL) &&
 		keyboard.pressed(SDL_SCANCODE_S)
 	) {
 		world->save_map("custom_map.json");
@@ -140,7 +172,11 @@ void App::render() {
 
 	world->draw_map();
 	crosshair->draw(renderer.get());
+
 	clock.draw_fps(renderer.get(), font.get(), { 16.0f, win_h - 16.0f, 0.0f });
+
+	if (player.get_mode() == lili::PlayerMode::Builder)
+		block_id_text->draw({ 16.0f, win_h - 48.0f, 0.0f });
 
 	renderer->end_frame();
 }

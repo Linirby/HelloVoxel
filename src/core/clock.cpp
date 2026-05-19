@@ -57,10 +57,10 @@ const float Clock::get_dt() const {
 void Clock::draw_fps(Renderer *renderer, BitmapFont *font, const Vec3 pos) {
 	if (!fps_text)
 		fps_text = std::make_unique<UIText>(
-			renderer->get_device(), font, "FPS:"
+			renderer, font, "FPS:"
 		);
 	fps_text->set_text("FPS:" + std::to_string(fps));
-	fps_text->draw(renderer, pos);
+	fps_text->draw(pos);
 }
 
 }  // namespace lili

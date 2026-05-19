@@ -36,7 +36,7 @@ private:
 
 class UIText {
 public:
-	UIText(SDL_GPUDevice *device, BitmapFont *font, const std::string &text);
+	UIText(Renderer *renderer, BitmapFont *font, const std::string &text);
 
 	float scale = 3.0f;
 	float glyph_w = 5.0f;
@@ -44,10 +44,10 @@ public:
 	float advance = 6.0f;
 
 	void set_text(const std::string &value);
-	void draw(Renderer *renderer, const Vec3 &position);
+	void draw(const Vec3 &position);
 
 private:
-	SDL_GPUDevice *device = nullptr;
+	Renderer *renderer = nullptr;
 	BitmapFont *font = nullptr;
 	std::string text;
 
