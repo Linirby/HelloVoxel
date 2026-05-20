@@ -1,16 +1,30 @@
-#ifndef APP_HPP
-# define APP_HPP
+#pragma once
 
-# include <SDL3/SDL.h>
+#include <memory>
+#include <SDL3/SDL.h>
 
-# include "render/renderer.hpp"
-# include "render/camera.hpp"
-# include "render/model.hpp"
-# include "geometry/quad.hpp"
-# include "entity/player.hpp"
+#include "core/sdl_system.hpp"
+#include "core/window.hpp"
+#include "core/clock.hpp"
+#include "core/event.hpp"
+#include "core/keyboard.hpp"
+#include "core/mouse.hpp"
+
+#include "physics/collision.hpp"
+
+#include "render/renderer.hpp"
+#include "render/scene/camera.hpp"
+#include "render/scene/model.hpp"
+#include "render/scene/sprite.hpp"
+#include "render/scene/ui_text.hpp"
+
+#include "entity/player.hpp"
+
+#include "runtime/world_runtime.hpp"
 
 struct ChunkRenderData {
-	lili::Model *model = nullptr;
+	std::unique_ptr<lili::GPUMesh> mesh = nullptr;
+	std::unique_ptr<lili::Model> model = nullptr;
 	lili::Mat4 transform;
 };
 
@@ -19,46 +33,46 @@ public:
 	void run(const std::string &map_path = "assets/maps/test_01.json");
 
 private:
-	std::string map_path = "assets/maps/test_01.json";
+	std::unique_ptr<lili::SDLSystem> sdl_sys = nullptr;
+	std::unique_ptr<lili::Window> window = nullptr;
+	std::unique_ptr<lili::Renderer> renderer = nullptr;
 
-	// Core
-	SDL_Window *window = nullptr;
-	lili::Renderer *renderer = nullptr;
+	lili::Clock clock;
+	lili::Event event;
+	lili::Keyboard keyboard;
+	lili::Mouse mouse;
 
-	// Settings
+	bool is_running = false;
+
 	int win_w = 1280;
 	int win_h = 720;
 	float fov_y = 90.0f;
+
+	lili::AtlasProperties world_atlas_props;
 	
-	// Resources
-	lili::Map map;
-	lili::Texture *atlas = nullptr;
-	std::unordered_map<uint64_t, ChunkRenderData> chunk_models;
-
-	lili::Quad *crosshair = nullptr;
-
+	lili::Camera camera;
 	lili::Player player;
 	lili::RaycastResult player_raycast;
-	lili::Camera camera;
 
-	const bool *keys = nullptr;
-	const bool *last_keys = nullptr;
-	bool is_running = false;
+	std::string map_path = "assets/maps/test_01.json";
+	std::unique_ptr<lili::Texture> atlas = nullptr;
+	std::unique_ptr<lili::WorldRuntime> world = nullptr;
+
+	std::unique_ptr<lili::Sprite> crosshair = nullptr;
+	std::unique_ptr<lili::BitmapFont> font = nullptr;
+
+	std::unique_ptr<lili::UIText> block_id_text = nullptr;
 
 	void init_core();
 	void init_resources();
 
-	void update_chunk_mesh(uint64_t key);
+	void place_block(uint8_t new_block);
+	void break_block();
 
-	void handle_events();
+	void handle_inputs();
+	void handle_keyboard();
 	void update(float dt);
 	void fixed_update(float dt);
-	void render();
+	void render(float alpha);
 	void mainloop();
-
-	void cleanup_resources();
-	void cleanup_core();
-	void cleanup();
 };
-
-#endif  // APP_HPP

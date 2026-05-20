@@ -1,110 +1,215 @@
-#include <SDL3/SDL.h>
 #include "entity/player.hpp"
-#include "math/utils.hpp"
+
+#include <SDL3/SDL.h>
+#include <cmath>
+
+#include "physics/collision.hpp"
+#include "world/block.hpp"
 
 namespace lili {
 
-void Player::process_keys(
-	const bool *keys,
-	const Vec3 &cam_front, const Vec3 &cam_right, const Vec3 &cam_up,
-	float dt
-) {
+Player::Player() {
+	camera = nullptr;
+
+	previous_position = {};
+	position = {};
+	velocity = {};
+	direction = {};
+
+	jump_input = false;
+	is_running = false;
+	
+	walk_speed = 5.0f;
+	run_speed = 7.0f;
+	current_speed = 0.0f;
+	builder_speed = 8.0f;
+	spectator_speed = 15.0f;
+
+	ground_control = 15.0f;
+	air_control = 4.0f;
+
+	jump_power = 8.0f;
+	gravity = -25.0f;
+	is_grounded = false;
+
+	width = 0.8f;
+	height = 1.8f;
+
+	build_range = 12.0f;
+	selected_block = 1;
+
+	mode = PlayerMode::Physical;
+}
+
+void Player::set_position(const Vec3 &pos) {
+	position = pos;
+}
+
+void Player::set_camera(Camera &camera) {
+	this->camera = &camera;
+}
+
+void Player::set_selected_block(uint16_t block) {
+	selected_block = block;
+}
+
+Vec3 Player::get_position() const {
+	return position;
+}
+
+Vec3 Player::get_interpolated_position(float alpha) const {
+	return previous_position.lerp(position, alpha);
+}
+
+float Player::get_build_range() const {
+	return build_range;
+}
+
+uint16_t Player::get_selected_block() const {
+	return selected_block;
+}
+
+PlayerMode Player::get_mode() const {
+	return mode;
+}
+
+void Player::process_keys(const Keyboard &keyboard) {
+	direction = {};
+	is_running = false;
+	jump_input = false;
+	if (camera == nullptr) return;
+
 	if (mode == PlayerMode::Spectator) {
-		float current_speed = spectator_speed * dt;
-
-		if (keys[SDL_SCANCODE_W]) position += cam_front * current_speed;
-		if (keys[SDL_SCANCODE_S]) position -= cam_front * current_speed;
-		if (keys[SDL_SCANCODE_D]) position += cam_right * current_speed;
-		if (keys[SDL_SCANCODE_A]) position -= cam_right * current_speed;
-
-		if (keys[SDL_SCANCODE_SPACE]) position += cam_up * current_speed;
-		if (keys[SDL_SCANCODE_LSHIFT]) position -= cam_up * current_speed;
-
-		return;
-	}
-	else if (mode == PlayerMode::Builder) {
-		float current_speed = builder_speed * dt;
-
-		Vec3 flat_front = Vec3{ cam_front.x, 0.0f, cam_front.z }.normalized();
-		Vec3 flat_right = Vec3{ cam_right.x, 0.0f, cam_right.z }.normalized();
-		Vec3 flat_up = Vec3{ 0.0f, cam_up.y, 0.0f }.normalized();
-
-		if (keys[SDL_SCANCODE_W]) position += flat_front * current_speed;
-		if (keys[SDL_SCANCODE_S]) position -= flat_front * current_speed;
-		if (keys[SDL_SCANCODE_D]) position += flat_right * current_speed;
-		if (keys[SDL_SCANCODE_A]) position -= flat_right * current_speed;
-
-		if (keys[SDL_SCANCODE_SPACE]) position += flat_up * current_speed;
-		if (keys[SDL_SCANCODE_LSHIFT]) position -= flat_up * current_speed;
-
+		if (keyboard.held(SDL_SCANCODE_W)) direction += camera->front;
+		if (keyboard.held(SDL_SCANCODE_S)) direction -= camera->front;
+		if (keyboard.held(SDL_SCANCODE_D)) direction += camera->right;
+		if (keyboard.held(SDL_SCANCODE_A)) direction -= camera->right;
+		if (keyboard.held(SDL_SCANCODE_SPACE)) direction += camera->up;
+		if (keyboard.held(SDL_SCANCODE_LSHIFT)) direction -= camera->up;
 		return;
 	}
 
-	Vec3 flat_front = Vec3{ cam_front.x, 0.0f, cam_front.z }.normalized();
-	Vec3 flat_right = Vec3{ cam_right.x, 0.0f, cam_right.z }.normalized();
+	if (mode == PlayerMode::Builder) {
+		Vec3 front = Vec3{
+			camera->front.x, 0.0f, camera->front.z
+		}.normalized();
+		Vec3 right = Vec3{
+			camera->right.x, 0.0f, camera->right.z
+		}.normalized();
+		Vec3 up = Vec3{ 0.0f, camera->up.y, 0.0f }.normalized();
 
-	Vec3 move_dir = Vec3{ 0.0f, 0.0f, 0.0f };
-	if (keys[SDL_SCANCODE_W]) move_dir += flat_front;
-	if (keys[SDL_SCANCODE_S]) move_dir -= flat_front;
-	if (keys[SDL_SCANCODE_D]) move_dir += flat_right;
-	if (keys[SDL_SCANCODE_A]) move_dir -= flat_right;
+		if (keyboard.held(SDL_SCANCODE_W)) direction += front;
+		if (keyboard.held(SDL_SCANCODE_S)) direction -= front;
+		if (keyboard.held(SDL_SCANCODE_D)) direction += right;
+		if (keyboard.held(SDL_SCANCODE_A)) direction -= right;
+		if (keyboard.held(SDL_SCANCODE_SPACE)) direction += up;
+		if (keyboard.held(SDL_SCANCODE_LSHIFT)) direction -= up;
+		return;
+	}
 
-	float current_speed = (
-		keys[SDL_SCANCODE_LSHIFT] && keys[SDL_SCANCODE_W] ?
-		run_speed : walk_speed
+	Vec3 flat_front = Vec3{
+		camera->front.x, 0.0f, camera->front.z
+	}.normalized();
+	Vec3 flat_right = Vec3{
+		camera->right.x, 0.0f, camera->right.z
+	}.normalized();
+
+	if (keyboard.held(SDL_SCANCODE_W)) direction += flat_front;
+	if (keyboard.held(SDL_SCANCODE_S)) direction -= flat_front;
+	if (keyboard.held(SDL_SCANCODE_D)) direction += flat_right;
+	if (keyboard.held(SDL_SCANCODE_A)) direction -= flat_right;
+
+	is_running = (
+		keyboard.held(SDL_SCANCODE_LSHIFT) && keyboard.held(SDL_SCANCODE_W)
 	);
+	jump_input = keyboard.held(SDL_SCANCODE_SPACE);
+}
 
-	float target_vel_x = 0.0f;
-	float target_vel_z = 0.0f;
-	// Removed because want faster diagonals
-	// move_dir = move_dir.normalized();
-	target_vel_x = move_dir.x * current_speed;
-	target_vel_z = move_dir.z * current_speed;
+void Player::process_mouse(const Mouse &mouse, WorldRuntime *world) {
+	BlockRegistry &block_registry = BlockRegistry::get();
 
-	float control_speed = is_grounded ? ground_control : air_control;
-
-	velocity.x += (target_vel_x - velocity.x) * control_speed * dt;
-	velocity.z += (target_vel_z - velocity.z) * control_speed * dt;
-
-	if (keys[SDL_SCANCODE_SPACE] && is_grounded) {
-		velocity.y = jump_power;
-		is_grounded = false;
+	if (mouse.pressed(lili::MouseButton::LEFT)) {
+		RaycastResult raycast = lili::raycast_voxel(
+			camera->position,
+			camera->front,
+			get_build_range(),
+			world->get_map()
+		);
+		if (raycast.hit) {
+			world->remove_block({
+				static_cast<float>(raycast.hit_x),
+				static_cast<float>(raycast.hit_y),
+				static_cast<float>(raycast.hit_z)
+			});
+		}
+	}
+	else if (mouse.pressed(lili::MouseButton::RIGHT)) {
+		RaycastResult raycast = lili::raycast_voxel(
+			camera->position,
+			camera->front,
+			get_build_range(),
+			world->get_map()
+		);
+		if (raycast.hit) {
+			world->add_block(selected_block, {
+				static_cast<float>(raycast.adj_x),
+				static_cast<float>(raycast.adj_y),
+				static_cast<float>(raycast.adj_z)
+			});
+		}
 	}
 }
 
-void Player::update_physics(float dt, Map &map) {
-	if (mode == PlayerMode::Spectator || mode == PlayerMode::Builder) return;
+void Player::update_physics(float dt, const Map &map) {
+	previous_position = position;
 
+	if (mode == PlayerMode::Spectator) {
+		position += direction * spectator_speed * dt;
+		return;
+	}
+
+	if (mode == PlayerMode::Builder) {
+		position += direction * builder_speed * dt;
+		return;
+	}
+
+	float speed = is_running ? run_speed : walk_speed;
+	float control = is_grounded ? ground_control : air_control;
+	velocity.x += (direction.x * speed - velocity.x) * control * dt;
+	velocity.z += (direction.z * speed - velocity.z) * control * dt;
+
+	if (jump_input && is_grounded) {
+		velocity.y = jump_power;
+		is_grounded = false;
+	}
 	velocity.y += gravity * dt;
 	
 	Vec3 next_x = position;
 	next_x.x += velocity.x * dt;
-	if (!check_collision(next_x, map)) {
+	if (!check_collision(next_x, map))
 		position.x = next_x.x;
-	} else {
+	else
 		velocity.x = 0.0f;
-	}
 
 	Vec3 next_y = position;
 	next_y.y += velocity.y * dt;
 	is_grounded = false;
-	if (!check_collision(next_y, map)) {
+	if (!check_collision(next_y, map))
 		position.y = next_y.y;
-	} else {
+	else {
 		if (velocity.y < 0.0f) {
 			is_grounded = true;
-			position.y = lili::floor(position.y);
+			position.y = std::floor(position.y);
 		}
 		velocity.y = 0.0f;
 	}
 
 	Vec3 next_z = position;
 	next_z.z += velocity.z * dt;
-	if (!check_collision(next_z, map)) {
+	if (!check_collision(next_z, map))
 		position.z = next_z.z;
-	} else {
+	else
 		velocity.z = 0.0f;
-	}
 }
 
 void Player::toggle_spectator() {
@@ -112,21 +217,19 @@ void Player::toggle_spectator() {
 		mode = PlayerMode::Spectator;
 		position.y += 0.5f;
 		velocity = Vec3{ 0.0f, 0.0f, 0.0f };
-	} else {
+	} else
 		mode = PlayerMode::Physical;
-	}
 }
 
 void Player::toggle_builder() {
 	if (mode != PlayerMode::Builder) {
 		mode = PlayerMode::Builder;
 		velocity = Vec3{ 0.0f, 0.0f, 0.0f };
-	} else {
+	} else
 		mode = PlayerMode::Physical;
-	}
 }
 
-bool Player::check_collision(const Vec3 &test_pos, Map &map) const {
+bool Player::check_collision(const Vec3 &test_pos, const Map &map) const {
 	float pad = 0.05f;
 
 	Vec3 min = {
@@ -140,12 +243,11 @@ bool Player::check_collision(const Vec3 &test_pos, Map &map) const {
 		test_pos.z + (width / 2.0f) - pad
 	};
 
-	for (int x = lili::floor(min.x); x <= lili::floor(max.x); ++x) {
-		for (int y = lili::floor(min.y); y <= lili::floor(max.y); ++y) {
-			for (int z = lili::floor(min.z); z <= lili::floor(max.z); ++z) {
-				if (map.get_block_global(x, y, z) != 0) {
+	for (int x = std::floor(min.x); x <= std::floor(max.x); ++x) {
+		for (int y = std::floor(min.y); y <= std::floor(max.y); ++y) {
+			for (int z = std::floor(min.z); z <= std::floor(max.z); ++z) {
+				if (map.get_block_global(x, y, z) != 0)
 					return true;
-				}
 			}
 		}
 	}

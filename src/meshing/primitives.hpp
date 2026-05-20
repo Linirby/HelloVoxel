@@ -1,0 +1,24 @@
+/// Voxel face primitives for mesh generation.
+#pragma once
+
+#include <vector>
+#include <cstdint>
+
+namespace lili {
+
+struct Vertex {
+	float x, y, z;
+	float nx, ny, nz;
+	float u, v;
+	float material_id;
+	float ao;
+};
+
+struct MeshData {
+	std::vector<Vertex> vertices;
+	std::vector<uint32_t> indices;
+};
+
+MeshData create_unit_quad();
+
+}  // namespace lili

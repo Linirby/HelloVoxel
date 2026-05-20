@@ -1,60 +1,143 @@
 cmake_minimum_required(VERSION 3.16)
 project(HelloVoxel)
 
-set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(SDL3 REQUIRED CONFIG)
 find_package(SDL3_image REQUIRED CONFIG)
 
-# Lili Math
-add_library(LiliMath STATIC
-	src/math/mat4x4.cpp
-	src/math/vec3.cpp
+# ==============================================================================
+#  > TIER 1
+# ==============================================================================
+
+# Lili Core
+add_library(LiliCore STATIC
+	src/core/clock.cpp
+	src/core/sdl_system.cpp
+	src/core/window.cpp
+	src/core/event.cpp
+	src/core/keyboard.cpp
+	src/core/mouse.cpp
 )
-target_include_directories(LiliMath PUBLIC src)
+target_include_directories(LiliCore PUBLIC src)
+target_link_libraries(LiliCore PRIVATE SDL3::SDL3)
 
 # Lili Geometry
 add_library(LiliGeometry STATIC
-	src/geometry/block.cpp
-	src/geometry/chunk.cpp
-	src/geometry/mesher.cpp
-	src/geometry/primitives.cpp
-	src/geometry/quad.cpp
+	src/geometry/mat4x4.cpp
+	src/geometry/vec2.cpp
+	src/geometry/vec3.cpp
+	src/geometry/vec4.cpp
 )
 target_include_directories(LiliGeometry PUBLIC src)
-target_link_libraries(LiliGeometry PRIVATE LiliMath)
+
+# ==============================================================================
+#  > TIER 2
+# ==============================================================================
+
+# Lili Physics
+add_library(LiliPhysics STATIC
+	src/physics/collision.cpp
+)
+target_include_directories(LiliPhysics PUBLIC src)
+target_link_libraries(LiliPhysics PRIVATE LiliGeometry)
+
+# Lili World
+add_library(LiliWorld STATIC
+	src/world/block.cpp
+	src/world/chunk.cpp
+	src/world/map.cpp
+	src/world/map_manager.cpp
+	src/world/material.cpp
+	src/world/texture_registry.cpp
+)
+target_include_directories(LiliWorld PUBLIC src)
+target_link_libraries(LiliWorld PRIVATE LiliGeometry)
+
+# ==============================================================================
+#  > TIER 3
+# ==============================================================================
+
+# Lili Meshing
+add_library(LiliMeshing STATIC
+	src/meshing/ao_helper.cpp
+	src/meshing/chunk_neighborhood.cpp
+	src/meshing/mesher.cpp
+	src/meshing/primitives.cpp
+)
+target_include_directories(LiliMeshing PUBLIC src)
+target_link_libraries(LiliMeshing PRIVATE LiliWorld)
+
+# ==============================================================================
+#  > TIER 4
+# ==============================================================================
 
 # Lili Render
 add_library(LiliRender STATIC
-	src/render/gpu_mesh.cpp
-	src/render/camera.cpp
 	src/render/renderer.cpp
-	src/render/shader.cpp
-	src/render/texture.cpp
-	src/render/model.cpp
+
+	src/render/core/gpu_mesh.cpp
+	src/render/core/shader.cpp
+	src/render/core/texture.cpp
+
+	src/render/passes/world_pass.cpp
+	src/render/passes/ui_pass.cpp
+
+	src/render/pipelines/ui_pipeline.cpp
+	src/render/pipelines/world_pipeline.cpp
+
+	src/render/scene/camera.cpp
+	src/render/scene/model.cpp
+	src/render/scene/sprite.cpp
+	src/render/scene/ui_text.cpp
 )
 target_include_directories(LiliRender PUBLIC src)
-target_link_libraries(LiliRender PRIVATE LiliGeometry)
+target_link_libraries(LiliRender PRIVATE
+	LiliGeometry
+	LiliMeshing
+	SDL3::SDL3
+	SDL3_image::SDL3_image
+)
+
+add_library(LiliRuntime STATIC
+	src/runtime/world_runtime.cpp
+)
+target_include_directories(LiliRuntime PUBLIC src)
+target_link_libraries(LiliRuntime PRIVATE
+	LiliGeometry
+	LiliMeshing
+	LiliWorld
+	LiliRender
+)
 
 # Lili Entity
 add_library(LiliEntity STATIC
 	src/entity/player.cpp
 )
 target_include_directories(LiliEntity PUBLIC src)
-target_link_libraries(LiliRender PRIVATE LiliMath)
+target_link_libraries(LiliEntity PRIVATE
+	LiliGeometry
+	LiliPhysics
+	LiliWorld
+	LiliRuntime
+)
+
+# ==============================================================================
+#  > TIER 5
+# ==============================================================================
 
 # Main App
 add_executable(${PROJECT_NAME}
 	src/main.cpp
 	src/app.cpp
-	src/map.cpp
-	src/map_manager.cpp
 )
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 target_link_libraries(${PROJECT_NAME} PRIVATE
-	LiliRender
+	LiliCore
+	LiliWorld
+	LiliPhysics
 	LiliEntity
+	LiliRuntime
 	SDL3::SDL3
-	SDL3_image::SDL3_image
 )
