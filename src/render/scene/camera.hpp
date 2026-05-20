@@ -2,9 +2,18 @@
 #pragma once
 
 #include "geometry/vec3.hpp"
+#include "geometry/vec4.hpp"
 #include "geometry/mat4x4.hpp"
+#include "physics/collision.hpp"
 
 namespace lili {
+
+struct Frustum {
+	Vec4 planes[6];
+
+	/// Check box intersection with the frustum.
+	bool contains(const AABB &box) const;
+};
 
 class Camera {
 public:
@@ -34,6 +43,10 @@ public:
 	void process_mouse(float offset_x, float offset_y);
 	/// Build the view matrix.
 	Mat4 get_view_matrix() const;
+	/// Get projection
+	Mat4 get_projection(float aspect_ratio) const;
+	/// Get the frustum faces.
+	Frustum get_frustum(float aspect_ratio) const;
 
 private:
 	void update_vectors();

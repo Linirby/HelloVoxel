@@ -20,6 +20,8 @@ struct Map : public IVoxelWorld {
 	uint8_t get_block_global(int x, int y, int z) const;
 	/// Compute a chunk key from chunk coordinates.
 	uint64_t get_chunk_key(int x, int y, int z) const;
+	/// Get chunk coordinates in world.
+	void get_chunk_coordinates(uint64_t key, int &x, int &y, int &z) const;
 
 	/// Check if a voxel is solid at the given coordinates.
 	bool is_solid_at(int x, int y, int z) const override;

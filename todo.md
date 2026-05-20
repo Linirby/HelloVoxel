@@ -4,4 +4,4 @@
 
 - [x] Swappable block on build mode
 - [x] Adding Ambient Occlusion
-- [ ] Add frustum culling
+- [x] Add frustum culling

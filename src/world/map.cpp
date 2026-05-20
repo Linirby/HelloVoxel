@@ -43,6 +43,12 @@ uint64_t Map::get_chunk_key(int x, int y, int z) const {
 	);
 }
 
+void Map::get_chunk_coordinates(uint64_t key, int &x, int &y, int &z) const {
+	x = static_cast<int16_t>((key >> 32) & 0xFFFF);
+	y = static_cast<int16_t>((key >> 16) & 0xFFFF);
+	z = static_cast<int16_t>(key & 0xFFFF);
+}
+
 bool Map::is_solid_at(int x, int y, int z) const {
 	return get_block_global(x, y, z) != 0;
 }

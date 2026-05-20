@@ -20,6 +20,7 @@ struct ChunkRenderData {
 	std::unique_ptr<GPUMesh> mesh = nullptr;
 	std::unique_ptr<Model> model = nullptr;
 	Mat4 transform;
+	AABB bounds;
 };
 
 class WorldRuntime {
@@ -39,7 +40,7 @@ public:
 	/// Save the current map to disk.
 	void save_map(const std::string &file_name);
 	/// Submit all chunks for rendering.
-	void draw_map();
+	void draw_map(const Camera &camera, float aspect_ratio);
 	/// Clear chunk render data.
 	void clear_map();
 

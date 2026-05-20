@@ -55,8 +55,11 @@ void WorldRuntime::save_map(const std::string &file_name) {
 	lili::save_map(file_name, map);
 }
 
-void WorldRuntime::draw_map() {
+void WorldRuntime::draw_map(const Camera &camera, float aspect_ratio) {
+	lili::Frustum frustum = camera.get_frustum(aspect_ratio);
 	for (const auto &data : chunk_models) {
+		if (!frustum.contains(data.second.bounds))
+			continue;
 		renderer->submit(
 			*data.second.model,
 			data.second.transform,
@@ -140,7 +143,10 @@ void WorldRuntime::load_unique_chunk(uint64_t key) {
 		static_cast<float>(chunk_z * Chunk::SIZE)
 	});
 	chunk_models[key] = ChunkRenderData{
-		std::move(chunk_mesh), std::move(chunk_model), transform
+		std::move(chunk_mesh),
+		std::move(chunk_model),
+		transform,
+		chunk_it->second.get_bounds(chunk_x, chunk_y, chunk_z)
 	};
 }
 

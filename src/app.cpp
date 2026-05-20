@@ -172,7 +172,7 @@ void App::render(float alpha) {
 
 	if (!renderer->begin_frame(camera)) return;
 
-	world->draw_map();
+	world->draw_map(camera, (float)win_w / (float)win_h);
 	crosshair->draw(renderer.get());
 
 	clock.draw_fps(renderer.get(), font.get(), { 16.0f, win_h - 16.0f, 0.0f });
@@ -184,16 +184,16 @@ void App::render(float alpha) {
 }
 
 void App::mainloop() {
-    while (is_running) {
+	while (is_running) {
 		clock.update();
 		keyboard.update();
 		mouse.update();
 
-        handle_inputs();
-        while (clock.step()) {
-            fixed_update(clock.get_fixed_dt()); 
-        }
+		handle_inputs();
+		while (clock.step()) {
+			fixed_update(clock.get_fixed_dt()); 
+		}
 		update(clock.get_dt());
-        render(clock.get_alpha());
-    }
+		render(clock.get_alpha());
+	}
 }
