@@ -3,7 +3,7 @@
 HelloVoxel is my long-term portfolio project: a C++ voxel engine focused on
 **creator-friendly building** and practical workflows for making games.
 
-<img width="400" height="225" alt="engine_demo" src="https://github.com/Linirby/HelloVoxel/blob/main/assets/demo/demo_screenshot.png" />
+<img width="400" height="225" alt="engine_demo" src="https://github.com/Linirby/HelloVoxel/blob/main/assets/demo/demo.png" />
 
 ## Vision
 
