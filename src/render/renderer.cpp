@@ -130,7 +130,7 @@ void Renderer::submit(const Model &model, Mat4 transform, RenderLayer layer) {
 void Renderer::end_frame() {
 	SDL_GPUColorTargetInfo color_target_info{
 		.texture = current_swapchain_texture,
-		.clear_color = SDL_FColor{ 0.1f, 0.1f, 0.1f, 1.0f },
+		.clear_color = SDL_FColor{ 0.5f, 0.8f, 1.0f, 1.0f },
 		.load_op = SDL_GPU_LOADOP_CLEAR,
 		.store_op = SDL_GPU_STOREOP_STORE,
 	};

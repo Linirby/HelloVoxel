@@ -50,6 +50,15 @@ void App::init_resources() {
 		.left_texture = world_atlas_props.get_index_from_pos({ 1, 1 }),
 		.material_id = material_registry.get_material_id("custom:log_mat")
 	});
+	block_registry.register_block("custom:grass", {
+		.top_texture = world_atlas_props.get_index_from_pos({ 0, 2 }),
+		.bottom_texture = world_atlas_props.get_index_from_pos({ 1, 2 }),
+		.front_texture = world_atlas_props.get_index_from_pos({ 2, 2 }),
+		.right_texture = world_atlas_props.get_index_from_pos({ 2, 2 }),
+		.back_texture = world_atlas_props.get_index_from_pos({ 2, 2 }),
+		.left_texture = world_atlas_props.get_index_from_pos({ 2, 2 }),
+		.material_id = 0
+	});
 	// After window is linked to the register no material can be add without a
 	// new pass to update material list for the GPU
 	renderer->set_window(window.get());

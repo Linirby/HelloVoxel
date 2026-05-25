@@ -118,6 +118,7 @@ void Player::process_keys(const Keyboard &keyboard) {
 	if (keyboard.held(SDL_SCANCODE_S)) direction -= flat_front;
 	if (keyboard.held(SDL_SCANCODE_D)) direction += flat_right;
 	if (keyboard.held(SDL_SCANCODE_A)) direction -= flat_right;
+	direction = (Vec3){ direction.x, 0.0f, direction.z }.normalized();
 
 	is_running = (
 		keyboard.held(SDL_SCANCODE_LSHIFT) && keyboard.held(SDL_SCANCODE_W)
