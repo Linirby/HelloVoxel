@@ -1,19 +1,10 @@
 # HelloVoxel
 
-HelloVoxel is my long-term portfolio project: a C++ voxel engine focused on
-**creator-friendly building** and practical workflows for making games.
+HelloVoxel is a C++ voxel engine focused on **creator-friendly building** and practical workflows for making games.
 
 <img width="400" height="225" alt="engine_demo" src="https://github.com/Linirby/HelloVoxel/blob/main/assets/demo/demo.png" />
 
-## Vision
-
-Build a voxel engine + editor that feels **programmable** and **easy to use**.
-
-The direction is command-first: creators should be able to build and configure
-levels through an in-engine chat/console, without relying on a heavy traditional
-editor UI.
-
-## What you can do today
+## What you can do
 
 - Explore a 3D voxel world
 - Switch movement modes:
