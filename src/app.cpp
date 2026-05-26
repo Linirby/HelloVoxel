@@ -41,15 +41,47 @@ void App::init_resources() {
 	world_atlas_props = { .cols = 8, .rows = 8 };
 
 	lili::BlockRegistry &block_registry = lili::BlockRegistry::get();
-	block_registry.register_block("custom:log", {
-		.top_texture = world_atlas_props.get_index_from_pos({ 0, 1 }),
-		.bottom_texture = world_atlas_props.get_index_from_pos({ 0, 1 }),
-		.front_texture = world_atlas_props.get_index_from_pos({ 1, 1 }),
-		.right_texture = world_atlas_props.get_index_from_pos({ 1, 1 }),
-		.back_texture = world_atlas_props.get_index_from_pos({ 1, 1 }),
-		.left_texture = world_atlas_props.get_index_from_pos({ 1, 1 }),
-		.material_id = material_registry.get_material_id("custom:log_mat")
+	uint16_t log_top = world_atlas_props.get_index_from_pos({ 0, 1 });
+	uint16_t log_side = world_atlas_props.get_index_from_pos({ 1, 1 });
+	uint16_t log_mat = material_registry.get_material_id("custom:log_mat");
+
+	uint16_t id_log_y = block_registry.register_block("custom:log_y", {
+		.top_texture = log_top,
+		.bottom_texture = log_top,
+		.front_texture = log_side,
+		.right_texture = log_side,
+		.back_texture = log_side,
+		.left_texture = log_side,
+		.material_id = log_mat
 	});
+	uint16_t id_log_x = block_registry.register_block("custom:log_x", {
+		.top_texture = log_side,
+		.bottom_texture = log_side,
+		.front_texture = log_side,
+		.right_texture = log_top,
+		.back_texture = log_side,
+		.left_texture = log_top,
+		.material_id = log_mat
+	});
+	uint16_t id_log_z = block_registry.register_block("custom:log_z", {
+		.top_texture = log_side,
+		.bottom_texture = log_side,
+		.front_texture = log_top,
+		.right_texture = log_side,
+		.back_texture = log_top,
+		.left_texture = log_side,
+		.material_id = log_mat
+	});
+	block_registry.set_rotation_variants(
+		id_log_y, id_log_x, id_log_y, id_log_z
+	);
+	block_registry.set_rotation_variants(
+		id_log_x, id_log_x, id_log_y, id_log_z
+	);
+	block_registry.set_rotation_variants(
+		id_log_z, id_log_x, id_log_y, id_log_z
+	);
+
 	block_registry.register_block("custom:grass", {
 		.top_texture = world_atlas_props.get_index_from_pos({ 0, 2 }),
 		.bottom_texture = world_atlas_props.get_index_from_pos({ 1, 2 }),
@@ -70,7 +102,7 @@ void App::init_resources() {
 	player = lili::Player();
 	player.set_position({ 0.5f, 3.0f, 0.5f });
 	player.set_camera(camera);
-	player.set_selected_block(block_registry.get_block_id("custom:log"));
+	player.set_selected_block(block_registry.get_block_id("custom:log_y"));
 
 	world = std::make_unique<lili::WorldRuntime>();
 	world->set_atlas_map(

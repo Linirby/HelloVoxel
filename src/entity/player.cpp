@@ -152,7 +152,25 @@ void Player::process_mouse(const Mouse &mouse, WorldRuntime *world) {
 			world->get_map()
 		);
 		if (raycast.hit) {
-			world->add_block(selected_block, {
+			uint16_t place_block = selected_block;
+
+			const BlockDefinition &def = block_registry.get_block(
+				static_cast<uint8_t>(selected_block)
+			);
+			if (def.rotatable) {
+				int dx = raycast.adj_x - raycast.hit_x;
+				int dz = raycast.adj_z - raycast.hit_z;
+
+				if (std::abs(dx) == 1) {
+					place_block = def.x_variant;
+				} else if (std::abs(dz) == 1) {
+					place_block = def.z_variant;
+				} else {
+					place_block = def.y_variant;
+				}
+			}
+
+			world->add_block(place_block, {
 				static_cast<float>(raycast.adj_x),
 				static_cast<float>(raycast.adj_y),
 				static_cast<float>(raycast.adj_z)

@@ -28,6 +28,15 @@ uint16_t BlockRegistry::register_block(
 	return new_id;
 }
 
+void BlockRegistry::set_rotation_variants(uint16_t block_id, uint16_t x, uint16_t y, uint16_t z) {
+	if (block_id < id_to_block.size()) {
+		id_to_block[block_id].rotatable = true;
+		id_to_block[block_id].x_variant = x;
+		id_to_block[block_id].y_variant = y;
+		id_to_block[block_id].z_variant = z;
+	}
+}
+
 bool BlockRegistry::has_block(const std::string &key) const {
 	return key_to_id.contains(key);
 }

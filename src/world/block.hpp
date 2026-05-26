@@ -16,6 +16,12 @@ struct BlockDefinition {
 	uint16_t back_texture = 0;
 	uint16_t left_texture = 0;
 	uint16_t material_id = 0;
+
+	// Rotation properties
+	bool rotatable = false;
+	uint16_t x_variant = 0;
+	uint16_t y_variant = 0;
+	uint16_t z_variant = 0;
 };
 
 class BlockRegistry {
@@ -29,6 +35,9 @@ public:
 
 	/// Register a block definition and return its ID.
 	uint16_t register_block(const std::string &key, const BlockDefinition &block);
+
+	/// Set rotation variants for a block after registration.
+	void set_rotation_variants(uint16_t block_id, uint16_t x, uint16_t y, uint16_t z);
 
 	/// Check if a block key is registered.
 	bool has_block(const std::string &key) const;
